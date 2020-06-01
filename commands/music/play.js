@@ -35,7 +35,7 @@ module.exports = class PlayCommand extends Command {
     const trackExtractor = new TrackExtractor(args.input)
     if (trackExtractor.parseLinks()) {
       const links = await trackExtractor.getAllLinkInfo()
-      state.queue.push(...links.map(l => l.setRequestee(requestee).setQuery(`${l.artists} ${l.title}`.trim())))
+      state.queue.push(...links.map(l => l.setRequestee(requestee).setQuery(`${l.artists} ${l.title} official audio`.trim())))
 
       msg.react("▶️")
     }
