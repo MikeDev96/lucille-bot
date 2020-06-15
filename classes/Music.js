@@ -86,10 +86,7 @@ module.exports = class {
 
         if (this.state.queue.length < 1) {
           this.state.voiceConnection.disconnect()
-          this.state.voiceConnection = null
-          this.state.voiceChannel = null
-          this.state.joinState = 0
-          this.state.messagePump.clear()
+          this.cleanUp()
         }
         else {
           this.searchAndPlay()
@@ -102,6 +99,13 @@ module.exports = class {
     })
 
     this.updateEmbed()
+  }
+
+  cleanUp () {
+    this.state.voiceConnection = null
+    this.state.voiceChannel = null
+    this.state.joinState = 0
+    this.state.messagePump.clear()
   }
 
   updateEmbed () {

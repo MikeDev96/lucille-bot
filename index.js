@@ -17,6 +17,8 @@ const client = new Commando.CommandoClient({
 
 client.registry
   .registerGroup("music", "Music")
+  .registerGroup("whitelist", "Whitelist")
+  .registerGroup("misc", "Miscellaneous")
   .registerDefaults()
   .registerCommandsIn(path.join(__dirname, "commands"))
 

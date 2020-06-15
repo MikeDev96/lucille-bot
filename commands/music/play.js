@@ -70,6 +70,11 @@ module.exports = class PlayCommand extends Command {
           state.voiceChannel = voiceChannel
           state.voiceConnection = connection
 
+          state.voiceConnection.on("disconnect", () => {
+            state.queue.splice(0, state.queue.length)
+            msg.channel.guild.lucille.cleanUp()
+          })
+
           msg.channel.guild.lucille.searchAndPlay(state)
         }).catch(err => {
           state.joinState = 0
