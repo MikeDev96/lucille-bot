@@ -205,8 +205,6 @@ module.exports = class {
         this.notify(oldMember.guild.systemChannel, displayName, isServer, "AFK", afkCheck[1])
       }
 
-      console.log([serverId, server, userId, displayName])
-
       this.db.get("servers")
         .set(serverId, server)
         .write()
@@ -218,7 +216,7 @@ module.exports = class {
   }
 
   formatMs (ms) {
-    return `${humanizeDuration(this.round1000(ms))}${ms < 1000 ? ` (${ms})` : ""}`
+    return `${humanizeDuration(this.round1000(ms))}`
   }
 
   async notify (channel, displayName, isServer, method, duration) {
@@ -304,7 +302,7 @@ module.exports = class {
 
   round1000 (num) {
     if (num < 1000) {
-      return Math.round(num / 100) * 100
+      return Math.ceil(num / 100) * 100
     }
 
     return Math.round(num / 1000) * 1000

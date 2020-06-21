@@ -169,7 +169,7 @@ module.exports = class {
             }] : [],
           ],
           footer: {
-            text: "Created by Migul",
+            text: "Created with ♥ by Migul",
             icon_url: config.discord.authorAvatarUrl,
           },
         },

@@ -14,6 +14,8 @@ module.exports = class extends Command {
   }
 
   async run (msg, args) {
+    msg.react("🏆")
+
     if (msg.client.voiceTracker) {
       const leaderboard = msg.client.voiceTracker.getLeaderboard(msg.guild.id, { username: msg.author.displayName, avatarURL: msg.author.displayAvatarURL() })
       if (leaderboard) {
