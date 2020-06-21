@@ -2,6 +2,7 @@ const Commando = require("discord.js-commando")
 const path = require("path")
 const config = require("./config.json")
 const fs = require("fs")
+const VoiceTracker = require("./classes/VoiceTracker")
 
 const emojis = [
   { name: "youtube", path: "assets/emojis/youtube.png" },
@@ -47,6 +48,8 @@ client.once("ready", () => {
       console.log("Could not create emojis on " + guild.name)
     }
   })
+
+  client.voiceTracker = new VoiceTracker(client)
 })
 
 client.login(config.discord.token)
