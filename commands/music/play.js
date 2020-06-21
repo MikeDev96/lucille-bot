@@ -49,6 +49,7 @@ module.exports = class PlayCommand extends Command {
           .setLink(`https://www.youtube.com/watch?v=${searchResult.id}`)
           .setPlatform("search")
           .setQuery(args.input)
+          .setDuration(searchResult.duration)
 
         state.queue.push(track)
 
@@ -75,14 +76,14 @@ module.exports = class PlayCommand extends Command {
             msg.channel.guild.lucille.cleanUp()
           })
 
-          msg.channel.guild.lucille.searchAndPlay(state)
+          msg.channel.guild.lucille.searchAndPlay()
         }).catch(err => {
           state.joinState = 0
           console.log(err)
         })
       }
       else {
-        msg.channel.guild.lucille.updateEmbed(state)
+        msg.channel.guild.lucille.updateEmbed()
       }
     }
   }

@@ -7,8 +7,8 @@ module.exports = class {
     this.shouldClear = false
   }
 
-  async set (message) {
-    this.messageContents = message
+  async set (message, edit) {
+    this.messageContents = { message, edit }
     await this.tryProcess()
   }
 
@@ -26,7 +26,7 @@ module.exports = class {
   }
 
   async send () {
-    if (this.message) {
+    if (this.message && (!this.messageContents || !this.messageContents.edit)) {
       await this.message.delete()
       this.message = null
     }
@@ -37,12 +37,18 @@ module.exports = class {
       return
     }
 
-    const messageContents = typeof this.messageContents === "object" ? { ...this.messageContents } : this.messageContents
+    const messageContents = typeof this.messageContents.message === "object" ? { ...this.messageContents.message } : this.messageContents.message
+    const messageEdit = this.messageContents.edit
     this.messageContents = null
 
-    this.message = await this.textChannel.send(messageContents)
+    if (messageEdit && this.message) {
+      this.message = await this.message.edit(messageContents)
+    }
+    else {
+      this.message = await this.textChannel.send(messageContents)
+    }
 
-    if (this.messageContents || this.shouldClear) {
+    if ((this.messageContents && this.messageContents.message) || this.shouldClear) {
       await this.send()
     }
   }

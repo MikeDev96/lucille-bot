@@ -45,6 +45,11 @@ module.exports = class Track {
     return this
   }
 
+  setDuration (duration) {
+    this.duration = duration
+    return this
+  }
+
   clone (track) {
     this.artists = track.artists
     this.title = track.title

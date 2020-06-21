@@ -31,6 +31,8 @@ module.exports = class {
       bassBoost: 0,
       tempo: 1,
       volume: 100,
+      progress: 0,
+      progressHandle: null,
     }
   }
 
@@ -48,6 +50,7 @@ module.exports = class {
       if (searchResult) {
         item.setLink(`https://www.youtube.com/watch?v=${searchResult.id}`)
           .setYouTubeTitle(searchResult.title)
+          .setDuration(searchResult.duration)
         this.state.currentVideo = searchResult
         this.play()
       }
@@ -77,10 +80,20 @@ module.exports = class {
 
       dispatcher.on("start", () => {
         console.log("Stream starting...")
+        this.state.progressHandle = setInterval(() => this.updateEmbed(true, false), 5000)
       })
 
       dispatcher.on("finish", () => {
         console.log("Stream finished...")
+
+        // One last update so the progress bar reaches the end
+        this.updateEmbed(true, false)
+
+        if (this.state.progressHandle) {
+          clearInterval(this.state.progressHandle)
+          this.state.progressHandle = null
+        }
+
         this.state.queue.shift()
         this.state.playTime = 0
 
@@ -108,72 +121,88 @@ module.exports = class {
     this.state.messagePump.clear()
   }
 
-  updateEmbed () {
-    this.state.messagePump.set(this.createQueueEmbed())
-  }
-
-  createQueueEmbed () {
+  updateEmbed (edit = false, force = true) {
     const currentlyPlaying = this.state.queue[0]
     if (currentlyPlaying) {
-      const queue = this.state.queue/* .slice(1, 1 + QUEUE_TRACKS) */.slice(1).map((t, i) => `${i + 1}. ${t.platform === "search" ? t.youTubeTitle : safeJoin([t.artists, t.title], " - ")} <@${t.requestee.id}>`)
-      const splitQueue = new StringSplitter(queue).split()
-
-      const nowPlayingSource = !["youtube", "search"].includes(currentlyPlaying.platform) ? `${this.state.emojis[currentlyPlaying.platform]} ${safeJoin([currentlyPlaying.artists, currentlyPlaying.title], " - ")}` : ""
-      const nowPlayingYouTube = `${this.state.emojis.youtube} [${currentlyPlaying.youTubeTitle}](${currentlyPlaying.link})`
-      const nowPlaying = [nowPlayingSource, nowPlayingYouTube].filter(s => s.trim()).join("\n")
-
-      return {
-        embed: {
-          color: 0x0099ff,
-          title: "Tidify 2.0",
-          url: "https://discord.js.org",
-          author: {
-            name: currentlyPlaying.requestee.displayName,
-            icon_url: currentlyPlaying.requestee.avatar,
-          },
-          fields: [
-            {
-              name: "Now Playing",
-              value: nowPlaying,
-              inline: true,
-            },
-            // { name: "\u200b", value: "\u200b", inline: true },
-            // { name: "\u200b", value: "\u200b", inline: true },
-            ...splitQueue.strings.map(q => ({
-              name: "Up Next",
-              value: q.subString,
-            })),
-            ...splitQueue.remaining.length > 0 ? [{
-              name: "Up Next",
-              value: `${splitQueue.remaining.length} more song(s)...`,
-            }] : [],
-            ...this.state.voiceConnection.dispatcher && this.state.voiceConnection.dispatcher.paused ? [{
-              name: "Paused By",
-              value: `<@${this.state.pauser}>`,
-              inline: true,
-            }] : [],
-            ...this.state.bassBoost > 0 ? [{
-              name: "Bass Boost",
-              value: `${amountToBassBoostMap[this.state.bassBoost]}`,
-              inline: true,
-            }] : [],
-            ...this.state.tempo !== 1 ? [{
-              name: "Speed",
-              value: `${this.state.tempo}`,
-              inline: true,
-            }] : [],
-            ...this.state.volume !== 100 ? [{
-              name: "Volume",
-              value: `${this.state.volume}`,
-              inline: true,
-            }] : [],
-          ],
-          footer: {
-            text: "Created with ♥ by Migul",
-            icon_url: config.discord.authorAvatarUrl,
-          },
-        },
+      const blocks = this.getPlaybackProgress(currentlyPlaying.duration)
+      if (this.state.progress !== blocks || force) {
+        this.state.messagePump.set(this.createQueueEmbed(currentlyPlaying, blocks), edit)
       }
+    }
+  }
+
+  getPlaybackProgress (duration) {
+    const elapsed = this.state.voiceConnection.dispatcher ? this.state.voiceConnection.dispatcher.streamTime : 0
+    const durationMs = duration * 1000
+    const progressPerc = elapsed / durationMs
+    const blocks = Math.ceil(20 * progressPerc)
+
+    return blocks
+  }
+
+  createQueueEmbed (currentlyPlaying, progress) {
+    const queue = this.state.queue/* .slice(1, 1 + QUEUE_TRACKS) */.slice(1).map((t, i) => `${i + 1}. ${t.platform === "search" ? t.youTubeTitle : safeJoin([t.artists, t.title], " - ")} <@${t.requestee.id}>`)
+    const splitQueue = new StringSplitter(queue).split()
+
+    const nowPlayingSource = !["youtube", "search"].includes(currentlyPlaying.platform) ? `${this.state.emojis[currentlyPlaying.platform]} ${safeJoin([currentlyPlaying.artists, currentlyPlaying.title], " - ")}` : ""
+    const nowPlayingYouTube = `${this.state.emojis.youtube} [${currentlyPlaying.youTubeTitle}](${currentlyPlaying.link})`
+    const nowPlaying = [nowPlayingSource, nowPlayingYouTube].filter(s => s.trim()).join("\n")
+
+    return {
+      embed: {
+        color: 0x0099ff,
+        title: "Tidify 2.0",
+        url: "https://discord.js.org",
+        author: {
+          name: currentlyPlaying.requestee.displayName,
+          icon_url: currentlyPlaying.requestee.avatar,
+        },
+        fields: [
+          {
+            name: "Now Playing",
+            value: nowPlaying,
+            inline: true,
+          },
+          // { name: "\u200b", value: "\u200b", inline: true },
+          // { name: "\u200b", value: "\u200b", inline: true },
+          ...splitQueue.strings.map(q => ({
+            name: "Up Next",
+            value: q.subString,
+          })),
+          ...splitQueue.remaining.length > 0 ? [{
+            name: "Up Next",
+            value: `${splitQueue.remaining.length} more song(s)...`,
+          }] : [],
+          ...this.state.voiceConnection.dispatcher && this.state.voiceConnection.dispatcher.paused ? [{
+            name: "Paused By",
+            value: `<@${this.state.pauser}>`,
+            inline: true,
+          }] : [],
+          ...this.state.bassBoost > 0 ? [{
+            name: "Bass Boost",
+            value: `${amountToBassBoostMap[this.state.bassBoost]}`,
+            inline: true,
+          }] : [],
+          ...this.state.tempo !== 1 ? [{
+            name: "Speed",
+            value: `${this.state.tempo}`,
+            inline: true,
+          }] : [],
+          ...this.state.volume !== 100 ? [{
+            name: "Volume",
+            value: `${this.state.volume}`,
+            inline: true,
+          }] : [],
+          {
+            name: "Progress",
+            value: ("▬".repeat(progress)) + "🔵" + ("▬".repeat(Math.max(0, 20 - progress - 1))),
+          },
+        ],
+        footer: {
+          text: "Created with ♥ by Migul",
+          icon_url: config.discord.authorAvatarUrl,
+        },
+      },
     }
   }
 
