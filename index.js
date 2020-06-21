@@ -19,6 +19,7 @@ client.registry
   .registerGroup("music", "Music")
   .registerGroup("whitelist", "Whitelist")
   .registerGroup("misc", "Miscellaneous")
+  .registerGroup("fun", "Fun")
   .registerDefaults()
   .registerCommandsIn(path.join(__dirname, "commands"))
 
