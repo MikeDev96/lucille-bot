@@ -3,6 +3,7 @@ const path = require("path")
 const config = require("./config.json")
 const fs = require("fs")
 const VoiceTracker = require("./classes/VoiceTracker")
+const LurkTracker = require("./classes/LurkTracker")
 
 const emojis = [
   { name: "youtube", path: "assets/emojis/youtube.png" },
@@ -50,6 +51,7 @@ client.once("ready", () => {
   })
 
   client.voiceTracker = new VoiceTracker(client)
+  client.lurkTracker = new LurkTracker(client)
 })
 
 client.login(config.discord.token)
