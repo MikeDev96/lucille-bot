@@ -210,7 +210,11 @@ module.exports = class {
             info.author.name,
             info.title,
             info.player_response.videoDetails.thumbnail.thumbnails[info.player_response.videoDetails.thumbnail.thumbnails.length - 1].url,
-          ).setPlatform(PLATFORM_YOUTUBE)])
+          ).setPlatform(PLATFORM_YOUTUBE)
+            .setLink(info.video_url)
+            .setYouTubeTitle(info.title)
+            .setDuration(parseInt(info.length_seconds)),
+          ])
         }
         else {
           console.log(err)
