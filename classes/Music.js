@@ -132,7 +132,7 @@ module.exports = class {
   }
 
   getPlaybackProgress (duration) {
-    const elapsed = this.state.voiceConnection.dispatcher ? this.state.voiceConnection.dispatcher.streamTime : 0
+    const elapsed = this.dispatcherExec(d => d.streamTime) || 0
     const durationMs = duration * 1000
     const progressPerc = elapsed / durationMs
     const blocks = Math.ceil(20 * progressPerc)
