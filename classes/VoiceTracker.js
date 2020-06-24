@@ -56,9 +56,9 @@ module.exports = class {
     const trackingFields = ["selfMute", "selfDeaf", "serverMute", "serverDeaf"]
 
     // User joined the voice channel
-    if (oldMember.voiceChannelID === null && newMember.voiceChannelID !== null) {
+    if (oldMember.channelID === null && newMember.channelID !== null) {
       // User joined in AFK
-      if (newMember.voiceChannelID === oldMember.guild.afkChannelID) {
+      if (newMember.channelID === oldMember.guild.afkChannelID) {
         mon.afk = curTime
       }
       // User joined in another channel
@@ -71,9 +71,9 @@ module.exports = class {
       }
     }
     // User left the voice channel
-    else if (oldMember.voiceChannelID !== null && newMember.voiceChannelID === null) {
+    else if (oldMember.channelID !== null && newMember.channelID === null) {
       // User left AFK
-      if (oldMember.voiceChannelID === oldMember.guild.afkChannelID) {
+      if (oldMember.channelID === oldMember.guild.afkChannelID) {
         if ("afk" in mon) {
           const duration = curTime - mon.afk
           delete mon.afk
@@ -92,9 +92,9 @@ module.exports = class {
       }
     }
     // User moved voice channel
-    else if (oldMember.voiceChannelID !== null && newMember.voiceChannelID !== null && oldMember.voiceChannelID !== newMember.voiceChannelID) {
+    else if (oldMember.channelID !== null && newMember.channelID !== null && oldMember.channelID !== newMember.channelID) {
       // Moved from AFK
-      if (oldMember.voiceChannelID === oldMember.guild.afkChannelID) {
+      if (oldMember.channelID === oldMember.guild.afkChannelID) {
         if ("afk" in mon) {
           const duration = curTime - mon.afk
           delete mon.afk
@@ -109,7 +109,7 @@ module.exports = class {
         })
       }
       // Moved to AFK
-      else if (newMember.voiceChannelID === oldMember.guild.afkChannelID) {
+      else if (newMember.channelID === oldMember.guild.afkChannelID) {
         mon.afk = curTime
 
         // User is in AFK now, stop tracking other stats
@@ -125,7 +125,7 @@ module.exports = class {
     // Wasn't a voice channel change
     else {
       // Dont care about tracking field updates if user is in AFK
-      if (newMember.voiceChannelID !== newMember.guild.afkChannelID) {
+      if (newMember.channelID !== newMember.guild.afkChannelID) {
         trackingFields.forEach(k => {
           if (oldMember[k] !== newMember[k]) {
             if (newMember[k]) {
