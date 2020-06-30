@@ -173,7 +173,7 @@ module.exports = class {
             name: "Up Next",
             value: `${splitQueue.remaining.length} more song(s)...`,
           }] : [],
-          ...this.state.voiceConnection.dispatcher && this.state.voiceConnection.dispatcher.paused ? [{
+          ...this.state.voiceConnection && this.state.voiceConnection.dispatcher && this.state.voiceConnection.dispatcher.paused ? [{
             name: "Paused By",
             value: `<@${this.state.pauser}>`,
             inline: true,
