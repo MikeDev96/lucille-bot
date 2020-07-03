@@ -1,7 +1,7 @@
 // const { Command } = require("discord.js-commando")
 // const TrackExtractor = require("./TrackExtractor")
 // const youtube = require("scrape-youtube").default
-const scrapeYt = require("scrape-yt").scrapeYt
+const scrapeYt = require("scrape-yt")
 const ytdl = require("discord-ytdl-core")
 const StringSplitter = require("./StringSplitter")
 // const Track = require("./Track")
