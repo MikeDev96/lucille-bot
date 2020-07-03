@@ -1,5 +1,5 @@
 const { Command } = require("discord.js-commando")
-const scrapeYt = require("scrape-yt").scrapeYt
+const scrapeYt = require("scrape-yt")
 const Track = require("../../classes/Track")
 
 module.exports = class extends Command {

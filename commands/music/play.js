@@ -1,6 +1,6 @@
 const { Command } = require("discord.js-commando")
 const TrackExtractor = require("../../classes/TrackExtractor")
-const scrapeYt = require("scrape-yt").scrapeYt
+const scrapeYt = require("scrape-yt")
 const Track = require("../../classes/Track")
 const Requestee = require("../../classes/Requestee")
 const Music = require("../../classes/Music")
@@ -40,15 +40,17 @@ module.exports = class PlayCommand extends Command {
       msg.react("▶️")
     }
     else {
-      const searchResult = (await scrapeYt.search(args.input, { limit: 1 }))[0]
+      const track = new Track()
+        .setRequestee(requestee)
+        .setPlatform("search")
+        .setQuery(args.input)
+
+      const searchResult = (await scrapeYt.search(track.query, { limit: 1 }))[0]
       if (searchResult) {
-        const track = new Track()
+        track
           .setYouTubeTitle(searchResult.title)
           .setThumbnail(searchResult.thumbnail)
-          .setRequestee(requestee)
           .setLink(`https://www.youtube.com/watch?v=${searchResult.id}`)
-          .setPlatform("search")
-          .setQuery(args.input)
           .setDuration(searchResult.duration)
 
         state.queue.push(track)
