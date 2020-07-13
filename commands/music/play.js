@@ -45,7 +45,8 @@ module.exports = class PlayCommand extends Command {
         .setPlatform("search")
         .setQuery(args.input)
 
-      const searchResult = (await scrapeYt.search(track.query, { limit: 1 }))[0]
+      const searchResults = (await scrapeYt.search(track.query)).filter(res => res.type === "video")
+      const searchResult = searchResults[0]
       if (searchResult) {
         track
           .setYouTubeTitle(searchResult.title)

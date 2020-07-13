@@ -45,7 +45,8 @@ module.exports = class {
     }
     else {
       // const query = `${item.artists} ${item.title}`.trim()
-      const searchResult = (await scrapeYt.search(item.query, { limit: 1 }))[0]
+      const searchResults = (await scrapeYt.search(item.query)).filter(res => res.type === "video")
+      const searchResult = searchResults[0]
 
       if (searchResult) {
         item.setLink(`https://www.youtube.com/watch?v=${searchResult.id}`)

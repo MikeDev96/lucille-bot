@@ -30,7 +30,7 @@ module.exports = class extends Command {
       if (queueItem && queueItem.link) {
         const query = queueItem.query
         if (query) {
-          const searchResults = await scrapeYt.search(query, { limit: 5 })
+          const searchResults = (await scrapeYt.search(query)).filter(res => res.type === "video").slice(0, 5)
           if (searchResults) {
             msg.react("🔍")
 
@@ -49,6 +49,7 @@ module.exports = class extends Command {
                 .setYouTubeTitle(searchResults[index].title)
                 .setThumbnail(searchResults[index].thumbnail)
                 .setLink(`https://www.youtube.com/watch?v=${searchResults[index].id}`)
+                .setDuration(searchResults[index].duration)
 
               if (queueIndex === 0) {
                 msg.channel.guild.lucille.state.queue.splice(queueIndex + 1, 0, track)
