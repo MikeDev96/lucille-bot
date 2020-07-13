@@ -22,7 +22,7 @@ module.exports = class {
       queue: [],
       currentVideo: {},
       emojis: index.emojis.reduce((acc, cur) => {
-        acc[cur.name] = textChannel.guild.emojis.cache.find(e => e.name === cur.name).toString()
+        acc[cur.name] = (textChannel.guild.emojis.cache.find(e => e.name === cur.name) || "").toString()
         return acc
       }, {}),
       pauser: "",

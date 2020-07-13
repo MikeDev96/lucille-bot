@@ -24,33 +24,37 @@ client.registry
   .registerDefaults()
   .registerCommandsIn(path.join(__dirname, "commands"))
 
+const createEmojis = guild => {
+  const emojiPermissions = guild.members.cache.find(m => m.user.id === client.user.id).hasPermission("MANAGE_EMOJIS")
+  if (emojiPermissions) {
+    const botRole = guild.roles.cache.find(r => r.name !== "@everyone" && r.members.has(client.user.id))
+    emojis.forEach(emoji => {
+      if (!guild.emojis.cache.find(e => e.name === emoji.name)) {
+        fs.readFile(emoji.path, (err, data) => {
+          if (!err) {
+            guild.emojis.create(data, emoji.name, { roles: [botRole], reason: "Used by Tidify" })
+          }
+          else {
+            console.log(err)
+          }
+        })
+      }
+    })
+  }
+  else {
+    console.log("Could not create emojis on " + guild.name)
+  }
+}
+
 client.once("ready", () => {
   console.log("Discord client ready")
 
-  client.guilds.cache.forEach(guild => {
-    const emojiPermissions = guild.members.cache.find(m => m.user.id === client.user.id).hasPermission("MANAGE_EMOJIS")
-    if (emojiPermissions) {
-      const botRole = guild.roles.cache.find(r => r.name !== "@everyone" && r.members.has(client.user.id))
-      emojis.forEach(emoji => {
-        if (!guild.emojis.cache.find(e => e.name === emoji.name)) {
-          fs.readFile(emoji.path, (err, data) => {
-            if (!err) {
-              guild.emojis.create(data, emoji.name, { roles: [botRole], reason: "Used by Tidify" })
-            }
-            else {
-              console.log(err)
-            }
-          })
-        }
-      })
-    }
-    else {
-      console.log("Could not create emojis on " + guild.name)
-    }
-  })
+  client.guilds.cache.forEach(createEmojis)
 
   client.voiceTracker = new VoiceTracker(client)
 })
+
+client.on("guildCreate", createEmojis)
 
 client.login(config.discord.token)
 
