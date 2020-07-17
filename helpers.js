@@ -12,6 +12,28 @@ const shuffle = (a) => {
   return a
 }
 
+const sleep = ms => {
+  return new Promise(resolve => setTimeout(resolve, ms))
+}
+
+const msToTimestamp = duration => {
+  const seconds = Math.floor((duration / 1000) % 60)
+  const minutes = Math.floor((duration / (1000 * 60)) % 60)
+  const hours = Math.floor((duration / (1000 * 60 * 60)) % 24)
+
+  let out = ""
+
+  if (hours > 0) {
+    out += `${hours}:`
+  }
+
+  out += `${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`
+
+  return out
+}
+
 module.exports.noop = noop
 module.exports.safeJoin = safeJoin
 module.exports.shuffle = shuffle
+module.exports.sleep = sleep
+module.exports.msToTimestamp = msToTimestamp

@@ -27,7 +27,7 @@ module.exports = class {
 
   async send () {
     if (this.message && (!this.messageContents || !this.messageContents.edit)) {
-      await this.message.delete()
+      await this.deleteMessage()
       this.message = null
     }
 
@@ -42,14 +42,44 @@ module.exports = class {
     this.messageContents = null
 
     if (messageEdit && this.message) {
-      this.message = await this.message.edit(messageContents)
+      await this.editMessage(messageContents)
     }
     else {
-      this.message = await this.textChannel.send(messageContents)
+      await this.sendMessage(messageContents)
     }
 
     if ((this.messageContents && this.messageContents.message) || this.shouldClear) {
       await this.send()
+    }
+  }
+
+  async sendMessage (messageContents) {
+    try {
+      this.message = await this.textChannel.send(messageContents)
+    }
+    catch (err) {
+      console.log("Failed to send message in TMMP")
+      console.error(err)
+    }
+  }
+
+  async editMessage (messageContents) {
+    try {
+      this.message = await this.message.edit(messageContents)
+    }
+    catch (err) {
+      console.log("Failed to edit message in TMMP")
+      console.error(err)
+    }
+  }
+
+  async deleteMessage () {
+    try {
+      await this.message.delete()
+    }
+    catch (err) {
+      console.log("Failed to delete message in TMMP")
+      console.error(err)
     }
   }
 }
