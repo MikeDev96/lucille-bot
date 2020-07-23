@@ -11,6 +11,8 @@ const config = require("../config.json")
 const TopMostMessagePump = require("./TopMostMessagePump")
 const { safeJoin, sleep, msToTimestamp } = require("../helpers")
 const { amountToBassBoostMap } = require("../commands/music/bassboost")
+const TrackExtractor = require("./TrackExtractor")
+const Track = require("./Track")
 
 module.exports = class {
   constructor (textChannel) {
@@ -34,6 +36,64 @@ module.exports = class {
       progress: 0,
       progressHandle: null,
     }
+  }
+
+  async add (input, requestee, voiceChannel, index = -1) {
+    const trackExtractor = new TrackExtractor(input)
+    const insertAt = index < 0 ? this.state.queue.length : index
+    if (trackExtractor.parseLinks()) {
+      const links = await trackExtractor.getAllLinkInfo()
+      this.state.queue.splice(insertAt, 0, ...links.map(l => l.setRequestee(requestee).setQuery(`official audio ${l.artists} ${l.title}`)))
+    }
+    else {
+      const track = new Track()
+        .setRequestee(requestee)
+        .setPlatform("search")
+        .setQuery(input)
+
+      const searchResults = (await scrapeYt.search(track.query)).filter(res => res.type === "video")
+      const searchResult = searchResults[0]
+      if (searchResult) {
+        track
+          .setYouTubeTitle(searchResult.title)
+          .setThumbnail(searchResult.thumbnail)
+          .setLink(`https://www.youtube.com/watch?v=${searchResult.id}`)
+          .setDuration(searchResult.duration)
+
+        this.state.queue.splice(insertAt, 0, track)
+      }
+      else {
+        return false
+      }
+    }
+
+    if (this.state.queue.length > 0) {
+      // Join the voice channel if not already joining/joined
+      if (this.state.joinState === 0) {
+        this.state.joinState = 1
+
+        voiceChannel.join().then(connection => {
+          this.state.joinState = 2
+          this.state.voiceChannel = voiceChannel
+          this.state.voiceConnection = connection
+
+          this.state.voiceConnection.on("disconnect", () => {
+            this.state.queue.splice(0, this.state.queue.length)
+            this.cleanUp()
+          })
+
+          this.searchAndPlay()
+        }).catch(err => {
+          this.state.joinState = 0
+          console.log(err)
+        })
+      }
+      else {
+        this.updateEmbed()
+      }
+    }
+
+    return true
   }
 
   async searchAndPlay () {
