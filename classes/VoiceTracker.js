@@ -182,28 +182,28 @@ module.exports = class {
         }
       }
 
-      const muteCheck = changes.find(([k]) => k.endsWith("Mute"))
-      const deafCheck = changes.find(([k]) => k.endsWith("Deaf"))
-      const afkCheck = changes.find(([k]) => k === "afk")
-      const isServer = typeof changes.find(([k]) => k.startsWith("server")) !== "undefined"
+      // const muteCheck = changes.find(([k]) => k.endsWith("Mute"))
+      // const deafCheck = changes.find(([k]) => k.endsWith("Deaf"))
+      // const afkCheck = changes.find(([k]) => k === "afk")
+      // const isServer = typeof changes.find(([k]) => k.startsWith("server")) !== "undefined"
 
-      if (typeof muteCheck !== "undefined" && typeof deafCheck !== "undefined") {
-        if (muteCheck[1] !== deafCheck[1]) {
-          this.notify(oldMember.guild.systemChannel, displayName, isServer, `muted for ${this.formatMs(muteCheck[1])} & deafened`, deafCheck[1])
-        }
-        else {
-          this.notify(oldMember.guild.systemChannel, displayName, isServer, "muted & deafened", muteCheck[1], deafCheck[1])
-        }
-      }
-      else if (typeof muteCheck !== "undefined") {
-        this.notify(oldMember.guild.systemChannel, displayName, isServer, "muted", muteCheck[1])
-      }
-      else if (typeof deafCheck !== "undefined") {
-        this.notify(oldMember.guild.systemChannel, displayName, isServer, "deafened", deafCheck[1])
-      }
-      else if (typeof afkCheck !== "undefined") {
-        this.notify(oldMember.guild.systemChannel, displayName, isServer, "AFK", afkCheck[1])
-      }
+      // if (typeof muteCheck !== "undefined" && typeof deafCheck !== "undefined") {
+      //   if (muteCheck[1] !== deafCheck[1]) {
+      //     this.notify(oldMember.guild.systemChannel, displayName, isServer, `muted for ${this.formatMs(muteCheck[1])} & deafened`, deafCheck[1])
+      //   }
+      //   else {
+      //     this.notify(oldMember.guild.systemChannel, displayName, isServer, "muted & deafened", muteCheck[1], deafCheck[1])
+      //   }
+      // }
+      // else if (typeof muteCheck !== "undefined") {
+      //   this.notify(oldMember.guild.systemChannel, displayName, isServer, "muted", muteCheck[1])
+      // }
+      // else if (typeof deafCheck !== "undefined") {
+      //   this.notify(oldMember.guild.systemChannel, displayName, isServer, "deafened", deafCheck[1])
+      // }
+      // else if (typeof afkCheck !== "undefined") {
+      //   this.notify(oldMember.guild.systemChannel, displayName, isServer, "AFK", afkCheck[1])
+      // }
 
       this.db.get("servers")
         .set(serverId, server)
