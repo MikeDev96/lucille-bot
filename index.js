@@ -9,6 +9,7 @@ const emojis = [
   { name: "spotify", path: "assets/emojis/spotify.png" },
   { name: "tidal", path: "assets/emojis/tidal_white.png" },
   { name: "apple", path: "assets/emojis/applemusic.png" },
+  { name: "soundcloud", path: "assets/emojis/soundcloud.png" },
   // { name: "search", path: "assets/emojis/search_white.png" },
 ]
 

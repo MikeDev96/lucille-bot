@@ -12,6 +12,7 @@ const TopMostMessagePump = require("./TopMostMessagePump")
 const { safeJoin, sleep, msToTimestamp } = require("../helpers")
 const { amountToBassBoostMap } = require("../commands/music/bassboost")
 const TrackExtractor = require("./TrackExtractor")
+const { PLATFORM_SOUNDCLOUD, PLATFORM_YOUTUBE } = require("./TrackExtractor")
 const Track = require("./Track")
 
 module.exports = class {
@@ -157,17 +158,24 @@ module.exports = class {
     this.updateEmbed()
 
     const item = this.state.queue[0]
-    const stream = await this.getYTStream(item.link)
-    if (!stream) {
-      this.state.textChannel.send(`Failed to get a YouTube stream for\n${this.getTrackTitle(item)}\n${item.link}`)
-      // this.state.queue.shift()
-      // this.play()
-      this.processQueue()
-      return
+    let stream
+
+    if (item.platform !== PLATFORM_SOUNDCLOUD) {
+      stream = await this.getYTStream(item.link)
+      if (!stream) {
+        this.state.textChannel.send(`Failed to get a YouTube stream for\n${this.getTrackTitle(item)}\n${item.link}`)
+        // this.state.queue.shift()
+        // this.play()
+        this.processQueue()
+        return
+      }
+    }
+    else {
+      stream = item.link
     }
 
     // stream.once("data", () => {
-    const dispatcher = this.state.voiceConnection.play(stream, { type: "opus" })
+    const dispatcher = this.state.voiceConnection.play(stream, item.platform !== PLATFORM_SOUNDCLOUD ? { type: "opus" } : undefined)
     dispatcher.setVolumeLogarithmic(this.state.volume / 100)
 
     dispatcher.on("start", () => {
@@ -245,8 +253,8 @@ module.exports = class {
     const queue = this.state.queue/* .slice(1, 1 + QUEUE_TRACKS) */.slice(1).map((t, i) => `${i + 1}. ${this.getTrackTitle(t)} <@${t.requestee.id}>`)
     const splitQueue = new StringSplitter(queue).split()
 
-    const nowPlayingSource = !["youtube", "search"].includes(currentlyPlaying.platform) ? `${this.state.emojis[currentlyPlaying.platform]} ${safeJoin([currentlyPlaying.artists, currentlyPlaying.title], " - ")}` : ""
-    const nowPlayingYouTube = `${this.state.emojis.youtube} [${currentlyPlaying.youTubeTitle}](${currentlyPlaying.link})`
+    const nowPlayingSource = ![PLATFORM_YOUTUBE, "search"].includes(currentlyPlaying.platform) ? `${this.state.emojis[currentlyPlaying.platform]} ${safeJoin([currentlyPlaying.artists, currentlyPlaying.title], " - ")}` : ""
+    const nowPlayingYouTube = currentlyPlaying.platform !== PLATFORM_SOUNDCLOUD ? `${this.state.emojis.youtube} [${currentlyPlaying.youTubeTitle}](${currentlyPlaying.link})` : ""
     const nowPlaying = [nowPlayingSource, nowPlayingYouTube].filter(s => s.trim()).join("\n")
 
     const blocks = Math.ceil(20 * progressPerc)

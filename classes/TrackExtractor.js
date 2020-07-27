@@ -3,11 +3,13 @@ const config = require("../config.json")
 const axios = require("axios")
 const ytdl = require("discord-ytdl-core")
 const Track = require("./Track")
+const SoundCloudRipper = require("./SoundCloudRipper")
 
 const PLATFORM_SPOTIFY = "spotify"
 const PLATFORM_TIDAL = "tidal"
 const PLATFORM_APPLE = "apple"
 const PLATFORM_YOUTUBE = "youtube"
+const PLATFORM_SOUNDCLOUD = "soundcloud"
 
 module.exports = class {
   constructor (input) {
@@ -45,6 +47,13 @@ module.exports = class {
       this.links.push({ platform: "youtube", type: "track", id })
     }
 
+    const soundCloudPattern = /soundcloud.com\/([\w-]+?)\/(?:(sets)\/)?([\w-]+)\b/g
+    let soundCloudMatch
+    while ((soundCloudMatch = soundCloudPattern.exec(this.input))) {
+      const [, artist, isSet, id] = soundCloudMatch
+      this.links.push({ platform: "soundcloud", type: isSet ? "album" : "track", id: `${artist}/${id}` })
+    }
+
     return this.links.length > 0
   }
 
@@ -69,6 +78,7 @@ module.exports = class {
         case PLATFORM_TIDAL: return await this.getTidal(link.type, link.id)
         case PLATFORM_APPLE: return await this.getApple(link.type, link.id)
         case PLATFORM_YOUTUBE: return await this.getYouTube(link.type, link.id)
+        case PLATFORM_SOUNDCLOUD: return await this.getSoundCloud(link.type, link.id)
       }
     }
     catch (err) {
@@ -223,4 +233,39 @@ module.exports = class {
       })
     })
   }
+
+  async getSoundCloud (type, id) {
+    // TODO: Add album/playlist support
+    if (type === "album") {
+      return []
+    }
+
+    try {
+      const res = await SoundCloudRipper.run(`https://soundcloud.com/${id}`)
+      if (res) {
+        const { url, artist, title, thumbnail, duration } = res
+
+        return [new Track(
+          artist,
+          title,
+          thumbnail,
+        ).setPlatform(PLATFORM_SOUNDCLOUD)
+          .setLink(url)
+          .setDuration(duration),
+        ]
+      }
+    }
+    catch (err) {
+      console.log("Get SoundCloud failed")
+      console.log(err)
+    }
+
+    return []
+  }
 }
+
+module.exports.PLATFORM_SPOTIFY = "spotify"
+module.exports.PLATFORM_TIDAL = "tidal"
+module.exports.PLATFORM_APPLE = "apple"
+module.exports.PLATFORM_YOUTUBE = "youtube"
+module.exports.PLATFORM_SOUNDCLOUD = "soundcloud"
