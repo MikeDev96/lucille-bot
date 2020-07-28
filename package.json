@@ -18,7 +18,7 @@
     "humanize-duration": "^3.23.1",
     "lowdb": "^1.0.0",
     "parse-duration": "^0.4.4",
-    "puppeteer": "^5.2.1",
+    "query-string": "^6.13.1",
     "scrape-yt": "^1.4.0",
     "spotify-web-api-node": "^4.0.0"
   },

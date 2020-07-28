@@ -3,7 +3,7 @@ const config = require("../config.json")
 const axios = require("axios")
 const ytdl = require("discord-ytdl-core")
 const Track = require("./Track")
-const SoundCloudRipper = require("./SoundCloudRipper")
+const queryString = require("query-string")
 
 const PLATFORM_SPOTIFY = "spotify"
 const PLATFORM_TIDAL = "tidal"
@@ -47,11 +47,11 @@ module.exports = class {
       this.links.push({ platform: "youtube", type: "track", id })
     }
 
-    const soundCloudPattern = /soundcloud.com\/([\w-]+?)\/(?:(sets)\/)?([\w-]+)\b/g
+    const soundCloudPattern = /soundcloud.com\/((?:[\w-]+?)\/(?:sets\/)?(?:[\w-]+)(?:\/\b[\w-]+)?)\b/g
     let soundCloudMatch
     while ((soundCloudMatch = soundCloudPattern.exec(this.input))) {
-      const [, artist, isSet, id] = soundCloudMatch
-      this.links.push({ platform: "soundcloud", type: isSet ? "album" : "track", id: `${artist}/${id}` })
+      const [, id] = soundCloudMatch
+      this.links.push({ platform: "soundcloud", type: "track", id })
     }
 
     return this.links.length > 0
@@ -235,24 +235,22 @@ module.exports = class {
   }
 
   async getSoundCloud (type, id) {
-    // TODO: Add album/playlist support
-    if (type === "album") {
-      return []
-    }
-
     try {
-      const res = await SoundCloudRipper.run(`https://soundcloud.com/${id}`)
-      if (res) {
-        const { url, artist, title, thumbnail, duration } = res
+      const res = await axios.get(`https://api-v2.soundcloud.com/resolve?url=${encodeURIComponent(`https://soundcloud.com/${id}`)}&client_id=${config.soundCloud.clientId}`)
 
-        return [new Track(
-          artist,
-          title,
-          thumbnail,
+      if (res.data) {
+        const tracks = res.data.kind === "track" ? [res.data] : res.data.tracks
+        const validTracks = tracks.filter(t => t.media && t.media.transcodings)
+
+        const audioLinks = (await Promise.all(validTracks.map(t => this.getSoundCloudLink(t.media.transcodings))))
+
+        return validTracks.filter((_t, tIdx) => audioLinks[tIdx]).map((t, tIdx) => new Track(
+          t.user.username,
+          t.title,
+          t.artwork_url,
         ).setPlatform(PLATFORM_SOUNDCLOUD)
-          .setLink(url)
-          .setDuration(duration),
-        ]
+          .setLink(audioLinks[tIdx])
+          .setDuration(t.duration / 1000))
       }
     }
     catch (err) {
@@ -261,6 +259,23 @@ module.exports = class {
     }
 
     return []
+  }
+
+  async getSoundCloudLink (transcodings) {
+    if (transcodings) {
+      const transcoding = transcodings[0]
+      if (transcoding) {
+        const parsedUrl = queryString.parseUrl(transcoding.url)
+        const audioCdnUrl = queryString.stringifyUrl({ url: parsedUrl.url, query: { ...parsedUrl.query, client_id: config.soundCloud.clientId } })
+        const res = await axios.get(audioCdnUrl)
+
+        if (res.data) {
+          return res.data.url
+        }
+      }
+    }
+
+    return null
   }
 }
 
