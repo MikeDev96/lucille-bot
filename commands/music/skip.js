@@ -4,7 +4,7 @@ module.exports = class PlayCommand extends Command {
   constructor (client) {
     super(client, {
       name: "skip",
-      aliases: [],
+      aliases: ["s"],
       group: "music",
       memberName: "skip",
       description: "Skip command",

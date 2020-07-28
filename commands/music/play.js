@@ -4,7 +4,7 @@ const { getRequestee, getVoiceChannel } = require("../../messageHelpers")
 
 const commandConfig = {
   name: "play",
-  aliases: [],
+  aliases: ["p"],
   group: "music",
   memberName: "play",
   description: "Play command",
