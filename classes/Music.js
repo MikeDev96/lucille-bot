@@ -9,11 +9,12 @@ const StringSplitter = require("./StringSplitter")
 const index = require("../index")
 const config = require("../config.json")
 const TopMostMessagePump = require("./TopMostMessagePump")
-const { safeJoin, sleep, msToTimestamp } = require("../helpers")
+const { safeJoin, sleep, msToTimestamp, selectRandom } = require("../helpers")
 const { amountToBassBoostMap } = require("../commands/music/bassboost")
 const TrackExtractor = require("./TrackExtractor")
 const { PLATFORM_SOUNDCLOUD, PLATFORM_YOUTUBE } = require("./TrackExtractor")
 const Track = require("./Track")
+const fs = require("fs")
 
 module.exports = class {
   constructor (textChannel) {
@@ -204,12 +205,20 @@ module.exports = class {
     this.state.playTime = 0
 
     if (this.state.queue.length < 1) {
-      this.state.voiceConnection.disconnect()
-      this.cleanUp()
+      this.disconnectSound()
     }
     else {
       this.searchAndPlay()
     }
+  }
+
+  disconnectSound () {
+    const sounds = fs.readdirSync("assets/sounds/farts")
+    const dispatcher = this.state.voiceConnection.play(`assets/sounds/farts/${selectRandom(sounds)}`)
+    dispatcher.on("finish", () => {
+      this.state.voiceConnection.disconnect()
+      this.cleanUp()
+    })
   }
 
   cleanProgress () {

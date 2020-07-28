@@ -32,8 +32,13 @@ const msToTimestamp = duration => {
   return out
 }
 
+const selectRandom = array => {
+  return array[Math.floor(Math.random() * array.length)]
+}
+
 module.exports.noop = noop
 module.exports.safeJoin = safeJoin
 module.exports.shuffle = shuffle
 module.exports.sleep = sleep
 module.exports.msToTimestamp = msToTimestamp
+module.exports.selectRandom = selectRandom
