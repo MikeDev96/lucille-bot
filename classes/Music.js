@@ -12,7 +12,7 @@ const TopMostMessagePump = require("./TopMostMessagePump")
 const { safeJoin, sleep, msToTimestamp, selectRandom } = require("../helpers")
 const { amountToBassBoostMap } = require("../commands/music/bassboost")
 const TrackExtractor = require("./TrackExtractor")
-const { PLATFORM_SOUNDCLOUD, PLATFORM_YOUTUBE } = require("./TrackExtractor")
+const { PLATFORM_SOUNDCLOUD, PLATFORM_YOUTUBE, PLATFORM_OTHER } = require("./TrackExtractor")
 const Track = require("./Track")
 const fs = require("fs")
 
@@ -159,9 +159,10 @@ module.exports = class {
     this.updateEmbed()
 
     const item = this.state.queue[0]
+    const fetchYTStream = item.platform !== PLATFORM_SOUNDCLOUD && item.platform !== PLATFORM_OTHER
     let stream
 
-    if (item.platform !== PLATFORM_SOUNDCLOUD) {
+    if (fetchYTStream) {
       stream = await this.getYTStream(item.link)
       if (!stream) {
         this.state.textChannel.send(`Failed to get a YouTube stream for\n${this.getTrackTitle(item)}\n${item.link}`)
@@ -176,7 +177,7 @@ module.exports = class {
     }
 
     // stream.once("data", () => {
-    const dispatcher = this.state.voiceConnection.play(stream, item.platform !== PLATFORM_SOUNDCLOUD ? { type: "opus" } : undefined)
+    const dispatcher = this.state.voiceConnection.play(stream, fetchYTStream ? { type: "opus" } : undefined)
     dispatcher.setVolumeLogarithmic(this.state.volume / 100)
 
     dispatcher.on("start", () => {
@@ -215,6 +216,7 @@ module.exports = class {
   disconnectSound () {
     const sounds = fs.readdirSync("assets/sounds/farts")
     const dispatcher = this.state.voiceConnection.play(`assets/sounds/farts/${selectRandom(sounds)}`)
+    dispatcher.setVolumeLogarithmic(3)
     dispatcher.on("finish", () => {
       this.state.voiceConnection.disconnect()
       this.cleanUp()
@@ -248,7 +250,7 @@ module.exports = class {
   getPlaybackProgress (duration) {
     const durationMs = duration * 1000
     const elapsed = Math.min(this.state.playTime + (this.dispatcherExec(d => d.streamTime) || 0), durationMs)
-    const progressPerc = elapsed / durationMs
+    const progressPerc = durationMs === 0 ? 0 : elapsed / durationMs
     // const blocks = Math.ceil(20 * progressPerc)
 
     return progressPerc
@@ -262,8 +264,9 @@ module.exports = class {
     const queue = this.state.queue/* .slice(1, 1 + QUEUE_TRACKS) */.slice(1).map((t, i) => `${i + 1}. ${this.getTrackTitle(t)} <@${t.requestee.id}>`)
     const splitQueue = new StringSplitter(queue).split()
 
-    const nowPlayingSource = ![PLATFORM_YOUTUBE, "search"].includes(currentlyPlaying.platform) ? `${this.state.emojis[currentlyPlaying.platform]} ${safeJoin([currentlyPlaying.artists, currentlyPlaying.title], " - ")}` : ""
-    const nowPlayingYouTube = currentlyPlaying.platform !== PLATFORM_SOUNDCLOUD ? `${this.state.emojis.youtube} [${currentlyPlaying.youTubeTitle}](${currentlyPlaying.link})` : ""
+    const platformEmoji = this.state.emojis[currentlyPlaying.platform]
+    const nowPlayingSource = ![PLATFORM_YOUTUBE, "search"].includes(currentlyPlaying.platform) ? `${platformEmoji ? `${platformEmoji} ` : ""}${safeJoin([currentlyPlaying.artists, currentlyPlaying.title], " - ")}` : ""
+    const nowPlayingYouTube = ![PLATFORM_SOUNDCLOUD, PLATFORM_OTHER].includes(currentlyPlaying.platform) ? `${this.state.emojis.youtube} [${currentlyPlaying.youTubeTitle}](${currentlyPlaying.link})` : ""
     const nowPlaying = [nowPlayingSource, nowPlayingYouTube].filter(s => s.trim()).join("\n")
 
     const blocks = Math.ceil(20 * progressPerc)
@@ -315,7 +318,7 @@ module.exports = class {
           }] : [],
           {
             name: "Progress",
-            value: msToTimestamp((currentlyPlaying.duration * 1000) * progressPerc) + " " + ("▬".repeat(blocks)) + "🔵" + ("▬".repeat(Math.max(0, 20 - blocks - 1))) + " " + msToTimestamp(currentlyPlaying.duration * 1000),
+            value: msToTimestamp((currentlyPlaying.duration * 1000) * progressPerc) + " " + ("▬".repeat(blocks)) + "🔵" + ("▬".repeat(Math.max(0, 20 - blocks - 1))) + " " + (currentlyPlaying.duration === 0 ? "∞" : msToTimestamp(currentlyPlaying.duration * 1000)),
           },
         ],
         footer: {

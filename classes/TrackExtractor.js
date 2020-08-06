@@ -10,6 +10,7 @@ const PLATFORM_TIDAL = "tidal"
 const PLATFORM_APPLE = "apple"
 const PLATFORM_YOUTUBE = "youtube"
 const PLATFORM_SOUNDCLOUD = "soundcloud"
+const PLATFORM_OTHER = "other"
 
 module.exports = class {
   constructor (input) {
@@ -54,6 +55,13 @@ module.exports = class {
       this.links.push({ platform: "soundcloud", type: "track", id })
     }
 
+    const otherPattern = /https?:\/\/(?:www.)?\w+.\w+(?:.\w+).+/g
+    let otherMatch
+    while ((otherMatch = otherPattern.exec(this.input))) {
+      const [id] = otherMatch
+      this.links.push({ platform: PLATFORM_OTHER, type: "track", id })
+    }
+
     return this.links.length > 0
   }
 
@@ -79,6 +87,7 @@ module.exports = class {
         case PLATFORM_APPLE: return await this.getApple(link.type, link.id)
         case PLATFORM_YOUTUBE: return await this.getYouTube(link.type, link.id)
         case PLATFORM_SOUNDCLOUD: return await this.getSoundCloud(link.type, link.id)
+        case PLATFORM_OTHER: return await this.getOther(link.id)
       }
     }
     catch (err) {
@@ -277,6 +286,34 @@ module.exports = class {
 
     return null
   }
+
+  async getOther (id) {
+    try {
+      const res = await axios({
+        method: "GET",
+        url: id,
+        responseType: "stream",
+      })
+      const contentType = res.headers["content-type"]
+      if (contentType.startsWith("audio/")) {
+        const track = new Track(
+          "Custom Link",
+          id,
+          "",
+        ).setPlatform(PLATFORM_OTHER)
+          .setLink(id)
+          .setDuration(0)
+
+        return [track]
+      }
+    }
+    catch (err) {
+      console.log("Get other failed")
+      console.log(err)
+    }
+
+    return []
+  }
 }
 
 module.exports.PLATFORM_SPOTIFY = "spotify"
@@ -284,3 +321,4 @@ module.exports.PLATFORM_TIDAL = "tidal"
 module.exports.PLATFORM_APPLE = "apple"
 module.exports.PLATFORM_YOUTUBE = "youtube"
 module.exports.PLATFORM_SOUNDCLOUD = "soundcloud"
+module.exports.PLATFORM_OTHER = PLATFORM_OTHER
