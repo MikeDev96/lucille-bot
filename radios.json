@@ -1,0 +1,22 @@
+{
+  "capital": {
+    "name": "Capital UK",
+    "url": "https://media-ssl.musicradio.com/CapitalUK"
+  },
+  "kiss": {
+    "name": "Kiss",
+    "url": "https://stream-kiss.planetradio.co.uk/kissnational.mp3?direct=true"
+  },
+  "kisstory": {
+    "name": "Kisstory",
+    "url": "https://stream-kiss.planetradio.co.uk/kisstory.mp3?direct=true"
+  },
+  "kissfresh": {
+    "name": "Kiss Fresh",
+    "url": "https://stream-kiss.planetradio.co.uk/kissfresh.mp3?direct=true"
+  },
+  "classic": {
+    "name": "Classic FM",
+    "url": "https://media-ssl.musicradio.com/ClassicFM"
+  }
+}
