@@ -3,6 +3,10 @@
     "name": "Capital UK",
     "url": "https://media-ssl.musicradio.com/CapitalUK"
   },
+  "capitalnw": {
+    "name": "Capital Manchester",
+    "url": "https://media-ssl.musicradio.com/CapitalManchester"
+  },
   "kiss": {
     "name": "Kiss",
     "url": "https://stream-kiss.planetradio.co.uk/kissnational.mp3?direct=true"
@@ -18,5 +22,25 @@
   "classic": {
     "name": "Classic FM",
     "url": "https://media-ssl.musicradio.com/ClassicFM"
+  },
+  "smooth": {
+    "name": "Smooth",
+    "url": "https://media-ssl.musicradio.com/SmoothUK"
+  },
+  "smoothnw": {
+    "name": "Smooth North West",
+    "url": "https://media-ssl.musicradio.com/SmoothNorthWest"
+  },
+  "gaydionw": {
+    "name": "Gaydio North West",
+    "url": "https://listen-gaydio.sharp-stream.com/gaydionw.mp3"
+  },
+  "bbcr1": {
+    "name": "BBC Radio 1",
+    "url": "http://bbcmedia.ic.llnwd.net/stream/bbcmedia_radio1_mf_p"
+  },
+  "bbcr1x": {
+    "name": "BBC Radio 1xtra",
+    "url": "http://bbcmedia.ic.llnwd.net/stream/bbcmedia_radio1xtra_mf_p"
   }
 }
