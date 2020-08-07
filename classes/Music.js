@@ -322,7 +322,7 @@ module.exports = class {
           },
         ],
         footer: {
-          text: "Created with ♥ by Migul",
+          text: "Created with ♥ by Migul, Powered by Keef Web Services",
           icon_url: config.discord.authorAvatarUrl,
         },
       },
