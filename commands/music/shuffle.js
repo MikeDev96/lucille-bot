@@ -1,5 +1,6 @@
 const { Command } = require("discord.js-commando")
 const { shuffle } = require("../../helpers")
+const { getMusic } = require("../../messageHelpers")
 
 module.exports = class extends Command {
   constructor (client) {
@@ -15,12 +16,11 @@ module.exports = class extends Command {
   }
 
   async run (msg, args) {
-    if (msg.channel.guild.lucille) {
-      const shuffledTracks = msg.channel.guild.lucille.state.queue.splice(1)
-      shuffle(shuffledTracks)
-      msg.channel.guild.lucille.state.queue.push(...shuffledTracks)
-      msg.channel.guild.lucille.updateEmbed()
-      msg.react("🔀")
-    }
+    const music = getMusic(msg)
+    const shuffledTracks = music.state.queue.splice(1)
+    shuffle(shuffledTracks)
+    music.state.queue.push(...shuffledTracks)
+    music.updateEmbed()
+    msg.react("🔀")
   }
 }

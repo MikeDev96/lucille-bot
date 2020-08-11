@@ -1,6 +1,6 @@
 const { Command } = require("discord.js-commando")
 const Music = require("../../classes/Music")
-const { getRequestee, getVoiceChannel } = require("../../messageHelpers")
+const { getRequestee, getVoiceChannel, getMusic } = require("../../messageHelpers")
 
 const commandConfig = {
   name: "play",
@@ -29,11 +29,8 @@ module.exports = class PlayCommand extends Command {
 }
 
 const run = (msg, args, index) => {
-  if (!msg.channel.guild.lucille) {
-    msg.channel.guild.lucille = new Music(msg.channel)
-  }
-
-  const success = msg.channel.guild.lucille.add(args.input, getRequestee(msg), getVoiceChannel(msg), index)
+  const music = getMusic(msg)
+  const success = music.add(args.input, getRequestee(msg), getVoiceChannel(msg), index)
   if (success) {
     msg.react("▶️")
   }

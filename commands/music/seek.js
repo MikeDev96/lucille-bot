@@ -1,4 +1,5 @@
 const { Command } = require("discord.js-commando")
+const { getMusic } = require("../../messageHelpers")
 
 module.exports = class extends Command {
   constructor (client) {
@@ -31,19 +32,18 @@ module.exports = class extends Command {
   }
 
   async run (msg, args) {
-    if (msg.channel.guild.lucille) {
-      let position = 0
-      const match = args.position.match(/^(\d{1,2}):(\d{1,2})$/)
-      if (match) {
-        position = parseInt(match[1]) * 60 + parseInt(match[2])
-      }
-      else {
-        position = parseInt(args.position)
-      }
-
-      msg.channel.guild.lucille.state.playTime = position * 1000
-      msg.channel.guild.lucille.play()
-      msg.react("⏩")
+    const music = getMusic(msg)
+    let position = 0
+    const match = args.position.match(/^(\d{1,2}):(\d{1,2})$/)
+    if (match) {
+      position = parseInt(match[1]) * 60 + parseInt(match[2])
     }
+    else {
+      position = parseInt(args.position)
+    }
+
+    music.state.playTime = position * 1000
+    music.play()
+    msg.react("⏩")
   }
 }

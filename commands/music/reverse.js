@@ -1,4 +1,5 @@
 const { Command } = require("discord.js-commando")
+const { getMusic } = require("../../messageHelpers")
 
 module.exports = class extends Command {
   constructor (client) {
@@ -14,10 +15,9 @@ module.exports = class extends Command {
   }
 
   async run (msg, args) {
-    if (msg.channel.guild.lucille) {
-      msg.channel.guild.lucille.state.queue.reverse()
-      msg.channel.guild.lucille.searchAndPlay()
-      msg.react("◀️")
-    }
+    const music = getMusic(msg)
+    music.state.queue.reverse()
+    music.searchAndPlay()
+    msg.react("◀️")
   }
 }
