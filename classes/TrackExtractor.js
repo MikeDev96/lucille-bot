@@ -4,6 +4,7 @@ const axios = require("axios")
 const ytdl = require("discord-ytdl-core")
 const Track = require("./Track")
 const queryString = require("query-string")
+const radios = require("../radios.json")
 
 const PLATFORM_SPOTIFY = "spotify"
 const PLATFORM_TIDAL = "tidal"
@@ -11,6 +12,7 @@ const PLATFORM_APPLE = "apple"
 const PLATFORM_YOUTUBE = "youtube"
 const PLATFORM_SOUNDCLOUD = "soundcloud"
 const PLATFORM_OTHER = "other"
+const PLATFORM_RADIO = "radio"
 
 module.exports = class {
   constructor (input) {
@@ -289,22 +291,33 @@ module.exports = class {
 
   async getOther (id) {
     try {
-      const res = await axios({
-        method: "GET",
-        url: id,
-        responseType: "stream",
-      })
-      const contentType = res.headers["content-type"]
-      if (contentType.startsWith("audio/")) {
-        const track = new Track(
-          "Custom Link",
-          id,
-          "",
-        ).setPlatform(PLATFORM_OTHER)
-          .setLink(id)
+      const radio = Object.values(radios).find(r => r.url === id)
+      if (radio) {
+        const track = new Track("", radio.name, "")
+          .setPlatform(PLATFORM_RADIO)
+          .setLink(radio.url)
           .setDuration(0)
 
         return [track]
+      }
+      else {
+        const res = await axios({
+          method: "GET",
+          url: id,
+          responseType: "stream",
+        })
+        const contentType = res.headers["content-type"]
+        if (contentType.startsWith("audio/")) {
+          const track = new Track(
+            "Custom Link",
+            id,
+            "",
+          ).setPlatform(PLATFORM_OTHER)
+            .setLink(id)
+            .setDuration(0)
+
+          return [track]
+        }
       }
     }
     catch (err) {
@@ -321,4 +334,5 @@ module.exports.PLATFORM_TIDAL = "tidal"
 module.exports.PLATFORM_APPLE = "apple"
 module.exports.PLATFORM_YOUTUBE = "youtube"
 module.exports.PLATFORM_SOUNDCLOUD = "soundcloud"
+module.exports.PLATFORM_RADIO = PLATFORM_RADIO
 module.exports.PLATFORM_OTHER = PLATFORM_OTHER

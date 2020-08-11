@@ -10,11 +10,12 @@ const index = require("../index")
 const config = require("../config.json")
 const TopMostMessagePump = require("./TopMostMessagePump")
 const { safeJoin, sleep, msToTimestamp, selectRandom } = require("../helpers")
-const { amountToBassBoostMap } = require("../commands/music/bassboost")
 const TrackExtractor = require("./TrackExtractor")
-const { PLATFORM_SOUNDCLOUD, PLATFORM_YOUTUBE, PLATFORM_OTHER } = require("./TrackExtractor")
+const { PLATFORM_YOUTUBE, PLATFORM_RADIO, PLATFORM_SPOTIFY, PLATFORM_TIDAL, PLATFORM_APPLE } = require("./TrackExtractor")
 const Track = require("./Track")
 const fs = require("fs")
+
+const PLATFORMS_REQUIRE_YT_SEARCH = [PLATFORM_SPOTIFY, PLATFORM_TIDAL, PLATFORM_APPLE, PLATFORM_YOUTUBE, "search"]
 
 module.exports = class {
   constructor (textChannel) {
@@ -159,7 +160,7 @@ module.exports = class {
     this.updateEmbed()
 
     const item = this.state.queue[0]
-    const fetchYTStream = item.platform !== PLATFORM_SOUNDCLOUD && item.platform !== PLATFORM_OTHER
+    const fetchYTStream = PLATFORMS_REQUIRE_YT_SEARCH.includes(item.platform)
     let stream
 
     if (fetchYTStream) {
@@ -264,9 +265,9 @@ module.exports = class {
     const queue = this.state.queue/* .slice(1, 1 + QUEUE_TRACKS) */.slice(1).map((t, i) => `${i + 1}. ${this.getTrackTitle(t)} <@${t.requestee.id}>`)
     const splitQueue = new StringSplitter(queue).split()
 
-    const platformEmoji = this.state.emojis[currentlyPlaying.platform]
+    const platformEmoji = this.getPlatformEmoji(currentlyPlaying.platform)
     const nowPlayingSource = ![PLATFORM_YOUTUBE, "search"].includes(currentlyPlaying.platform) ? `${platformEmoji ? `${platformEmoji} ` : ""}${safeJoin([currentlyPlaying.artists, currentlyPlaying.title], " - ")}` : ""
-    const nowPlayingYouTube = ![PLATFORM_SOUNDCLOUD, PLATFORM_OTHER].includes(currentlyPlaying.platform) ? `${this.state.emojis.youtube} [${currentlyPlaying.youTubeTitle}](${currentlyPlaying.link})` : ""
+    const nowPlayingYouTube = PLATFORMS_REQUIRE_YT_SEARCH.includes(currentlyPlaying.platform) ? `${this.state.emojis.youtube} [${currentlyPlaying.youTubeTitle}](${currentlyPlaying.link})` : ""
     const nowPlaying = [nowPlayingSource, nowPlayingYouTube].filter(s => s.trim()).join("\n")
 
     const blocks = Math.ceil(20 * progressPerc)
@@ -274,8 +275,7 @@ module.exports = class {
     return {
       embed: {
         color: 0x0099ff,
-        title: "Tidify 2.0",
-        url: "https://discord.js.org",
+        title: "Lucille :musical_note:",
         author: {
           name: currentlyPlaying.requestee.displayName,
           icon_url: currentlyPlaying.requestee.avatar,
@@ -316,10 +316,10 @@ module.exports = class {
             value: `${this.state.volume}`,
             inline: true,
           }] : [],
-          {
+          ...currentlyPlaying.duration > 0 ? [{
             name: "Progress",
-            value: msToTimestamp((currentlyPlaying.duration * 1000) * progressPerc) + " " + ("▬".repeat(blocks)) + "🔵" + ("▬".repeat(Math.max(0, 20 - blocks - 1))) + " " + (currentlyPlaying.duration === 0 ? "∞" : msToTimestamp(currentlyPlaying.duration * 1000)),
-          },
+            value: msToTimestamp((currentlyPlaying.duration * 1000) * progressPerc) + " " + ("▬".repeat(blocks)) + "🔵" + ("▬".repeat(Math.max(0, 20 - blocks - 1))) + " " + msToTimestamp(currentlyPlaying.duration * 1000),
+          }] : [],
         ],
         footer: {
           text: "Created with ♥ by Migul, Powered by Keef Web Services",
@@ -329,11 +329,29 @@ module.exports = class {
     }
   }
 
+  getPlatformEmoji (platform) {
+    switch (platform) {
+      case PLATFORM_RADIO:
+        return ":radio:"
+      default:
+        return this.state.emojis[platform]
+    }
+  }
+
   dispatcherExec (callback) {
     if (this.state.voiceConnection && this.state.voiceConnection.dispatcher) {
       return callback(this.state.voiceConnection.dispatcher)
     }
   }
+}
+
+const amountToBassBoostMap = {
+  0: "Off",
+  5: "Low",
+  10: "Med",
+  15: "High",
+  20: "Insane",
+  50: "WTFBBQ",
 }
 
 // const QUEUE_TRACKS = 10

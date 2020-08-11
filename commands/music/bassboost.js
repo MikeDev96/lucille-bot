@@ -38,14 +38,3 @@ const bassBoostToAmountMap = {
   insane: 20,
   wtfbbq: 50,
 }
-
-const amountToBassBoostMap = {
-  0: "Off",
-  5: "Low",
-  10: "Med",
-  15: "High",
-  20: "Insane",
-  50: "WTFBBQ",
-}
-
-module.exports.amountToBassBoostMap = amountToBassBoostMap
