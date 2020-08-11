@@ -1,11 +1,35 @@
 {
   "capital": {
     "name": "Capital UK",
-    "url": "https://media-ssl.musicradio.com/CapitalUK"
+    "url": "https://media-ssl.musicradio.com/CapitalUK",
+    "metadata": {
+      "type": "ws",
+      "url": "wss://metadata.musicradio.com/v2/now-playing",
+      "summon": {
+        "actions": [
+          {
+            "type": "subscribe",
+            "service": "128"
+          }
+        ]
+      }
+    }
   },
   "capitalnw": {
     "name": "Capital Manchester",
-    "url": "https://media-ssl.musicradio.com/CapitalManchester"
+    "url": "https://media-ssl.musicradio.com/CapitalManchester",
+    "metadata": {
+      "type": "ws",
+      "url": "wss://metadata.musicradio.com/v2/now-playing",
+      "summon": {
+        "actions": [
+          {
+            "type": "subscribe",
+            "service": "29"
+          }
+        ]
+      }
+    }
   },
   "kiss": {
     "name": "Kiss",
@@ -21,15 +45,51 @@
   },
   "classic": {
     "name": "Classic FM",
-    "url": "https://media-ssl.musicradio.com/ClassicFM"
+    "url": "https://media-ssl.musicradio.com/ClassicFM",
+    "metadata": {
+      "type": "ws",
+      "url": "wss://metadata.musicradio.com/v2/now-playing",
+      "summon": {
+        "actions": [
+          {
+            "type": "subscribe",
+            "service": "121"
+          }
+        ]
+      }
+    }
   },
   "smooth": {
     "name": "Smooth",
-    "url": "https://media-ssl.musicradio.com/SmoothUK"
+    "url": "https://media-ssl.musicradio.com/SmoothUK",
+    "metadata": {
+      "type": "ws",
+      "url": "wss://metadata.musicradio.com/v2/now-playing",
+      "summon": {
+        "actions": [
+          {
+            "type": "subscribe",
+            "service": "65"
+          }
+        ]
+      }
+    }
   },
   "smoothnw": {
     "name": "Smooth North West",
-    "url": "https://media-ssl.musicradio.com/SmoothNorthWest"
+    "url": "https://media-ssl.musicradio.com/SmoothNorthWest",
+    "metadata": {
+      "type": "ws",
+      "url": "wss://metadata.musicradio.com/v2/now-playing",
+      "summon": {
+        "actions": [
+          {
+            "type": "subscribe",
+            "service": "69"
+          }
+        ]
+      }
+    }
   },
   "gaydionw": {
     "name": "Gaydio North West",

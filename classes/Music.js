@@ -14,6 +14,8 @@ const TrackExtractor = require("./TrackExtractor")
 const { PLATFORM_YOUTUBE, PLATFORM_RADIO, PLATFORM_SPOTIFY, PLATFORM_TIDAL, PLATFORM_APPLE } = require("./TrackExtractor")
 const Track = require("./Track")
 const fs = require("fs")
+const { RadioMetadata } = require("./RadioMetadata")
+const radios = require("../radios.json")
 
 const PLATFORMS_REQUIRE_YT_SEARCH = [PLATFORM_SPOTIFY, PLATFORM_TIDAL, PLATFORM_APPLE, PLATFORM_YOUTUBE, "search"]
 
@@ -185,6 +187,7 @@ module.exports = class {
       console.log("Stream starting...")
       this.cleanProgress()
       this.state.progressHandle = setInterval(() => this.updateEmbed(true, false), 5000)
+      this.startRadioMetadata(item)
     })
 
     dispatcher.on("finish", () => {
@@ -193,6 +196,7 @@ module.exports = class {
       // One last update so the progress bar reaches the end
       this.updateEmbed(true, false)
       this.cleanProgress()
+      this.stopRadioMetadata(item)
       this.processQueue()
     })
 
@@ -238,6 +242,29 @@ module.exports = class {
     this.state.messagePump.clear()
   }
 
+  startRadioMetadata (item) {
+    if (item.platform === PLATFORM_RADIO) {
+      const radio = Object.values(radios).find(r => r.url === item.link)
+      if (radio && radio.metadata) {
+        const rm = new RadioMetadata(radio.metadata.type, radio.metadata.url, radio.metadata.summon)
+        item.radio = {}
+        const callback = rm.subscribe(info => {
+          item.radio.info = info
+          this.updateEmbed(true, true)
+        })
+
+        item.radio.rm = rm
+        item.radio.callback = callback
+      }
+    }
+  }
+
+  stopRadioMetadata (item) {
+    if (item.radio) {
+      item.radio.rm.dispose()
+    }
+  }
+
   updateEmbed (edit = false, force = true) {
     const currentlyPlaying = this.state.queue[0]
     if (currentlyPlaying) {
@@ -268,7 +295,8 @@ module.exports = class {
     const platformEmoji = this.getPlatformEmoji(currentlyPlaying.platform)
     const nowPlayingSource = ![PLATFORM_YOUTUBE, "search"].includes(currentlyPlaying.platform) ? `${platformEmoji ? `${platformEmoji} ` : ""}${safeJoin([currentlyPlaying.artists, currentlyPlaying.title], " - ")}` : ""
     const nowPlayingYouTube = PLATFORMS_REQUIRE_YT_SEARCH.includes(currentlyPlaying.platform) ? `${this.state.emojis.youtube} [${currentlyPlaying.youTubeTitle}](${currentlyPlaying.link})` : ""
-    const nowPlaying = [nowPlayingSource, nowPlayingYouTube].filter(s => s.trim()).join("\n")
+    const radioNowPlaying = currentlyPlaying.platform === PLATFORM_RADIO && currentlyPlaying.radio && currentlyPlaying.radio.info ? [currentlyPlaying.radio.info.artist || "", currentlyPlaying.radio.info.title || ""].filter(s => s.trim()).join(" - ") : ""
+    const nowPlaying = [nowPlayingSource, nowPlayingYouTube, radioNowPlaying].filter(s => s.trim()).join("\n")
 
     const blocks = Math.ceil(20 * progressPerc)
 

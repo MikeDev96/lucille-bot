@@ -16,11 +16,13 @@
     "discord.js-commando": "github:discordjs/Commando",
     "ffmpeg-static": "^4.2.2",
     "humanize-duration": "^3.23.1",
+    "lodash": "^4.17.19",
     "lowdb": "^1.0.0",
     "parse-duration": "^0.4.4",
     "query-string": "^6.13.1",
     "scrape-yt": "^1.4.0",
-    "spotify-web-api-node": "^4.0.0"
+    "spotify-web-api-node": "^4.0.0",
+    "ws": "^7.3.1"
   },
   "devDependencies": {
     "eslint": "^7.1.0",
