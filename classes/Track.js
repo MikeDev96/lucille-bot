@@ -50,6 +50,16 @@ module.exports = class Track {
     return this
   }
 
+  setRequestStream (requestStream) {
+    this.requestStream = requestStream
+    return this
+  }
+
+  setRadio (radio) {
+    this.radio = radio
+    return this
+  }
+
   clone (track) {
     this.artists = track.artists
     this.title = track.title

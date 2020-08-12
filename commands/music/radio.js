@@ -26,7 +26,7 @@ module.exports = class extends Command {
     const music = getMusic(msg)
     const success = music.add(radios[args.station].url, getRequestee(msg), getVoiceChannel(msg), undefined)
     if (success) {
-      msg.react("▶️")
+      msg.react("📻")
     }
   }
 }

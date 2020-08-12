@@ -33,15 +33,30 @@
   },
   "kiss": {
     "name": "Kiss",
-    "url": "https://stream-kiss.planetradio.co.uk/kissnational.mp3?direct=true"
+    "url": "https://stream-kiss.planetradio.co.uk/kissnational.mp3?direct=true",
+    "metadata": {
+      "type": "sse",
+      "url": "https://stream-kiss.planetradio.co.uk/metadata?type=json",
+      "summon": "https://stream-kiss.planetradio.co.uk/kisstory.mp3?direct=true"
+    }
   },
   "kisstory": {
     "name": "Kisstory",
-    "url": "https://stream-kiss.planetradio.co.uk/kisstory.mp3?direct=true"
+    "url": "https://stream-kiss.planetradio.co.uk/kisstory.mp3?direct=true",
+    "metadata": {
+      "type": "sse",
+      "url": "https://stream-kiss.planetradio.co.uk/metadata?type=json",
+      "summon": "https://stream-kiss.planetradio.co.uk/kisstory.mp3?direct=true"
+    }
   },
   "kissfresh": {
     "name": "Kiss Fresh",
-    "url": "https://stream-kiss.planetradio.co.uk/kissfresh.mp3?direct=true"
+    "url": "https://stream-kiss.planetradio.co.uk/kissfresh.mp3?direct=true",
+    "metadata": {
+      "type": "sse",
+      "url": "https://stream-kiss.planetradio.co.uk/metadata?type=json",
+      "summon": "https://stream-kiss.planetradio.co.uk/kisstory.mp3?direct=true"
+    }
   },
   "classic": {
     "name": "Classic FM",
@@ -97,10 +112,20 @@
   },
   "bbcr1": {
     "name": "BBC Radio 1",
-    "url": "http://bbcmedia.ic.llnwd.net/stream/bbcmedia_radio1_mf_p"
+    "url": "http://bbcmedia.ic.llnwd.net/stream/bbcmedia_radio1_mf_p",
+    "metadata": {
+      "type": "poll",
+      "url": "https://rms.api.bbc.co.uk/v2/services/bbc_radio_one/segments/latest?limit=1",
+      "summon": 30
+    }
   },
   "bbcr1x": {
     "name": "BBC Radio 1xtra",
-    "url": "http://bbcmedia.ic.llnwd.net/stream/bbcmedia_radio1xtra_mf_p"
+    "url": "http://bbcmedia.ic.llnwd.net/stream/bbcmedia_radio1xtra_mf_p",
+    "metadata": {
+      "type": "poll",
+      "url": "https://rms.api.bbc.co.uk/v2/services/bbc_1xtra/segments/latest?limit=1",
+      "summon": 30
+    }
   }
 }

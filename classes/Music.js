@@ -16,6 +16,7 @@ const Track = require("./Track")
 const fs = require("fs")
 const { RadioMetadata } = require("./RadioMetadata")
 const radios = require("../radios.json")
+const { default: Axios } = require("axios")
 
 const PLATFORMS_REQUIRE_YT_SEARCH = [PLATFORM_SPOTIFY, PLATFORM_TIDAL, PLATFORM_APPLE, PLATFORM_YOUTUBE, "search"]
 
@@ -176,7 +177,7 @@ module.exports = class {
       }
     }
     else {
-      stream = item.link
+      stream = await this.getMediaStream(item)
     }
 
     // stream.once("data", () => {
@@ -204,6 +205,36 @@ module.exports = class {
       console.log(err)
     })
     // })
+  }
+
+  async getMediaStream (item) {
+    if (item.platform === PLATFORM_RADIO) {
+      const radio = Object.values(radios).find(r => r.url === item.link)
+
+      if (radio) {
+        item.setRadio(radio)
+
+        if (radio.metadata && radio.metadata.type === "sse") {
+          try {
+            const res = await Axios({
+              method: "GET",
+              url: item.link,
+              responseType: "stream",
+            })
+
+            item.setRequestStream(res)
+
+            return res.data
+          }
+          catch (err) {
+            console.log("Error occured when getting radio stream")
+            console.log(err)
+          }
+        }
+      }
+    }
+
+    return item.link
   }
 
   processQueue () {
@@ -243,19 +274,16 @@ module.exports = class {
   }
 
   startRadioMetadata (item) {
-    if (item.platform === PLATFORM_RADIO) {
-      const radio = Object.values(radios).find(r => r.url === item.link)
-      if (radio && radio.metadata) {
-        const rm = new RadioMetadata(radio.metadata.type, radio.metadata.url, radio.metadata.summon)
-        item.radio = {}
-        const callback = rm.subscribe(info => {
-          item.radio.info = info
-          this.updateEmbed(true, true)
-        })
+    if (item.radio && item.radio.metadata) {
+      const rm = new RadioMetadata(item.radio.metadata.type, item.radio.metadata.url, item.radio.metadata.type === "sse" ? item.requestStream : item.radio.metadata.summon)
+      item.radio = {}
+      const callback = rm.subscribe(info => {
+        item.radio.info = info
+        this.updateEmbed(true, true)
+      })
 
-        item.radio.rm = rm
-        item.radio.callback = callback
-      }
+      item.radio.rm = rm
+      item.radio.callback = callback
     }
   }
 
