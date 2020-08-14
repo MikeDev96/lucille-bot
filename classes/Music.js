@@ -41,6 +41,7 @@ module.exports = class {
       volume: 100,
       progress: 0,
       progressHandle: null,
+      playCount: 0,
     }
   }
 
@@ -82,6 +83,7 @@ module.exports = class {
           this.state.joinState = 2
           this.state.voiceChannel = voiceChannel
           this.state.voiceConnection = connection
+          this.state.playCount = 0
 
           this.state.voiceConnection.on("disconnect", () => {
             this.state.queue.splice(0, this.state.queue.length)
@@ -95,6 +97,7 @@ module.exports = class {
         })
       }
       else {
+        this.state.playCount++
         this.updateEmbed()
       }
     }
@@ -180,6 +183,17 @@ module.exports = class {
       stream = await this.getMediaStream(item)
     }
 
+    if (this.state.playCount === 0) {
+      try {
+        await this.connectSound()
+      }
+      catch (err) {
+        console.log("Failed to play connect sound")
+        console.log(err)
+        console.log(err)
+      }
+    }
+
     // stream.once("data", () => {
     const dispatcher = this.state.voiceConnection.play(stream, fetchYTStream ? { type: "opus" } : undefined)
     dispatcher.setVolumeLogarithmic(this.state.volume / 100)
@@ -247,6 +261,19 @@ module.exports = class {
     else {
       this.searchAndPlay()
     }
+  }
+
+  connectSound () {
+    return new Promise((resolve, reject) => {
+      const sounds = fs.readdirSync("assets/sounds/connect")
+      const dispatcher = this.state.voiceConnection.play(`assets/sounds/connect/${selectRandom(sounds)}`)
+      dispatcher.on("finish", () => {
+        resolve()
+      })
+      dispatcher.on("error", err => {
+        reject(err)
+      })
+    })
   }
 
   disconnectSound () {
