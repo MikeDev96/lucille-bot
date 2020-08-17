@@ -3,6 +3,7 @@ const path = require("path")
 const config = require("./config.json")
 const fs = require("fs")
 const VoiceTracker = require("./classes/VoiceTracker")
+const MusicTracker = require("./classes/MusicTracker")
 
 const emojis = [
   { name: "youtube", path: "assets/emojis/youtube.png" },
@@ -53,6 +54,9 @@ client.once("ready", () => {
   client.guilds.cache.forEach(createEmojis)
 
   client.voiceTracker = new VoiceTracker(client)
+  client.musicTracker = new MusicTracker(client)
+
+  client.on("message", msg => client.musicTracker.run(msg))
 })
 
 client.on("guildCreate", createEmojis)

@@ -1,12 +1,11 @@
 module.exports = class {
-  constructor(strings) {
+  constructor (strings) {
     this.strings = strings
   }
 
-  split() {
+  split () {
     const tracks = [...this.strings]
     const out = { strings: [], remaining: [] }
-    let index = 1
     let trackCount = 0
     let fieldCount = 0
 
@@ -16,17 +15,17 @@ module.exports = class {
       const startTracks = trackCount
       while (!!tracks.length && trackCount < 10) {
         const [content] = tracks.splice(0, 1)
-        if (!!queue)
+        if (queue) {
           queue += "\n"
+        }
         queue += content
-        
+
         if (queue.length > 1024) {
           tracks.unshift(content)
           queue = prevQueue
           break
         }
-        
-        index++
+
         trackCount++
         prevQueue = queue
       }
@@ -35,7 +34,7 @@ module.exports = class {
       fieldCount++
     }
 
-    if (!!tracks.length) {
+    if (tracks.length) {
       out.remaining = tracks
     }
 
