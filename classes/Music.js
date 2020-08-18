@@ -325,11 +325,16 @@ module.exports = class {
 
   async radioMusicToX (item) {
     if (item.radio.info.artist && item.radio.info.title) {
+      const sanitise = str => str.replace(/(?<=\b) ft. (?=\b)/gi, " ")
+        .replace(/(?<=\b) feat. (?=\b)/gi, " ")
+        .replace(/(?<=\b) and (?=\b)/gi, " ")
+        .replace(/(?<=\b) & (?=\b)/g, " ")
+
       const m2x = new MusicToX({
         platform: PLATFORM_RADIO,
         type: "track",
-        artists: item.radio.info.artist,
-        title: item.radio.info.title,
+        artists: sanitise(item.radio.info.artist),
+        title: sanitise(item.radio.info.title),
       })
 
       try {

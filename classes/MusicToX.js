@@ -248,7 +248,7 @@ module.exports = class {
 
     try {
       // Tidal search seems to work a lot better when removing titles with the word 'feat'
-      const withoutFeat = query.replace(/(?<=\b)feat(?=\b)/g, "")
+      const withoutFeat = query.replace(/(?<=\b)feat(?=\b)/gi, "")
       const res = await axios.get(`https://api.tidal.com/v1/search/${this.music.type}s?query=${encodeURIComponent(withoutFeat)}&limit=1&countryCode=GB`, {
         headers: {
           "X-Tidal-Token": config.tidal.token,
