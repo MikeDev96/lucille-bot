@@ -1,4 +1,4 @@
-const { PLATFORM_SPOTIFY, PLATFORM_TIDAL, PLATFORM_APPLE } = require("./TrackExtractor")
+const { PLATFORM_SPOTIFY, PLATFORM_TIDAL, PLATFORM_APPLE, PLATFORM_RADIO } = require("./TrackExtractor")
 const axios = require("axios")
 const SpotifyWebApi = require("spotify-web-api-node")
 const config = require("../config.json")
@@ -55,6 +55,16 @@ module.exports = class {
           name: appleRes.title,
           thumbnail: appleRes.thumbnail,
         }
+      }
+    }
+    else if (this.music.platform === PLATFORM_RADIO) {
+      const spotifyRes = await this.searchSpotify(this.music.artists, this.music.title)
+      const tidalRes = await this.searchTidal(this.music.artists, this.music.title)
+      const appleRes = await this.searchApple(this.music.artists, this.music.title)
+      return {
+        spotifyId: (spotifyRes || {}).id,
+        tidalId: (tidalRes || {}).id,
+        appleId: (appleRes || {}).id,
       }
     }
   }

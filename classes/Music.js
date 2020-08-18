@@ -17,6 +17,7 @@ const fs = require("fs")
 const { RadioMetadata } = require("./RadioMetadata")
 const radios = require("../radios.json")
 const { default: Axios } = require("axios")
+const MusicToX = require("./MusicToX")
 
 const PLATFORMS_REQUIRE_YT_SEARCH = [PLATFORM_SPOTIFY, PLATFORM_TIDAL, PLATFORM_APPLE, PLATFORM_YOUTUBE, "search"]
 
@@ -306,6 +307,8 @@ module.exports = class {
       item.radio = {}
       const callback = rm.subscribe(info => {
         item.radio.info = info
+
+        this.radioMusicToX(item)
         this.updateEmbed(true, true)
       })
 
@@ -317,6 +320,28 @@ module.exports = class {
   stopRadioMetadata (item) {
     if (item.radio) {
       item.radio.rm.dispose()
+    }
+  }
+
+  async radioMusicToX (item) {
+    if (item.radio.info.artist && item.radio.info.title) {
+      const m2x = new MusicToX({
+        platform: PLATFORM_RADIO,
+        type: "track",
+        artists: item.radio.info.artist,
+        title: item.radio.info.title,
+      })
+
+      try {
+        const res = await m2x.processLink()
+        if (res) {
+          item.radio.musicToX = res
+          this.updateEmbed(true, true)
+        }
+      }
+      catch (err) {
+
+      }
     }
   }
 
@@ -350,9 +375,11 @@ module.exports = class {
     const platformEmoji = this.getPlatformEmoji(currentlyPlaying.platform)
     const nowPlayingSource = ![PLATFORM_YOUTUBE, "search"].includes(currentlyPlaying.platform) ? `${platformEmoji ? `${platformEmoji} ` : ""}${safeJoin([currentlyPlaying.artists, currentlyPlaying.title], " - ")}` : ""
     const nowPlayingYouTube = PLATFORMS_REQUIRE_YT_SEARCH.includes(currentlyPlaying.platform) ? `${this.state.emojis.youtube} [${currentlyPlaying.youTubeTitle}](${currentlyPlaying.link})` : ""
-    const radioNowPlaying = currentlyPlaying.platform === PLATFORM_RADIO && currentlyPlaying.radio && currentlyPlaying.radio.info ? [currentlyPlaying.radio.info.artist || "", currentlyPlaying.radio.info.title || ""].filter(s => s.trim()).join(" - ") : ""
-    const nowPlaying = [nowPlayingSource, nowPlayingYouTube, radioNowPlaying].filter(s => s.trim()).join("\n")
 
+    const radioMusicToX = this.getRadioMusicToXInfo(currentlyPlaying)
+    const radioNowPlaying = currentlyPlaying.platform === PLATFORM_RADIO && currentlyPlaying.radio && currentlyPlaying.radio.info ? [currentlyPlaying.radio.info.artist || "", currentlyPlaying.radio.info.title || ""].filter(s => s.trim()).join(" - ") + (radioMusicToX ? " " + radioMusicToX : "") : ""
+
+    const nowPlaying = [nowPlayingSource, nowPlayingYouTube, radioNowPlaying].filter(s => s.trim()).join("\n")
     const blocks = Math.ceil(20 * progressPerc)
 
     return {
@@ -419,6 +446,22 @@ module.exports = class {
       default:
         return this.state.emojis[platform]
     }
+  }
+
+  getRadioMusicToXInfo (item) {
+    if (item.platform === PLATFORM_RADIO && item.radio && item.radio.musicToX) {
+      const musicToX = item.radio.musicToX
+      const splitApple = (musicToX.appleId || "").split("-")
+      const radioMusicToX = [
+        musicToX.spotifyId && `[${this.state.emojis.spotify}](https://open.spotify.com/track/${musicToX.spotifyId})`,
+        musicToX.tidalId && `[${this.state.emojis.tidal}](https://tidal.com/browse/track/${musicToX.tidalId})`,
+        musicToX.appleId && `[${this.state.emojis.apple}](https://music.apple.com/gb/track/${splitApple[0]}?i=${splitApple[1]})`,
+      ].filter(s => s).join(" ")
+
+      return radioMusicToX
+    }
+
+    return ""
   }
 
   dispatcherExec (callback) {

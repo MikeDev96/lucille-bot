@@ -11,6 +11,7 @@ const RadioMetadata = class {
       url,
       summon,
       event: new events.EventEmitter(),
+      disposed: false,
     }
 
     if (this.state.type === "ws") {
@@ -28,7 +29,12 @@ const RadioMetadata = class {
     const ws = new WebSocket(this.state.url)
 
     ws.on("open", () => {
-      ws.send(JSON.stringify(this.state.summon))
+      if (this.state.disposed) {
+        ws.close()
+      }
+      else {
+        ws.send(JSON.stringify(this.state.summon))
+      }
     })
 
     const emitInfo = debounce(info => {
@@ -59,6 +65,11 @@ const RadioMetadata = class {
       }
     })
 
+    ws.on("error", err => {
+      console.log("Error when grabbing radio metadata via ws")
+      console.log(err)
+    })
+
     this.ws = ws
   }
 
@@ -71,6 +82,12 @@ const RadioMetadata = class {
         cookie: `AISSessionId=${sessionId}`,
       },
     })
+
+    es.onopen = () => {
+      if (this.state.disposed) {
+        es.close()
+      }
+    }
 
     es.onmessage = async (event) => {
       const data = JSON.parse(event.data)
@@ -103,6 +120,11 @@ const RadioMetadata = class {
         }
       }
     }
+
+    es.on("error", err => {
+      console.log("Error when grabbing radio metadata via sse")
+      console.log(err)
+    })
 
     this.es = es
   }
@@ -147,13 +169,15 @@ const RadioMetadata = class {
   }
 
   dispose () {
+    this.state.disposed = true
+
     if (this.state.type === "ws") {
-      if (this.ws.readyState !== this.ws.CLOSED) {
+      if (this.ws.readyState === this.ws.OPEN) {
         this.ws.close()
       }
     }
     else if (this.state.type === "sse") {
-      if (this.es.readyState !== this.es.CLOSED) {
+      if (this.es.readyState === this.es.OPEN) {
         this.es.close()
       }
     }
