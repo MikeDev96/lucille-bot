@@ -340,8 +340,12 @@ module.exports = class {
         }
       }
       catch (err) {
-
+        console.log("Error when processing radio metadata m2x")
+        console.log(err)
       }
+    }
+    else {
+      item.radio.musicToX = undefined
     }
   }
 
