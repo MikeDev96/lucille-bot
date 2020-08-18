@@ -51,7 +51,7 @@ module.exports = class {
             },
           }
 
-          msg.channel.send(embed)
+          msg.reply(embed)
         }
       }
     }
