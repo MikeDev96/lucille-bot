@@ -24,7 +24,7 @@ module.exports = class extends Command {
   async run (msg, args) {
     const music = getMusic(msg)
     music.state.playTime += music.dispatcherExec(d => d.streamTime) || 0
-    music.state.bassBoost = bassBoostToAmountMap[args.amount]
+    music.state.bassBoost = bassBoostToAmountMap[args.amount.toLowerCase()]
     music.play()
     msg.react("🎸")
   }

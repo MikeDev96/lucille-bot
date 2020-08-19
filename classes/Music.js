@@ -278,8 +278,8 @@ module.exports = class {
   }
 
   disconnectSound () {
-    const sounds = fs.readdirSync("assets/sounds/farts")
-    const dispatcher = this.state.voiceConnection.play(`assets/sounds/farts/${selectRandom(sounds)}`)
+    const sounds = fs.readdirSync("assets/sounds/disconnect")
+    const dispatcher = this.state.voiceConnection.play(`assets/sounds/disconnect/${selectRandom(sounds)}`)
     dispatcher.setVolumeLogarithmic(3)
     dispatcher.on("finish", () => {
       this.state.voiceConnection.disconnect()
