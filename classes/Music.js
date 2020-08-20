@@ -442,8 +442,6 @@ module.exports = class {
             value: nowPlaying,
             inline: true,
           },
-          // { name: "\u200b", value: "\u200b", inline: true },
-          // { name: "\u200b", value: "\u200b", inline: true },
           ...splitQueue.strings.map(q => ({
             name: "Up Next",
             value: q.subString,

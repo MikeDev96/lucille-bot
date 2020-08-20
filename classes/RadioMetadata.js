@@ -12,6 +12,8 @@ const RadioMetadata = class {
       summon,
       event: new events.EventEmitter(),
       disposed: false,
+      startTime: null,
+      initiated: false,
     }
 
     if (this.state.type === "ws") {
@@ -87,36 +89,44 @@ const RadioMetadata = class {
       if (this.state.disposed) {
         es.close()
       }
+      else {
+        if (!this.state.initiated) {
+          this.state.initiated = true
+          this.state.startTime = Date.now()
+        }
+      }
     }
 
     es.onmessage = async (event) => {
       const data = JSON.parse(event.data)
       const list = data["metadata-list"]
-      const item = list[list.length - 1]
 
-      const match = /(title=".+?",)?url="(.+?)"/.exec(item.metadata)
-      if (match) {
-        const [, title, url] = match
-        if (title) {
-          try {
-            const res = await Axios(url)
-            if (res.status === 200 && res.data) {
-              this.state.event.emit("info", {
-                artist: res.data.eventSongArtist,
-                title: res.data.eventSongTitle,
-              })
+      for (const item of list) {
+        if (item.metadata && item.start) {
+          const match = /(title=".+?",)?url="(.+?)"/.exec(item.metadata)
+          if (match) {
+            const [, title, url] = match
+            const out = { artist: "", title: "" }
+
+            if (title && url) {
+              try {
+                const res = await Axios(url)
+                if (res.status === 200 && res.data) {
+                  out.artist = res.data.eventSongArtist
+                  out.title = res.data.eventSongTitle
+                }
+              }
+              catch (err) {
+                console.log("Error when trying to resolve radio metadata")
+                console.log(err)
+              }
             }
+
+            const delay = this.state.startTime + parseInt(item.start) - Date.now()
+            setTimeout(() => {
+              this.state.event.emit("info", out)
+            }, delay)
           }
-          catch (err) {
-            console.log("Error when trying to resolve radio metadata")
-            console.log(err)
-          }
-        }
-        else {
-          this.state.event.emit("info", {
-            artist: "",
-            title: "",
-          })
         }
       }
     }
