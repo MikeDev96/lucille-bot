@@ -116,8 +116,6 @@ module.exports = class {
         })
       }
       else {
-        this.state.playCount++
-
         if (this.state.queue.length >= 2 && this.state.queue[0].platform === PLATFORM_RADIO) {
           const radio = this.state.queue[0]
           if (radio.active) {
@@ -222,6 +220,8 @@ module.exports = class {
         console.log(err)
       }
     }
+
+    this.state.playCount++
 
     // stream.once("data", () => {
     const dispatcher = this.state.voiceConnection.play(stream, fetchYTStream ? { type: "opus" } : undefined)
