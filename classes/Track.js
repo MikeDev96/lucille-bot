@@ -60,6 +60,11 @@ module.exports = class Track {
     return this
   }
 
+  setActive (active) {
+    this.active = active
+    return this
+  }
+
   clone (track) {
     this.artists = track.artists
     this.title = track.title

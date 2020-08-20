@@ -48,10 +48,13 @@ module.exports = class {
 
   async add (input, requestee, voiceChannel, index = -1) {
     const trackExtractor = new TrackExtractor(input)
-    const insertAt = index < 0 ? this.state.queue.length : index
+    let insertAt = index < 0 ? this.state.queue.length : index
+    let tracks = []
+
     if (trackExtractor.parseLinks()) {
       const links = await trackExtractor.getAllLinkInfo()
-      this.state.queue.splice(insertAt, 0, ...links.map(l => l.setRequestee(requestee).setQuery(`official audio ${l.artists} ${l.title}`)))
+
+      tracks = links.map(l => l.setRequestee(requestee).setQuery(`official audio ${l.artists} ${l.title}`))
     }
     else {
       const track = new Track()
@@ -68,12 +71,23 @@ module.exports = class {
           .setLink(`https://www.youtube.com/watch?v=${searchResult.id}`)
           .setDuration(searchResult.duration)
 
-        this.state.queue.splice(insertAt, 0, track)
+        tracks = [track]
       }
       else {
         return false
       }
     }
+
+    if (index < 0 && this.state.queue.length > 1) {
+      const queueReversed = this.state.queue.slice(1).reverse()
+      const radioIndex = queueReversed.findIndex(t => t.platform === PLATFORM_RADIO)
+
+      if (radioIndex >= 0) {
+        insertAt = this.state.queue.length - radioIndex - 1
+      }
+    }
+
+    this.state.queue.splice(insertAt, 0, ...tracks)
 
     if (this.state.queue.length > 0) {
       // Join the voice channel if not already joining/joined
@@ -99,6 +113,16 @@ module.exports = class {
       }
       else {
         this.state.playCount++
+
+        if (this.state.queue.length >= 2 && this.state.queue[0].platform === PLATFORM_RADIO) {
+          const radio = this.state.queue[0]
+          if (radio.active) {
+            // Hopefully this is synchronous, so we guarantee that the song has been removed
+            this.dispatcherExec(d => d.end())
+            this.state.queue.push(radio)
+          }
+        }
+
         this.updateEmbed()
       }
     }
@@ -201,6 +225,7 @@ module.exports = class {
 
     dispatcher.on("start", () => {
       console.log("Stream starting...")
+      item.setActive(true)
       this.cleanProgress()
       this.state.progressHandle = setInterval(() => this.updateEmbed(true, false), 5000)
       this.startRadioMetadata(item)
@@ -211,6 +236,7 @@ module.exports = class {
 
       // One last update so the progress bar reaches the end
       this.updateEmbed(true, false)
+      item.setActive(false)
       this.cleanProgress()
       this.stopRadioMetadata(item)
       this.processQueue()
