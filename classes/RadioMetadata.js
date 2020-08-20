@@ -1,6 +1,6 @@
 const events = require("events")
 const WebSocket = require("ws")
-const debounce = require("lodash/debounce")
+const debounce = require("lodash.debounce")
 const { default: Axios } = require("axios")
 const EventSource = require("eventsource")
 

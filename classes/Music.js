@@ -18,6 +18,7 @@ const { RadioMetadata } = require("./RadioMetadata")
 const radios = require("../radios.json")
 const { default: Axios } = require("axios")
 const MusicToX = require("./MusicToX")
+const debounce = require("lodash.debounce")
 
 const PLATFORMS_REQUIRE_YT_SEARCH = [PLATFORM_SPOTIFY, PLATFORM_TIDAL, PLATFORM_APPLE, PLATFORM_YOUTUBE, "search"]
 
@@ -44,6 +45,9 @@ module.exports = class {
       progressHandle: null,
       playCount: 0,
     }
+
+    // Move the embed down every 5 minutes, it can get lost when a radio is left on for ages
+    this.debouncer = debounce(this.updateEmbed, 5 * 60 * 1000)
   }
 
   async add (input, requestee, voiceChannel, index = -1) {
@@ -227,7 +231,9 @@ module.exports = class {
       console.log("Stream starting...")
       item.setActive(true)
       this.cleanProgress()
-      this.state.progressHandle = setInterval(() => this.updateEmbed(true, false), 5000)
+      if (item.duration > 0) {
+        this.state.progressHandle = setInterval(() => this.updateEmbed(true, false), 5000)
+      }
       this.startRadioMetadata(item)
     })
 
@@ -321,6 +327,7 @@ module.exports = class {
   }
 
   cleanUp () {
+    this.debouncer.cancel()
     this.state.voiceConnection = null
     this.state.voiceChannel = null
     this.state.joinState = 0
@@ -386,6 +393,10 @@ module.exports = class {
       const progressPerc = this.getPlaybackProgress(currentlyPlaying.duration)
       if (this.state.progress !== progressPerc || force) {
         this.state.messagePump.set(this.createQueueEmbed(currentlyPlaying, progressPerc), edit)
+      }
+
+      if (!edit) {
+        this.debouncer()
       }
     }
   }
