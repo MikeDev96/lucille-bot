@@ -60,11 +60,6 @@ module.exports = class Track {
     return this
   }
 
-  setActive (active) {
-    this.active = active
-    return this
-  }
-
   clone (track) {
     this.artists = track.artists
     this.title = track.title
@@ -74,6 +69,9 @@ module.exports = class Track {
     this.platform = track.platform
     this.query = track.query
     this.youTubeTitle = track.youTubeTitle
+    this.duration = track.duration
+    this.requestStream = track.requestStream
+    this.radio = track.radio
     return this
   }
 }

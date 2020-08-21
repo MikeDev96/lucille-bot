@@ -128,10 +128,11 @@ module.exports = class {
             this.state.queue.push(radio)
           }
 
-          this.play()
+          this.searchAndPlay()
         }
-
-        this.updateEmbed()
+        else {
+          this.updateEmbed()
+        }
       }
     }
 
@@ -227,7 +228,6 @@ module.exports = class {
 
     dispatcher.on("start", () => {
       console.log("Stream starting...")
-      item.setActive(true)
       this.cleanProgress()
       if (item.duration > 0) {
         this.state.progressHandle = setInterval(() => this.updateEmbed(true, false), 5000)
@@ -240,7 +240,6 @@ module.exports = class {
 
       // One last update so the progress bar reaches the end
       this.updateEmbed(true, false)
-      item.setActive(false)
       this.cleanProgress()
       this.stopRadioMetadata(item)
       this.processQueue()
