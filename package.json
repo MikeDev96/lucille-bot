@@ -16,6 +16,7 @@
     "discord.js-commando": "github:discordjs/Commando",
     "eventsource": "^1.0.7",
     "ffmpeg-static": "^4.2.2",
+    "get-audio-duration": "^2.0.3",
     "humanize-duration": "^3.23.1",
     "lodash": "^4.17.19",
     "lodash.debounce": "^4.0.8",
