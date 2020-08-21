@@ -1,11 +1,6 @@
-// const { Command } = require("discord.js-commando")
-// const TrackExtractor = require("./TrackExtractor")
-// const youtube = require("scrape-youtube").default
 const scrapeYt = require("scrape-yt")
 const ytdl = require("discord-ytdl-core")
 const StringSplitter = require("./StringSplitter")
-// const Track = require("./Track")
-// const Requestee = require("./Requestee")
 const index = require("../index")
 const config = require("../config.json")
 const TopMostMessagePump = require("./TopMostMessagePump")
@@ -16,7 +11,7 @@ const Track = require("./Track")
 const fs = require("fs")
 const { RadioMetadata } = require("./RadioMetadata")
 const radios = require("../radios.json")
-const { default: Axios } = require("axios")
+const Axios = require("axios")
 const MusicToX = require("./MusicToX")
 const debounce = require("lodash.debounce")
 
@@ -82,12 +77,19 @@ module.exports = class {
       }
     }
 
+    // If we're adding an item to the end of the queue & there's something in the queue already
     if (index < 0 && this.state.queue.length > 1) {
-      const queueReversed = this.state.queue.slice(1).reverse()
-      const radioIndex = queueReversed.findIndex(t => t.platform === PLATFORM_RADIO)
-
+      const isAddingRadio = !!tracks.find(t => t.platform === PLATFORM_RADIO)
+      const radioIndex = this.state.queue.findIndex((t, idx) => idx > 0 && t.platform === PLATFORM_RADIO)
+      // If there's a radio in the queue
       if (radioIndex >= 0) {
-        insertAt = this.state.queue.length - radioIndex - 1
+        // And we're adding a radio, delete the old radio
+        if (isAddingRadio) {
+          this.state.queue.splice(radioIndex, 1)
+        }
+
+        // Update the insert index, to put it where the old radio was
+        insertAt = radioIndex
       }
     }
 
@@ -116,13 +118,17 @@ module.exports = class {
         })
       }
       else {
-        if (this.state.queue.length >= 2 && this.state.queue[0].platform === PLATFORM_RADIO) {
-          const radio = this.state.queue[0]
-          if (radio.active) {
-            // Hopefully this is synchronous, so we guarantee that the song has been removed
-            this.dispatcherExec(d => d.end())
+        // If there's a radio currently playing & there's something else in the queue (because we've just added it above)
+        if (this.state.queue[0].platform === PLATFORM_RADIO && this.state.queue.length > 1) {
+          // Then remove the radio
+          const [radio] = this.state.queue.splice(0, 1)
+          // And add it to the end of the queue as long as the item now at index 0 isn't a radio
+          // This is because we only allow 1 radio in the queue at a time
+          if (this.state.queue[0].platform !== PLATFORM_RADIO) {
             this.state.queue.push(radio)
           }
+
+          this.play()
         }
 
         this.updateEmbed()
@@ -135,12 +141,10 @@ module.exports = class {
   async searchAndPlay () {
     const item = this.state.queue[0]
 
-    // if (item.platform === "search") {
     if (item.link) {
       this.play()
     }
     else {
-      // const query = `${item.artists} ${item.title}`.trim()
       const searchResults = (await scrapeYt.search(item.query)).filter(res => res.type === "video")
       const searchResult = searchResults[0]
 
@@ -163,9 +167,6 @@ module.exports = class {
     for (let i = 0; i < 5; i++) {
       try {
         stream = ytdl(url, {
-          // filter: "audioonly",
-          // quality: "highestaudio",
-          // highWaterMark: 1024 * 1024 * 10,
           highWaterMark: 1 << 25,
           seek: this.state.playTime / 1000,
           encoderArgs: [
@@ -200,8 +201,6 @@ module.exports = class {
       stream = await this.getYTStream(item.link)
       if (!stream) {
         this.state.textChannel.send(`Failed to get a YouTube stream for\n${this.getTrackTitle(item)}\n${item.link}`)
-        // this.state.queue.shift()
-        // this.play()
         this.processQueue()
         return
       }
@@ -223,7 +222,6 @@ module.exports = class {
 
     this.state.playCount++
 
-    // stream.once("data", () => {
     const dispatcher = this.state.voiceConnection.play(stream, fetchYTStream ? { type: "opus" } : undefined)
     dispatcher.setVolumeLogarithmic(this.state.volume / 100)
 
@@ -251,7 +249,6 @@ module.exports = class {
     dispatcher.on("error", err => {
       console.log(err)
     })
-    // })
   }
 
   async getMediaStream (item) {
@@ -405,7 +402,6 @@ module.exports = class {
     const durationMs = duration * 1000
     const elapsed = Math.min(this.state.playTime + (this.dispatcherExec(d => d.streamTime) || 0), durationMs)
     const progressPerc = durationMs === 0 ? 0 : elapsed / durationMs
-    // const blocks = Math.ceil(20 * progressPerc)
 
     return progressPerc
   }
@@ -415,7 +411,7 @@ module.exports = class {
   }
 
   createQueueEmbed (currentlyPlaying, progressPerc) {
-    const queue = this.state.queue/* .slice(1, 1 + QUEUE_TRACKS) */.slice(1).map((t, i) => `${i + 1}. ${this.getTrackTitle(t)} <@${t.requestee.id}>`)
+    const queue = this.state.queue.slice(1).map((t, i) => `${i + 1}. ${this.getTrackTitle(t)} <@${t.requestee.id}>`)
     const splitQueue = new StringSplitter(queue).split()
 
     const platformEmoji = this.getPlatformEmoji(currentlyPlaying.platform)
@@ -523,6 +519,3 @@ const amountToBassBoostMap = {
   20: "Insane",
   50: "WTFBBQ",
 }
-
-// const QUEUE_TRACKS = 10
-// const QUEUE_FIELD_MAX_CHARS = 1024

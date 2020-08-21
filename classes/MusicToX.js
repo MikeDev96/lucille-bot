@@ -61,6 +61,19 @@ module.exports = class {
       const spotifyRes = await this.searchSpotify(this.music.artists, this.music.title)
       const tidalRes = await this.searchTidal(this.music.artists, this.music.title)
       const appleRes = await this.searchApple(this.music.artists, this.music.title)
+
+      if (!spotifyRes || !spotifyRes.id) {
+        console.log(`MusicToX Spotify failure - Artists: '${this.music.artists}', Title: '${this.music.title}'`)
+      }
+
+      if (!tidalRes || !tidalRes.id) {
+        console.log(`MusicToX Tidal failure - Artists: '${this.music.artists}', Title: '${this.music.title}'`)
+      }
+
+      if (!appleRes || !appleRes.id) {
+        console.log(`MusicToX Apple failure - Artists: '${this.music.artists}', Title: '${this.music.title}'`)
+      }
+
       return {
         spotifyId: (spotifyRes || {}).id,
         tidalId: (tidalRes || {}).id,
