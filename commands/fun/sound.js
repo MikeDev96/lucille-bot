@@ -68,7 +68,13 @@ module.exports = class extends Command {
           const duration = await getAudioDurationInSeconds(filename)
           if (duration > 3) {
             msg.reply("File must be no longer than 3 seconds")
-            fs.unlink()
+            fs.unlink(filename, err => {
+              if (err) {
+                console.log(err)
+              }
+            })
+
+            return
           }
 
           const embed = await this.getFilesEmbed(msg, `./assets/sounds/${key}`, key, file.name)
