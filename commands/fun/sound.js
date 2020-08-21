@@ -70,39 +70,51 @@ module.exports = class extends Command {
             msg.reply("File must be no longer than 3 seconds")
             fs.unlink()
           }
+
+          const embed = await this.getFilesEmbed(msg, `./assets/sounds/${key}`, key, file.name)
+          msg.reply(embed)
         })
       }
     }
     else if (args.arg1 === "list") {
       const key = typeMap[args.arg2.toLowerCase()]
       if (key) {
-        const path = `./assets/sounds/${key}`
-        fs.readdir(path, (err, files) => {
-          if (!err) {
-            msg.reply({
-              embed: {
-                color: 0x0099ff,
-                title: "Lucille :musical_note:",
-                author: {
-                  name: msg.member.displayName,
-                  icon_url: msg.author.displayAvatarURL(),
-                },
-                fields: [
-                  {
-                    name: `${key.slice(0, 1).toUpperCase()}${key.slice(1)} Files`,
-                    value: files.join("\n"),
-                  },
-                ],
-                footer: {
-                  text: "Created with ♥ by Migul, Powered by Keef Web Services",
-                  icon_url: config.discord.authorAvatarUrl,
-                },
-              },
-            })
-          }
-        })
+        const embed = await this.getFilesEmbed(msg, `./assets/sounds/${key}`, key)
+        msg.reply(embed)
       }
     }
+  }
+
+  getFilesEmbed (msg, path, type, highlightFile) {
+    return new Promise((resolve, reject) => {
+      fs.readdir(path, (err, files) => {
+        if (err) {
+          reject(err)
+        }
+        else {
+          return resolve({
+            embed: {
+              color: 0x0099ff,
+              title: "Lucille :musical_note:",
+              author: {
+                name: msg.member.displayName,
+                icon_url: msg.author.displayAvatarURL(),
+              },
+              fields: [
+                {
+                  name: `${type.slice(0, 1).toUpperCase()}${type.slice(1)} Files`,
+                  value: files.map(f => f === highlightFile ? `**${f}**` : f).join("\n"),
+                },
+              ],
+              footer: {
+                text: "Created with ♥ by Migul, Powered by Keef Web Services",
+                icon_url: config.discord.authorAvatarUrl,
+              },
+            },
+          })
+        }
+      })
+    })
   }
 }
 
