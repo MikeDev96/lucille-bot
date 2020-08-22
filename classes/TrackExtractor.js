@@ -47,7 +47,7 @@ module.exports = class {
     let youtubeMatch
     while ((youtubeMatch = youtubePattern.exec(this.input))) {
       const [, id] = youtubeMatch
-      this.links.push({ platform: "youtube", type: "track", id })
+      this.links.push({ platform: "youtube", type: "track", id, startTime: queryString.parseUrl(this.input, { parseNumbers: true }).query.t })
     }
 
     const soundCloudPattern = /soundcloud.com\/((?:[\w-]+?)\/(?:sets\/)?(?:[\w-]+)(?:\/\b[\w-]+)?)\b/g
@@ -87,7 +87,7 @@ module.exports = class {
         case PLATFORM_SPOTIFY: return await this.getSpotify(link.type, link.id)
         case PLATFORM_TIDAL: return await this.getTidal(link.type, link.id)
         case PLATFORM_APPLE: return await this.getApple(link.type, link.id)
-        case PLATFORM_YOUTUBE: return await this.getYouTube(link.type, link.id)
+        case PLATFORM_YOUTUBE: return await this.getYouTube(link.type, link.id, link.startTime)
         case PLATFORM_SOUNDCLOUD: return await this.getSoundCloud(link.type, link.id)
         case PLATFORM_OTHER: return await this.getOther(link.id)
       }
@@ -223,7 +223,7 @@ module.exports = class {
     return []
   }
 
-  async getYouTube (type, id) {
+  async getYouTube (type, id, startTime) {
     return new Promise((resolve, reject) => {
       ytdl.getBasicInfo(`https://youtube.com/watch?v=${id}`, (err, info) => {
         if (!err) {
@@ -234,7 +234,8 @@ module.exports = class {
           ).setPlatform(PLATFORM_YOUTUBE)
             .setLink(info.video_url)
             .setYouTubeTitle(info.title)
-            .setDuration(parseInt(info.length_seconds)),
+            .setDuration(parseInt(info.length_seconds))
+            .setStartTime(startTime),
           ])
         }
         else {

@@ -192,11 +192,15 @@ module.exports = class {
   }
 
   async play () {
-    this.updateEmbed()
-
     const item = this.state.queue[0]
     const fetchYTStream = PLATFORMS_REQUIRE_YT_SEARCH.includes(item.platform)
     let stream
+
+    if (item.startTime) {
+      this.state.playTime = item.startTime * 1000
+    }
+
+    this.updateEmbed()
 
     if (fetchYTStream) {
       stream = await this.getYTStream(item.link)
@@ -467,7 +471,7 @@ module.exports = class {
           }] : [],
           ...currentlyPlaying.duration > 0 ? [{
             name: "Progress",
-            value: msToTimestamp((currentlyPlaying.duration * 1000) * progressPerc) + " " + ("▬".repeat(blocks)) + "🔵" + ("▬".repeat(Math.max(0, 20 - blocks - 1))) + " " + msToTimestamp(currentlyPlaying.duration * 1000),
+            value: "`" + msToTimestamp((currentlyPlaying.duration * 1000) * progressPerc) + "` " + ("▬".repeat(blocks)) + "🔵" + ("▬".repeat(Math.max(0, 20 - blocks - 1))) + " `" + msToTimestamp(currentlyPlaying.duration * 1000) + "`",
           }] : [],
         ],
         footer: {

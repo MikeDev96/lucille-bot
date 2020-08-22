@@ -60,6 +60,11 @@ module.exports = class Track {
     return this
   }
 
+  setStartTime (startTime) {
+    this.startTime = startTime
+    return this
+  }
+
   clone (track) {
     this.artists = track.artists
     this.title = track.title
@@ -72,6 +77,7 @@ module.exports = class Track {
     this.duration = track.duration
     this.requestStream = track.requestStream
     this.radio = track.radio
+    this.startTime = track.startTime
     return this
   }
 }
