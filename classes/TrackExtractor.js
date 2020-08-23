@@ -5,6 +5,7 @@ const ytdl = require("discord-ytdl-core")
 const Track = require("./Track")
 const queryString = require("query-string")
 const radios = require("../radios.json")
+const parseDuration = require("parse-duration")
 
 const PLATFORM_SPOTIFY = "spotify"
 const PLATFORM_TIDAL = "tidal"
@@ -47,7 +48,14 @@ module.exports = class {
     let youtubeMatch
     while ((youtubeMatch = youtubePattern.exec(this.input))) {
       const [, id] = youtubeMatch
-      this.links.push({ platform: "youtube", type: "track", id, startTime: queryString.parseUrl(this.input, { parseNumbers: true }).query.t })
+      const link = { platform: "youtube", type: "track", id }
+      const queryParams = queryString.parseUrl(this.input).query
+      if (queryParams.t) {
+        const startTime = !/[a-zA-Z]/.test(queryParams.t) ? queryParams.t + "s" : queryParams.t
+        const duration = parseDuration(startTime, "s")
+        link.startTime = duration
+      }
+      this.links.push(link)
     }
 
     const soundCloudPattern = /soundcloud.com\/((?:[\w-]+?)\/(?:sets\/)?(?:[\w-]+)(?:\/\b[\w-]+)?)\b/g
