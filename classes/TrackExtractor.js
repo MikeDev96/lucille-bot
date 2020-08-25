@@ -53,7 +53,9 @@ module.exports = class {
       if (queryParams.t) {
         const startTime = !/[a-zA-Z]/.test(queryParams.t) ? queryParams.t + "s" : queryParams.t
         const duration = parseDuration(startTime, "s")
-        link.startTime = duration
+        if (duration) {
+          link.startTime = duration
+        }
       }
       this.links.push(link)
     }
