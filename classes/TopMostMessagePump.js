@@ -27,8 +27,14 @@ module.exports = class {
 
   async send () {
     if (this.message && (!this.messageContents || !this.messageContents.edit)) {
-      await this.deleteMessage()
-      this.message = null
+      const latestMessage = this.textChannel.messages.cache.last()
+      if (latestMessage && this.message && latestMessage.id === this.message.id) {
+        this.messageContents.edit = true
+      }
+      else {
+        await this.deleteMessage()
+        this.message = null
+      }
     }
 
     if (this.shouldClear) {

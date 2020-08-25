@@ -11,7 +11,7 @@
   "dependencies": {
     "@discordjs/opus": "^0.3.2",
     "axios": "^0.19.2",
-    "discord-ytdl-core": "^2.0.1",
+    "discord-ytdl-core": "^4.0.7",
     "discord.js": "^12.2.0",
     "discord.js-commando": "github:discordjs/Commando",
     "eventsource": "^1.0.7",

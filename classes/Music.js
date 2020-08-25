@@ -170,10 +170,8 @@ module.exports = class {
         stream = ytdl(url, {
           highWaterMark: 1 << 25,
           seek: this.state.playTime / 1000,
-          encoderArgs: [
-            "-af",
-            `equalizer=f=40:width_type=h:width=50:g=${this.state.bassBoost},atempo=${this.state.tempo}`,
-          ],
+          encoderArgs: this.getFFMpegArgs(),
+          opusEncoded: true,
         })
 
         break
@@ -271,7 +269,11 @@ module.exports = class {
 
             item.setRequestStream(res)
 
-            return res.data
+            return ytdl.arbitraryStream(res.data, {
+              opusEncoded: false,
+              fmt: "mp3",
+              encoderArgs: this.getFFMpegArgs(),
+            })
           }
           catch (err) {
             console.log("Error occured when getting radio stream")
@@ -282,6 +284,13 @@ module.exports = class {
     }
 
     return item.link
+  }
+
+  getFFMpegArgs () {
+    return [
+      "-af",
+    `equalizer=f=40:width_type=h:width=50:g=${this.state.bassBoost},atempo=${this.state.tempo}`,
+    ]
   }
 
   processQueue () {
@@ -351,7 +360,7 @@ module.exports = class {
   }
 
   stopRadioMetadata (item) {
-    if (item.radio) {
+    if (item.radio && item.radio.rm) {
       item.radio.rm.dispose()
     }
   }
