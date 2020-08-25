@@ -63,22 +63,25 @@ module.exports = class extends Command {
           }
 
           const stream = fs.createWriteStream(filename)
+
+          stream.on("finish", async () => {
+            const duration = await getAudioDurationInSeconds(filename)
+            if (duration > 5) {
+              msg.reply("File must be no longer than 5 seconds")
+              fs.unlink(filename, err => {
+                if (err) {
+                  console.log(err)
+                }
+              })
+
+              return
+            }
+
+            const embed = await this.getFilesEmbed(msg, `./assets/sounds/${key}`, key, file.name)
+            msg.reply(embed)
+          })
+
           res.data.pipe(stream)
-
-          const duration = await getAudioDurationInSeconds(filename)
-          if (duration > 3) {
-            msg.reply("File must be no longer than 3 seconds")
-            fs.unlink(filename, err => {
-              if (err) {
-                console.log(err)
-              }
-            })
-
-            return
-          }
-
-          const embed = await this.getFilesEmbed(msg, `./assets/sounds/${key}`, key, file.name)
-          msg.reply(embed)
         })
       }
     }
