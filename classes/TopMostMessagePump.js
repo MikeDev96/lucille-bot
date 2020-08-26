@@ -26,14 +26,30 @@ module.exports = class {
   }
 
   async send () {
-    if (this.message && (!this.messageContents || !this.messageContents.edit)) {
-      const latestMessage = this.textChannel.messages.cache.last()
-      if (latestMessage && this.message && latestMessage.id === this.message.id) {
-        this.messageContents.edit = true
+    const delMsg = async () => {
+      await this.deleteMessage()
+      this.message = null
+    }
+
+    // Check if a previous message is cached
+    if (this.message) {
+      // If there's no content, then we're deleting
+      if (!this.messageContents) {
+        await delMsg()
       }
       else {
-        await this.deleteMessage()
-        this.message = null
+        // There's content, but we don't want to edit, so delete
+        if (!this.messageContents.edit) {
+          // Check if the cached message is still the latest message, if so we don't need to delete/create a new message
+          const latestMessage = this.textChannel.messages.cache.last()
+          if (latestMessage && latestMessage.id === this.message.id) {
+            // Change to an edit
+            this.messageContents.edit = true
+          }
+          else {
+            await delMsg()
+          }
+        }
       }
     }
 
