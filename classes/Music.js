@@ -387,7 +387,8 @@ module.exports = class {
 
   async radioMusicToX (item) {
     if (item.radioMetadata && item.radioMetadata.info.artist && item.radioMetadata.info.title) {
-      const sanitise = str => str.replace(/(?<=\b) ft. (?=\b)/gi, " ")
+      const sanitise = str => str
+        .replace(/(?<=\b) ft. (?=\b)/gi, " ")
         .replace(/(?<=\b) feat. (?=\b)/gi, " ")
         .replace(/(?<=\b) and (?=\b)/gi, " ")
         .replace(/(?<=\b) & (?=\b)/g, " ")
@@ -412,7 +413,9 @@ module.exports = class {
       }
     }
     else {
-      item.radioMetadata.musicToX = undefined
+      if (item.radioMetadata) {
+        item.radioMetadata.musicToX = undefined
+      }
     }
   }
 
