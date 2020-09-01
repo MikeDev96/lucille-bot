@@ -234,26 +234,18 @@ module.exports = class {
   }
 
   async getYouTube (type, id, startTime) {
-    return new Promise((resolve, reject) => {
-      ytdl.getBasicInfo(`https://youtube.com/watch?v=${id}`, (err, info) => {
-        if (!err) {
-          resolve([new Track(
-            info.author.name,
-            info.title,
-            info.player_response.videoDetails.thumbnail.thumbnails[info.player_response.videoDetails.thumbnail.thumbnails.length - 1].url,
-          ).setPlatform(PLATFORM_YOUTUBE)
-            .setLink(info.video_url)
-            .setYouTubeTitle(info.title)
-            .setDuration(parseInt(info.length_seconds))
-            .setStartTime(startTime),
-          ])
-        }
-        else {
-          console.log(err)
-          reject(err)
-        }
-      })
-    })
+    const info = await ytdl.getBasicInfo(`https://youtube.com/watch?v=${id}`)
+    return [
+      new Track(
+        info.videoDetails.author.name,
+        info.videoDetails.title,
+        info.videoDetails.thumbnail.thumbnails[info.videoDetails.thumbnail.thumbnails.length - 1].url,
+      ).setPlatform(PLATFORM_YOUTUBE)
+        .setLink(info.videoDetails.video_url)
+        .setYouTubeTitle(info.videoDetails.title)
+        .setDuration(parseInt(info.videoDetails.length_seconds))
+        .setStartTime(startTime),
+    ]
   }
 
   async getSoundCloud (type, id) {
