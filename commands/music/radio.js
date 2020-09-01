@@ -6,7 +6,7 @@ module.exports = class extends Command {
   constructor (client) {
     super(client, {
       name: "radio",
-      aliases: ["rad", "fm"],
+      aliases: ["r", "rad", "fm"],
       group: "music",
       memberName: "radio",
       description: "Plays a radio station",

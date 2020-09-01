@@ -46,35 +46,45 @@ module.exports = class {
   }
 
   async add (input, requestee, voiceChannel, index = -1) {
-    const trackExtractor = new TrackExtractor(input)
     let insertAt = index < 0 ? this.state.queue.length : index
     let tracks = []
 
-    if (trackExtractor.parseLinks()) {
-      const links = await trackExtractor.getAllLinkInfo()
+    if (typeof input === "string") {
+      const trackExtractor = new TrackExtractor(input)
 
-      tracks = links.map(l => l.setRequestee(requestee).setQuery(`official audio ${l.artists} ${l.title}`))
-    }
-    else {
-      const track = new Track()
-        .setRequestee(requestee)
-        .setPlatform("search")
-        .setQuery(input)
+      if (trackExtractor.parseLinks()) {
+        const links = await trackExtractor.getAllLinkInfo()
 
-      const searchResults = (await scrapeYt.search(track.query)).filter(res => res.type === "video")
-      const searchResult = searchResults[0]
-      if (searchResult) {
-        track
-          .setYouTubeTitle(searchResult.title)
-          .setThumbnail(searchResult.thumbnail)
-          .setLink(`https://www.youtube.com/watch?v=${searchResult.id}`)
-          .setDuration(searchResult.duration)
-
-        tracks = [track]
+        tracks = links.map(l => l.setRequestee(requestee).setQuery(`official audio ${l.artists} ${l.title}`))
       }
       else {
-        return false
+        const track = new Track()
+          .setRequestee(requestee)
+          .setPlatform("search")
+          .setQuery(input)
+
+        const searchResults = (await scrapeYt.search(track.query)).filter(res => res.type === "video")
+        const searchResult = searchResults[0]
+        if (searchResult) {
+          track
+            .setYouTubeTitle(searchResult.title)
+            .setThumbnail(searchResult.thumbnail)
+            .setLink(`https://www.youtube.com/watch?v=${searchResult.id}`)
+            .setDuration(searchResult.duration)
+
+          tracks = [track]
+        }
+        else {
+          return false
+        }
       }
+    }
+    else if (Array.isArray(input) && input.every(i => i instanceof Track)) {
+      tracks.push(...input.map(i => i.setRequestee(requestee)))
+    }
+
+    if (!tracks.length) {
+      return
     }
 
     // If we're adding an item to the end of the queue & there's something in the queue already
@@ -120,15 +130,18 @@ module.exports = class {
       else {
         // If there's a radio currently playing & there's something else in the queue (because we've just added it above)
         if (this.state.queue[0].platform === PLATFORM_RADIO && this.state.queue.length > 1) {
-          // Then remove the radio
-          const [radio] = this.state.queue.splice(0, 1)
-          // And add it to the end of the queue as long as the item now at index 0 isn't a radio
+          // Then capture the radio
+          const [radio] = this.state.queue
+          // And clone it's reference to the end of the queue as long as the second item in the queue isn't a radio
           // This is because we only allow 1 radio in the queue at a time
-          if (this.state.queue[0].platform !== PLATFORM_RADIO) {
+          if (this.state.queue[1].platform !== PLATFORM_RADIO) {
             this.state.queue.push(radio)
           }
 
-          this.searchAndPlay()
+          // End so the finish event is fired, which also removes the first item in the queue essentially skipping.
+          // This also fixes the duration issue that occurred when playing the radio for a long time and then playing a song.
+          // The duration is reset when the dispatcher finishes.
+          this.dispatcherExec(d => d.end())
         }
         else {
           this.updateEmbed()
@@ -219,7 +232,6 @@ module.exports = class {
       catch (err) {
         console.log("Failed to play connect sound")
         console.log(err)
-        console.log(err)
       }
     }
 
@@ -289,7 +301,7 @@ module.exports = class {
   getFFMpegArgs () {
     return [
       "-af",
-    `equalizer=f=40:width_type=h:width=50:g=${this.state.bassBoost},atempo=${this.state.tempo}`,
+      `equalizer=f=40:width_type=h:width=50:g=${this.state.bassBoost},atempo=${this.state.tempo}`,
     ]
   }
 
@@ -344,29 +356,36 @@ module.exports = class {
   }
 
   startRadioMetadata (item) {
+    // Any commands that just play the stream again ie. bass boost, don't fire the finish event,
+    // so we need to make sure it gets cleaned up.
+    this.stopRadioMetadata(item)
+
     if (item.radio && item.radio.metadata) {
-      const rm = new RadioMetadata(item.radio.metadata.type, item.radio.metadata.url, item.radio.metadata.type === "sse" ? item.requestStream : item.radio.metadata.summon)
-      item.radio = {}
-      const callback = rm.subscribe(info => {
-        item.radio.info = info
+      const radioMetadata = new RadioMetadata(item.radio.metadata.type, item.radio.metadata.url, item.radio.metadata.type === "sse" ? item.requestStream : item.radio.metadata.summon)
+      const metadata = {
+        instance: radioMetadata,
+      }
+
+      item.setRadioMetadata(metadata)
+
+      radioMetadata.subscribe(info => {
+        metadata.info = info
 
         this.radioMusicToX(item)
         this.updateEmbed(true, true)
       })
-
-      item.radio.rm = rm
-      item.radio.callback = callback
     }
   }
 
   stopRadioMetadata (item) {
-    if (item.radio && item.radio.rm) {
-      item.radio.rm.dispose()
+    if (item.radioMetadata && item.radioMetadata.instance) {
+      item.radioMetadata.instance.dispose()
+      item.setRadioMetadata(undefined)
     }
   }
 
   async radioMusicToX (item) {
-    if (item.radio.info.artist && item.radio.info.title) {
+    if (item.radioMetadata && item.radioMetadata.info.artist && item.radioMetadata.info.title) {
       const sanitise = str => str.replace(/(?<=\b) ft. (?=\b)/gi, " ")
         .replace(/(?<=\b) feat. (?=\b)/gi, " ")
         .replace(/(?<=\b) and (?=\b)/gi, " ")
@@ -375,14 +394,14 @@ module.exports = class {
       const m2x = new MusicToX({
         platform: PLATFORM_RADIO,
         type: "track",
-        artists: sanitise(item.radio.info.artist),
-        title: sanitise(item.radio.info.title),
+        artists: sanitise(item.radioMetadata.info.artist),
+        title: sanitise(item.radioMetadata.info.title),
       })
 
       try {
         const res = await m2x.processLink()
         if (res) {
-          item.radio.musicToX = res
+          item.radioMetadata.musicToX = res
           this.updateEmbed(true, true)
         }
       }
@@ -392,7 +411,7 @@ module.exports = class {
       }
     }
     else {
-      item.radio.musicToX = undefined
+      item.radioMetadata.musicToX = undefined
     }
   }
 
@@ -431,7 +450,7 @@ module.exports = class {
     const nowPlayingYouTube = PLATFORMS_REQUIRE_YT_SEARCH.includes(currentlyPlaying.platform) ? `${this.state.emojis.youtube} [${currentlyPlaying.youTubeTitle}](${currentlyPlaying.link})` : ""
 
     const radioMusicToX = this.getRadioMusicToXInfo(currentlyPlaying)
-    const radioNowPlaying = currentlyPlaying.platform === PLATFORM_RADIO && currentlyPlaying.radio && currentlyPlaying.radio.info ? [currentlyPlaying.radio.info.artist || "", currentlyPlaying.radio.info.title || ""].filter(s => s.trim()).join(" - ") + (radioMusicToX ? " " + radioMusicToX : "") : ""
+    const radioNowPlaying = currentlyPlaying.platform === PLATFORM_RADIO && currentlyPlaying.radioMetadata && currentlyPlaying.radioMetadata.info ? [currentlyPlaying.radioMetadata.info.artist || "", currentlyPlaying.radioMetadata.info.title || ""].filter(s => s.trim()).join(" - ") + (radioMusicToX ? " " + radioMusicToX : "") : ""
 
     const nowPlaying = [nowPlayingSource, nowPlayingYouTube, radioNowPlaying].filter(s => s.trim()).join("\n")
     const blocks = Math.ceil(20 * progressPerc)
@@ -501,8 +520,8 @@ module.exports = class {
   }
 
   getRadioMusicToXInfo (item) {
-    if (item.platform === PLATFORM_RADIO && item.radio && item.radio.musicToX) {
-      const musicToX = item.radio.musicToX
+    if (item.platform === PLATFORM_RADIO && item.radioMetadata && item.radioMetadata.musicToX) {
+      const musicToX = item.radioMetadata.musicToX
       const splitApple = (musicToX.appleId || "").split("-")
       const radioMusicToX = [
         musicToX.spotifyId && `[${this.state.emojis.spotify}](https://open.spotify.com/track/${musicToX.spotifyId})`,

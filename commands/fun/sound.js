@@ -3,6 +3,9 @@ const axios = require("axios")
 const fs = require("fs")
 const { getAudioDurationInSeconds } = require("get-audio-duration")
 const config = require("../../config.json")
+const { getMusic, getRequestee, getVoiceChannel } = require("../../messageHelpers")
+const Track = require("../../classes/Track")
+const { PLATFORM_OTHER } = require("../../classes/TrackExtractor")
 
 module.exports = class extends Command {
   constructor (client) {
@@ -90,6 +93,27 @@ module.exports = class extends Command {
       if (key) {
         const embed = await this.getFilesEmbed(msg, `./assets/sounds/${key}`, key)
         msg.reply(embed)
+      }
+    }
+    else if (args.arg1 === "play") {
+      const key = typeMap[args.arg2.toLowerCase()]
+      if (key) {
+        fs.readdir(`./assets/sounds/${key}`, (err, files) => {
+          if (!err) {
+            const music = getMusic(msg)
+            const tracks = files.map(f =>
+              new Track("", f, "")
+                .setPlatform(PLATFORM_OTHER)
+                .setLink(`./assets/sounds/${key}/${f}`)
+                .setDuration(0),
+            )
+
+            music.add(tracks, getRequestee(msg), getVoiceChannel(msg), -1)
+          }
+          else {
+            console.log(err)
+          }
+        })
       }
     }
   }

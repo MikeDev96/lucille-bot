@@ -65,6 +65,11 @@ module.exports = class Track {
     return this
   }
 
+  setRadioMetadata (radioMetadata) {
+    this.radioMetadata = radioMetadata
+    return this
+  }
+
   clone (track) {
     this.artists = track.artists
     this.title = track.title
@@ -78,6 +83,7 @@ module.exports = class Track {
     this.requestStream = track.requestStream
     this.radio = track.radio
     this.startTime = track.startTime
+    this.radioMetadata = track.radioMetadata
     return this
   }
 }
