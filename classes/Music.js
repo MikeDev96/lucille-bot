@@ -321,6 +321,7 @@ module.exports = class {
     return new Promise((resolve, reject) => {
       const sounds = fs.readdirSync("assets/sounds/connect")
       const dispatcher = this.state.voiceConnection.play(`assets/sounds/connect/${selectRandom(sounds)}`)
+      dispatcher.setVolumeLogarithmic(3)
       dispatcher.on("finish", () => {
         resolve()
       })

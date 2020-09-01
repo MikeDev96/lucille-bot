@@ -31,12 +31,12 @@ module.exports = class PlayCommand extends Command {
       const votesNeeded = memberCount % 2 === 0 ? memberCount / 2 + 1 : Math.ceil(memberCount / 2)
 
       try {
-        const voteMsg = await msg.channel.send(`Vote to skip (15s):\n\`${currentlyPlayingTitle}\`\nRequired Votes: ${votesNeeded}/${memberCount}\nVoters: ${voiceChannelMembers.map(m => `\`${m.displayName}\``).join(", ")}`)
+        const voteMsg = await msg.channel.send(`Vote to skip (30s):\n\`${currentlyPlayingTitle}\`\nRequired Votes: ${votesNeeded}/${memberCount}\nVoters: ${voiceChannelMembers.map(m => `\`${m.displayName}\``).join(", ")}`)
         await voteMsg.react("🗳️")
 
         try {
           const filter = (reaction, user) => reaction.emoji.name === "🗳️" && voiceChannelMembers.has(user.id)
-          const reactions = await voteMsg.awaitReactions(filter, { time: 15000 })
+          const reactions = await voteMsg.awaitReactions(filter, { time: 30000 })
 
           const votes = reactions.has("🗳️") ? reactions.get("🗳️").count - 1 : 0
 
