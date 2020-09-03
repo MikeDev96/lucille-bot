@@ -2,6 +2,7 @@ const { Command } = require("discord.js-commando")
 const scrapeYt = require("scrape-yt")
 const Track = require("../../classes/Track")
 const { getMusic } = require("../../messageHelpers")
+const { msToTimestamp } = require("../../helpers")
 
 module.exports = class extends Command {
   constructor (client) {
@@ -35,7 +36,7 @@ module.exports = class extends Command {
         if (searchResults) {
           msg.react("🔍")
 
-          await msg.reply("Respond with the number you'd like to replace.\nRespond with `cancel` to cancel the command. The command will automatically be cancelled in 30 seconds.\n\n" + searchResults.map((r, i) => `\`${i + 1}\` ${r.title}`).join("\n"))
+          await msg.reply("Respond with the number you'd like to replace.\nRespond with `cancel` to cancel the command. The command will automatically be cancelled in 30 seconds.\n\n" + searchResults.map((r, i) => `\`${i + 1}\` ${r.title} \`${msToTimestamp(r.duration * 1000)}\``).join("\n"))
 
           const filter = (message) => (/^[1-5]$/.test(message.content) || message.content === "cancel") && message.author.id === msg.author.id
           const collected = await msg.channel.awaitMessages(filter, { time: 30000, max: 1 })
