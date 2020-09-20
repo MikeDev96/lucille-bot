@@ -16,6 +16,7 @@ module.exports = class extends Command {
           key: "link",
           prompt: "Enter a YouTube link",
           type: "string",
+          default: "",
         },
       ],
       guildOnly: true,
