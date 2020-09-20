@@ -4,6 +4,7 @@ const config = require("./config.json")
 const fs = require("fs")
 const VoiceTracker = require("./classes/VoiceTracker")
 const MusicTracker = require("./classes/MusicTracker")
+require("dotenv").config()
 
 const emojis = [
   { name: "youtube", path: "assets/emojis/youtube.png" },

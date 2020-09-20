@@ -50,7 +50,7 @@ module.exports = class extends Command {
         return
       }
 
-      if (parseInt(res.headers["content-length"]) > 1048576) {
+      if (parseInt(res.headers["content-length"]) > 1024 * 1024) {
         msg.reply("File must be less than 1MB")
         return
       }
