@@ -65,6 +65,9 @@ module.exports = class {
 
         const searchResults = (await scrapeYt.search(track.query)).filter(res => res.type === "video")
         const searchResult = searchResults[0]
+
+        console.log(`Search YouTube for ${track.query}\nTrack object: ${JSON.stringify(track)}\nSearch object: ${JSON.stringify(searchResults)}`)
+
         if (searchResult) {
           track
             .setYouTubeTitle(searchResult.title)
@@ -180,6 +183,10 @@ module.exports = class {
 
     for (let i = 0; i < 5; i++) {
       try {
+        if (!url) {
+          console.error(`YouTube url is ${url}`)
+        }
+
         stream = ytdl(url, {
           highWaterMark: 1 << 25,
           seek: this.state.playTime / 1000,
