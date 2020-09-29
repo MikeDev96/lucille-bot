@@ -39,6 +39,7 @@ module.exports = class {
       progress: 0,
       progressHandle: null,
       playCount: 0,
+      repeat: "off",
     }
 
     // Move the embed down every 5 minutes, it can get lost when a radio is left on for ages
@@ -313,7 +314,15 @@ module.exports = class {
   }
 
   processQueue () {
-    this.state.queue.shift()
+    if (this.state.repeat === "all") {
+      if (this.state.queue.length > 0) {
+        this.state.queue.push(this.state.queue.shift())
+      }
+    }
+    else if (this.state.repeat === "off") {
+      this.state.queue.shift()
+    }
+
     this.state.playTime = 0
 
     if (this.state.queue.length < 1) {
@@ -322,6 +331,11 @@ module.exports = class {
     else {
       this.searchAndPlay()
     }
+  }
+
+  setRepeat (type) {
+    this.state.repeat = type
+    this.updateEmbed()
   }
 
   connectSound () {
@@ -508,6 +522,11 @@ module.exports = class {
             value: `${this.state.volume}`,
             inline: true,
           }] : [],
+          ...this.state.repeat !== "off" ? [{
+            name: "Repeat",
+            value: mapRepeatTypeToEmoji(this.state.repeat),
+            inline: true,
+          }] : [],
           ...currentlyPlaying.duration > 0 ? [{
             name: "Progress",
             value: "`" + msToTimestamp((currentlyPlaying.duration * 1000) * progressPerc) + "` " + ("▬".repeat(blocks)) + "🔵" + ("▬".repeat(Math.max(0, 20 - blocks - 1))) + " `" + msToTimestamp(currentlyPlaying.duration * 1000) + "`",
@@ -561,3 +580,18 @@ const amountToBassBoostMap = {
   20: "Insane",
   50: "WTFBBQ",
 }
+
+const mapRepeatTypeToEmoji = type => {
+  switch (type) {
+    case "off":
+      return "⏭️"
+    case "one":
+      return "🔂"
+    case "all":
+      return "🔁"
+    default:
+      return ""
+  }
+}
+
+module.exports.mapRepeatTypeToEmoji = mapRepeatTypeToEmoji
