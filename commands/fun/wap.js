@@ -1,6 +1,7 @@
 const { Command } = require("discord.js-commando")
 const { run } = require("../music/play")
 
+// Basically the jumpqueue command but plays WAP
 module.exports = class WapCommand extends Command {
   constructor (client) {
     super(client, {
