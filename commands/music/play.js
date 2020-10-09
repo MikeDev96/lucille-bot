@@ -1,5 +1,4 @@
 const { Command } = require("discord.js-commando")
-const Music = require("../../classes/Music")
 const { getRequestee, getVoiceChannel, getMusic } = require("../../messageHelpers")
 
 const commandConfig = {

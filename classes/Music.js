@@ -14,6 +14,7 @@ const radios = require("../radios.json")
 const Axios = require("axios")
 const MusicToX = require("./MusicToX")
 const debounce = require("lodash.debounce")
+const RadioAdBlock = require("./RadioAdBlock")
 
 const PLATFORMS_REQUIRE_YT_SEARCH = [PLATFORM_SPOTIFY, PLATFORM_TIDAL, PLATFORM_APPLE, PLATFORM_YOUTUBE, "search"]
 
@@ -40,10 +41,15 @@ module.exports = class {
       progressHandle: null,
       playCount: 0,
       repeat: "off",
+      radioAdBlock: new RadioAdBlock(),
     }
 
     // Move the embed down every 5 minutes, it can get lost when a radio is left on for ages
     this.debouncer = debounce(this.updateEmbed, 5 * 60 * 1000)
+
+    this.state.radioAdBlock.on("volume", volume => {
+      this.setVolume(volume, true)
+    })
   }
 
   async add (input, requestee, voiceChannel, index = -1) {
@@ -56,7 +62,7 @@ module.exports = class {
       if (trackExtractor.parseLinks()) {
         const links = await trackExtractor.getAllLinkInfo()
 
-        tracks = links.map(l => l.setRequestee(requestee).setQuery(`official audio ${l.artists} ${l.title}`))
+        tracks = links.map(l => l.setRequestee(requestee).setQuery(`official audio lyrics ${l.artists} ${l.title}`))
       }
       else {
         const track = new Track()
@@ -338,6 +344,16 @@ module.exports = class {
     this.updateEmbed()
   }
 
+  setVolume (volume, isRadioAdBlock = false) {
+    this.state.volume = volume
+    this.dispatcherExec(d => d.setVolumeLogarithmic(volume / 100))
+    this.updateEmbed()
+
+    if (!isRadioAdBlock) {
+      this.state.radioAdBlock.setVolume(volume)
+    }
+  }
+
   connectSound () {
     return new Promise((resolve, reject) => {
       const sounds = fs.readdirSync("assets/sounds/connect")
@@ -396,6 +412,10 @@ module.exports = class {
         this.radioMusicToX(item)
         this.updateEmbed(true, true)
       })
+
+      radioMetadata.subscribe(info => {
+        this.state.radioAdBlock.toggle(!info.artist && !info.title)
+      })
     }
   }
 
@@ -403,6 +423,7 @@ module.exports = class {
     if (item.radioMetadata && item.radioMetadata.instance) {
       item.radioMetadata.instance.dispose()
       item.setRadioMetadata(undefined)
+      this.state.radioAdBlock.toggle(false)
     }
   }
 
@@ -525,6 +546,11 @@ module.exports = class {
           ...this.state.repeat !== "off" ? [{
             name: "Repeat",
             value: mapRepeatTypeToEmoji(this.state.repeat),
+            inline: true,
+          }] : [],
+          ...currentlyPlaying.platform === PLATFORM_RADIO && !this.state.radioAdBlock.isMethod(RadioAdBlock.METHOD_OFF) ? [{
+            name: "Radio AdBlock",
+            value: (this.state.radioAdBlock.isMethod(RadioAdBlock.METHOD_LOWER) ? "🔉" : "🔈") + (this.state.radioAdBlock.isBlocking() ? "🟢" : "🔴"),
             inline: true,
           }] : [],
           ...currentlyPlaying.duration > 0 ? [{

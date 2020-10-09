@@ -25,9 +25,7 @@ module.exports = class extends Command {
     const music = getMusic(msg)
     const currentVol = music.state.volume
 
-    music.state.volume = args.volume
-    music.dispatcherExec(d => d.setVolumeLogarithmic(args.volume / 100))
-    music.updateEmbed()
+    music.setVolume(args.volume)
 
     msg.react(args.volume > currentVol ? "🔊" : args.volume < currentVol ? "🔉" : "🔈")
   }
