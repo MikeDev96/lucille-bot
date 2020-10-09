@@ -13,9 +13,9 @@ module.exports = class WapCommand extends Command {
     })
   }
 
-  async run (msg, args) {
+  async run (msg, _args) {
     run(msg, {
-        input: 'wap lyrics'
+      input: "wap lyrics",
     }, 1)
   }
 }
