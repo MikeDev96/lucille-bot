@@ -20,7 +20,7 @@ module.exports = class Alarm extends Command {
             if(args.length > 1)
                 return false
             
-            if(args[0].match(new RegExp('(2[0-3]|[0-1]?[\\d]):[0-5][\\d]'))) 
+            if(args[0].match(new RegExp('(2[0-3]|[0-1]?[\\d]):[0-5][\\d]')) && args[0].length === 5) 
                 return true
             
             return "Please provide a time in the format hh:mm (UTC Time)"
@@ -34,9 +34,6 @@ module.exports = class Alarm extends Command {
 
   async run (msg, args) {
     msg.react("⏲️")
-
-    console.log(new Date().toLocaleTimeString())
-    console.log(new Date().toLocaleTimeString('UTC'))
 
     let StartTime = new Date().toLocaleTimeString('UTC')
 
