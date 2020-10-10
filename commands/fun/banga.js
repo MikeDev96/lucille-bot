@@ -27,7 +27,7 @@ module.exports = class extends Command {
             msg.channel.send(`${this.findUsers(checkEx).join(", ")} thinks its a banger`)
             return;
         }
-        if(!music.state.currentVideo.title) {
+        if(!currTrack) {
             msg.channel.send("No music is playing")
         } else {
             if(checkEx.length) {
