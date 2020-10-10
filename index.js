@@ -4,6 +4,7 @@ const config = require("./config.json")
 const fs = require("fs")
 const VoiceTracker = require("./classes/VoiceTracker")
 const MusicTracker = require("./classes/MusicTracker")
+const BangaTracker = require("./classes/BangaTracker")
 require("dotenv").config()
 
 const emojis = [
@@ -56,6 +57,7 @@ client.once("ready", () => {
 
   client.voiceTracker = new VoiceTracker(client)
   client.musicTracker = new MusicTracker(client)
+  client.bangaTracker = new BangaTracker(client)
 
   client.on("message", msg => client.musicTracker.run(msg))
 })

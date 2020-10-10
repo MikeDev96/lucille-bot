@@ -15,7 +15,7 @@ module.exports = class CrapCommand extends Command {
 
   async run (msg, _args) {
     run(msg, {
-      input: "wap zane",
+      input: "wap lyrics",
     }, 1)
   }
 }
