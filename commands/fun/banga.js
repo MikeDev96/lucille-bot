@@ -18,12 +18,12 @@ module.exports = class extends Command {
         const music = getMusic(msg);
         const currTrack = music.state.queue[0].youTubeTitle;
         if(!currTrack) {
-            msg.channel.send("Hold your horses, you cunt")
+            msg.channel.send("Hold your horses")
             return
         }
         const checkEx = this.client.bangaTracker.checkForBanga(currTrack);
         if(args === "?") {
-            msg.channel.send(`${this.findUsers(checkEx).join(", ")} think its a banger`)
+            msg.channel.send(`${this.findUsers(checkEx).join(", ")} thinks its a banger`)
             return;
         }
         if(!music.state.currentVideo.title) {
