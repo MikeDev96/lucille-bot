@@ -16,7 +16,8 @@ module.exports = class extends Command {
 
     async run (msg, args) {
         const music = getMusic(msg);
-        const currTrack = music.state.queue[0].youTubeTitle;
+        let currTrack = false;
+        if(music.state.queue[0]) currTrack = music.state.queue[0].youTubeTitle;
         if(!currTrack) {
             msg.channel.send("Hold your horses")
             return
@@ -54,12 +55,16 @@ module.exports = class extends Command {
     findUsers(banger) {
         const usrArr = []
         let username
-        banger[0].users.map(e => {
-            username = this.client.users.cache.get(e);
-            if(username) {
-                usrArr.push(username.username)
-            }
-        })
+        if(banger[0]){
+            banger[0].users.map(e => {
+                username = this.client.users.cache.get(e);
+                if(username) {
+                    usrArr.push(username.username)
+                }
+            })
+        } else {
+            usrArr.push("No one")
+        }
         return usrArr;
     }
 }
