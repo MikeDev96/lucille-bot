@@ -19,3 +19,4 @@ jobs:
           port: ${{ secrets.PORT }}
           script: |
             [ -d "/home/migul/Documents/LucilleBot" ] && cd /home/migul/Documents/LucilleBot && git pull || git clone https://github.com/MikeDev96/lucille-bot.git
+            pm2 reload lucille
