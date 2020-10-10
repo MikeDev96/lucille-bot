@@ -10,7 +10,7 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - if: github.repository == "MikeDev96/lucille-bot"
+      - if: github.repository == 'MikeDev96/lucille-bot'
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.HOST }}
