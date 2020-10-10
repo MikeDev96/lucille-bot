@@ -7,7 +7,7 @@ module.exports = class Alarm extends Command {
       aliases: ["setalarm"],
       group: "misc",
       memberName: "alarm",
-      description: "Set an alarm",
+      description: "Set an alarm for UTC Time",
       args: [
         {
           key: "time",
@@ -15,11 +15,15 @@ module.exports = class Alarm extends Command {
           type: "string",
           validate: val => {
             
-            let args = val.split(' ')[0]
+            let args = val.split(' ')
 
-            if(args.match(new RegExp('(2[0-3]|[0-1]?[\\d]):[0-5][\\d]'))) 
+            if(args.length > 1)
+                return false
+            
+            if(args[0].match(new RegExp('(2[0-3]|[0-1]?[\\d]):[0-5][\\d]'))) 
                 return true
-            return "Please provide a time in the format hh:mm"
+            
+            return "Please provide a time in the format hh:mm (UTC Time)"
 
           }
         },
@@ -28,28 +32,29 @@ module.exports = class Alarm extends Command {
     })
   }
 
-  TimeDif = (time) => {
+  async run (msg, args) {
+    msg.react("⏲️")
 
-    let StartTime = new Date().toLocaleTimeString()
+    console.log(new Date().toLocaleTimeString())
+    console.log(new Date().toLocaleTimeString('UTC'))
+
+    let StartTime = new Date().toLocaleTimeString('UTC')
+
+    console.log(args.time.split(' ')[0])
 
     // Time difference in ms
-    let DateOne = new Date(`January 1 1970, ${time}:00`)
-    let DateTwo = new Date(`January 1 1970, ${StartTime}`)
+    let DateOne = new Date(`January 1 2000, ${args.time.split(' '[0])}:00`)
+    let DateTwo = new Date(`January 1 2000, ${StartTime}`)
 
     let TimeDif = DateOne - DateTwo
 
     // Add a day if needed
     if(DateOne - DateTwo <= 0)
         TimeDif += 86400000
-    return TimeDif;
-  }
-
-  async run (msg, args) {
-    msg.react("⏲️")
 
     setTimeout(async () => {
-        msg.reply("Done")
-    }, this.TimeDif(args.time))
+        await msg.channel.send(`${msg.author}'s Alarm has finished`)
+    }, TimeDif)
 
   }
   
