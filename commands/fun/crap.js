@@ -13,6 +13,7 @@ module.exports = class CrapCommand extends Command {
     })
   }
 
+  //deserved
   async run (msg, _args) {
     run(msg, {
       input: "wap lyrics",
