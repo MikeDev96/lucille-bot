@@ -18,5 +18,5 @@ jobs:
           key: ${{ secrets.KEY }}
           port: ${{ secrets.PORT }}
           script: |
-            [ -d "/home/migul/Documents/LucilleBot" ] && cd /home/migul/Documents/LucilleBot && git pull || git clone https://github.com/MikeDev96/lucille-bot.git
+            [ -d "/home/migul/Documents/LucilleBot" ] && cd /home/migul/Documents/LucilleBot && git pull || cd /home/migul/Documents && git clone https://github.com/MikeDev96/lucille-bot.git && mv ./lucille-bot ./LucilleBot
             pm2 reload lucille
