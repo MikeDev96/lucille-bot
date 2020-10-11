@@ -13,8 +13,8 @@ module.exports = class extends Command {
     })
   }
 
-  run(msg, args) {
-    let cocksize = Math.ceil(Math.random() * 15)
-    msg.reply(`8=${"=".repeat(cocksize)}D${cocksize === 15 ? " ~ ~ ~" : ""}`)
+  run(msg, _args) {
+    const realLength = Math.ceil(Math.random() * 15)
+    msg.reply(`8=${"=".repeat(realLength)}D${realLength === 15 ? " ~ ~ ~" : ""}`)
   }
 }
