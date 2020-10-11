@@ -14,9 +14,7 @@ module.exports = class extends Command {
   }
 
   run(msg, args) {
-    msg.reply(`8=${"=".repeat(Math.floor(Math.random() * 15))}D`)
+    let cocksize = Math.ceil(Math.random() * 15)
+    msg.reply(`8=${"=".repeat(cocksize)}D${cocksize === 15 ? " ~ ~ ~" : ""}`)
   }
-
 }
-
-

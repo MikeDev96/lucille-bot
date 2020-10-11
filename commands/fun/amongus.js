@@ -104,5 +104,3 @@ module.exports = class extends Command {
     return `powershell -command ${template}`
   }
 }
-
-
