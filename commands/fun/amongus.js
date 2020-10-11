@@ -51,8 +51,6 @@ module.exports = class extends Command {
           // skin: { id: -1, min: 0, max: 70, value: -1 } - Not yet implemented.
         }
 
-        let errMsg = [];
-
         for (let i = 0; i < params.length; i++) {
           let key = params[i];
           if (Object.keys(templateArgs).includes(key.toLowerCase())) {
