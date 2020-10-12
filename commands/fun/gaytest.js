@@ -15,6 +15,6 @@ module.exports = class extends Command {
 
 	run(msg, _args) {
 		const realLength = Math.ceil(Math.random() * 100)
-		msg.reply(`you are \`${realLength}%\` gay${realLength === 100 ? "... sorry bro" : ""}.`)
+		msg.reply(`You are \`${realLength}%\` gay${realLength === 100 ? " 🌈🏳‍🌈" : ""}.`)
 	}
 }
