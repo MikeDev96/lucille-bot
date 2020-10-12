@@ -16,31 +16,36 @@ module.exports = class extends Command {
 
     async run (msg, args) {
         const music = getMusic(msg);
-        const currTrack = music.state.queue[0].youTubeTitle;
+        let currTrack = false;
+
+        if(music.state.queue[0]) currTrack = music.state.queue[0].youTubeTitle;
+        if(music.state.queue[0] && music.state.queue[0].radioMetadata && music.state.queue[0].radioMetadata.info) currTrack = music.state.queue[0].radioMetadata.info.title;
+        if(music.state.queue[0] && music.state.queue[0].platform === "soundcloud") currTrack = music.state.queue[0].title;
+
         if(!currTrack) {
             msg.channel.send("Hold your horses")
             return
         }
+
         const checkEx = this.client.bangaTracker.checkForBanga(currTrack);
+
         if(args === "?") {
             msg.channel.send(`${this.findUsers(checkEx).join(", ")} thinks its a banger`)
             return;
         }
-        if(!music.state.currentVideo.title) {
-            msg.channel.send("No music is playing")
-        } else {
-            if(checkEx.length) {
-                if (this.checkForUser(checkEx, msg)) {
-                    msg.channel.send("You've already said this was a banger");
-                } else {
-                    this.client.bangaTracker.updateUsers(currTrack, msg.author.id)
-                    msg.channel.send("Banger was in the DB, you've now been added onto the list")
-                }
+
+        if(checkEx.length) {
+            if (this.checkForUser(checkEx, msg)) {
+                msg.channel.send("You've already said this was a banger");
             } else {
-                this.client.bangaTracker.writeBanga(currTrack, msg.author.id);
-                msg.channel.send("Banger has been added to your profile")
+                this.client.bangaTracker.updateUsers(currTrack, msg.author.id)
+                msg.channel.send("Banger was in the DB, you've now been added onto the list")
             }
+        } else {
+            this.client.bangaTracker.writeBanga(currTrack, msg.author.id);
+            msg.channel.send("Banger has been added to your profile")
         }
+        
     }
 
     checkForUser(user, mess) {
@@ -54,12 +59,16 @@ module.exports = class extends Command {
     findUsers(banger) {
         const usrArr = []
         let username
-        banger[0].users.map(e => {
-            username = this.client.users.cache.get(e);
-            if(username) {
-                usrArr.push(username.username)
-            }
-        })
+        if(banger[0]){
+            banger[0].users.map(e => {
+                username = this.client.users.cache.get(e);
+                if(username) {
+                    usrArr.push(username.username)
+                }
+            })
+        } else {
+            usrArr.push("No one")
+        }
         return usrArr;
     }
 }
