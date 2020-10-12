@@ -559,7 +559,7 @@ module.exports = class {
           }] : [],
         ],
         footer: {
-          text: "Created with ♥ by Migul, Keef and Jue, Powered by Keef Web Services",
+          text: "Created with ♥ by Migul, Keef, Jakub and Jue, Powered by Keef Web Services",
           icon_url: config.discord.authorAvatarUrl,
         },
       },
