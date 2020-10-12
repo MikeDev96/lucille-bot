@@ -16,7 +16,7 @@ module.exports = class {
       .write()
   }
 
-  async writeBanga(banger, user) {
+  writeBanga(banger, user) {
     this.db.get("bangers")
         .push({song: banger, users: [user]})
         .write();
