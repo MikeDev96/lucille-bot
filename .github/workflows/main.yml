@@ -9,14 +9,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Pre-deploy notification
-#         if: github.repository == 'MikeDev96/lucille-bot'
+        if: github.repository == 'MikeDev96/lucille-bot'
         uses: fjogeleit/http-request-action@master
         with:
           url: ${{ secrets.WEBHOOK_URL }}
           method: 'POST'
           contentType: 'application/json'
-          customHeaders: '{"Cookie": "__cfduid=d5f514ac5e5930840cf642d500e2d502a1602432973"}'
-          data: ${{ secrets.WEBHOOK_PAYLOAD }}
+          customHeaders: ${{ secrets.WEBHOOK_HEADERS }}
+          data: ${{ secrets.WEBHOOK_PRE_DEPLOY_PAYLOAD }}
 
       - name: Deploy
         if: github.repository == 'MikeDev96/lucille-bot'
@@ -30,11 +30,11 @@ jobs:
             [ -d "/home/migul/Documents/lucille-bot" ] && cd /home/migul/Documents/lucille-bot && git pull && npm install && pm2 reload lucille
         
       - name: Post-deploy notification
-        if: github.repository == 'MikeDev96/lucille-bot'
+#         if: github.repository == 'MikeDev96/lucille-bot'
         uses: fjogeleit/http-request-action@master
         with:
           url: ${{ secrets.WEBHOOK_URL }}
           method: 'POST'
           contentType: 'application/json'
-          customHeaders: '{"Cookie": "__cfduid=d5f514ac5e5930840cf642d500e2d502a1602432973"}'
-          data: '{"content": ""}'
+          customHeaders: ${{ secrets.WEBHOOK_HEADERS }}
+          data: ${{ secrets.WEBHOOK_POST_DEPLOY_PAYLOAD }}
