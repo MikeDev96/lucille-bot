@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Pre-deploy notification
-#         if: github.repository == 'MikeDev96/lucille-bot'
+        if: github.repository == 'MikeDev96/lucille-bot'
         uses: fjogeleit/http-request-action@master
         with:
           url: ${{ secrets.WEBHOOK_URL }}
@@ -29,7 +29,7 @@ jobs:
             [ -d "/home/migul/Documents/lucille-bot" ] && cd /home/migul/Documents/lucille-bot && git pull && npm install && pm2 reload lucille
         
       - name: Post-deploy notification
-#         if: github.repository == 'MikeDev96/lucille-bot'
+        if: github.repository == 'MikeDev96/lucille-bot'
         uses: fjogeleit/http-request-action@master
         with:
           url: ${{ secrets.WEBHOOK_URL }}
