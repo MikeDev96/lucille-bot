@@ -16,7 +16,7 @@ jobs:
           method: 'POST'
           contentType: 'application/json'
           customHeaders: '{"Cookie": "__cfduid=d5f514ac5e5930840cf642d500e2d502a1602432973"}'
-          data: ${{ WEBHOOK_PAYLOAD }}
+          data: ${{ secrets.WEBHOOK_PAYLOAD }}
 
       - name: Deploy
         if: github.repository == 'MikeDev96/lucille-bot'
