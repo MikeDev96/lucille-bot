@@ -14,8 +14,10 @@ module.exports = class extends Command {
   }
 
   run(msg, _args) {
-    const cupSize = ['AA','A','B','C','D','DD','F']
-    const bandSize = ['30','32','34','36','38','40','42','44','46']
-    msg.reply(`${bandSize[Math.floor(Math.random() * bandSize.length)]}${cupSize[Math.floor(Math.random() * cupSize.length)]}`)
+    const cupSizeArray = ['AA','A','B','C','D','DD','F']
+    const bandSizeArray = ['30','32','34','36','38','40','42','44','46']
+    const cupSize = cupSizeArray[Math.floor(Math.random() * cupSizeArray.length)]
+    const bandSize = bandSizeArray[Math.floor(Math.random() * bandSizeArray.length)]
+    msg.reply(`${bandSize}${cupSize}${bandSize == '32' && cupSize == 'C' ? " Poggers (•)(•)" : ""}`)
   }
 }
