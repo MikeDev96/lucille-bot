@@ -46,7 +46,7 @@ module.exports = class {
   removeBanga(banger, user) {
     let data = this.db.get("bangers")
                 .find(e => {
-                  return e.song.toLowerCase().includes(banger.toLowerCase())
+                  return e.song.toLowerCase().includes(banger.toLowerCase()) && (e.users.indexOf(user) > -1)
                 })
                 .value();
 
