@@ -19,7 +19,15 @@ module.exports = class Alias extends Command {
                     key: "aliasvalue",
                     prompt: "alias value",
                     type: "string",
-                    default: ""
+                    default: "",
+                    validate: val => {
+                        if(val.includes("!al") || val.includes("!alias") || aliasvalue.includes(aliasname) || (('/^[a-zA-Z0-9!-&". ]$/;'.match(val))) || aliasvalue.length > 75 || aliasname.length > 10) {
+                            return false
+                        }
+                        else {
+                            return true
+                        }
+                    },
                 }
             ],
             aliases: ["al"],
@@ -32,9 +40,10 @@ module.exports = class Alias extends Command {
         const Prefix = this.client.commandPrefix
 
         //Prevent infinite loops
-        if (aliasname === aliasvalue)
-            return msg.channel.send("Pls dont break this too much")
-        //List all
+        if (aliasvalue == aliasname) {
+            msg.channel.send("Pls dont break this too much")
+            return null
+        }
         else if (aliasname === "list") {
 
             const List = this.client.aliasTracker.listAliases()
@@ -62,7 +71,6 @@ module.exports = class Alias extends Command {
             }
             else msg.reply("No aliases have been added yet")
         }
-        //Succesfully finds a command
         else if (aliasvalue === "") {
 
             //Made for readabillity
