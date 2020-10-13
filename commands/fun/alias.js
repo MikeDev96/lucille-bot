@@ -21,7 +21,7 @@ module.exports = class Alias extends Command {
                     type: "string",
                     default: "",
                     validate: val => {
-                        if(val.includes("!al") || val.includes("!alias") || aliasvalue.includes(aliasname) || (('/^[a-zA-Z0-9!-&". ]$/;'.match(val))) || aliasvalue.length > 75 || aliasname.length > 10) {
+                        if(val.includes("!al") || val.includes("!alias") || aliasvalue.includes(aliasname) || aliasvalue.length > 75 || aliasname.length > 10) {
                             return false
                         }
                         else {
