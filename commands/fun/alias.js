@@ -54,7 +54,7 @@ module.exports = class Alias extends Command {
                             })),
                         ],
                         footer: {
-                            text: "Created with ♥ by Migul, Keef and Jue, Powered by Keef Web Services",
+                            text: config.discord.footer,
                             icon_url: config.discord.authorAvatarUrl,
                         },
                     }
