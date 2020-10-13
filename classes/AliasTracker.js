@@ -16,10 +16,11 @@ module.exports = class AliasTracker {
     }
 
     writeAlias(alias, aliascommand) {
+        let aliasArr = aliascommand.split("&")
         this.db.get("aliases")
             .push({
                 key: alias,
-                value: aliascommand
+                value: aliasArr
             })
             .write()
     }

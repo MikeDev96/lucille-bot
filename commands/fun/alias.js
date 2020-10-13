@@ -37,8 +37,9 @@ module.exports = class Alias extends Command {
         //List all
         else if (aliasname === "list") {
             const List = this.client.aliasTracker.listAliases()
-            if (List) {
-                // Build the embed and 
+            console.log(List.length)
+            if (List.length !== 0) {
+                // Build the embed
                 msg.channel.send({
                     embed: {
                         color: 0x0099ff,
@@ -62,19 +63,21 @@ module.exports = class Alias extends Command {
         else if (aliasvalue === "") {
             //Made for readabillity
             const AliasCommand = this.client.aliasTracker.checkForAlias(aliasname)[0].value
-
-            if (AliasCommand.includes(Prefix)) {
-                const command = new CommandoMessage(this.client,
-                    {
-                        id: msg.author.id,
-                        content: `${AliasCommand}`,
-                        author: msg.author
-                    },
-                    msg.channel)
-                this.client.dispatcher.handleMessage(command)
-            } else {
-                msg.channel.send(AliasCommand)
-            }
+            AliasCommand.forEach((command) => {
+                setTimeout(() => {
+                    if (command.includes(Prefix)) {
+                        this.client.dispatcher.handleMessage(
+                            new CommandoMessage(this.client,
+                                {
+                                    id: msg.author.id,
+                                    content: `${command}`,
+                                    author: msg.author
+                                },
+                                msg.channel)
+                        )
+                    } else msg.channel.send(command)
+                }, 2000)
+            })
         }
         else {
             if (aliasvalue === 'delete') {
