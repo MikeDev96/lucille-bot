@@ -1,5 +1,5 @@
 const { Command } = require("discord.js-commando")
-const { config } = require("dotenv/types")
+const config = require("../../config.json")
 const { getMusic } = require("../../messageHelpers")
 const { run } = require("../music/play")
 
