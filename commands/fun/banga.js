@@ -1,4 +1,5 @@
 const { Command } = require("discord.js-commando")
+const { config } = require("dotenv/types")
 const { getMusic } = require("../../messageHelpers")
 const { run } = require("../music/play")
 
@@ -41,7 +42,7 @@ module.exports = class extends Command {
                 },
                 fields: tempArr,
                 footer: {
-                  text: "Created with ♥ by Keef, Powered by Keef Web Services",
+                  text: config.discord.footer,
                 },
               }
             }
