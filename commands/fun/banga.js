@@ -69,7 +69,7 @@ module.exports = class extends Command {
         }
 
         if(args.arg1 === "remove") {
-            const grug = this.client.bangaTracker.findBanga(args.arg2);
+            const grug = this.client.bangaTracker.findBanga(args.arg2, msg.author.id);
             if(!grug) {
                 msg.channel.send("Nice try")
                 return
@@ -105,7 +105,7 @@ module.exports = class extends Command {
 
         const checkEx = this.client.bangaTracker.checkForBanga(currTrack);
 
-        if(args.args1 === "?") {
+        if(args.arg1 === "?") {
             msg.channel.send(`${this.findUsers(checkEx).join(", ")} thinks its a banger`)
             return;
         }

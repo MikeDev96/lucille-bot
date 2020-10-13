@@ -60,13 +60,14 @@ module.exports = class {
       .write();
   }
 
-  findBanga(banger) {
+  findBanga(banger, user) {
     let data = this.db.get("bangers")
                 .find(e => {
-                  return e.song.toLowerCase().includes(banger.toLowerCase())
+                  return e.song.toLowerCase().includes(banger.toLowerCase()) && (e.users.indexOf(user) > -1)
                 })
                 .value();
     
+
     if(!data) data = {song: null}
     
     return data.song;
