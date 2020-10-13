@@ -11,23 +11,25 @@ module.exports = class AliasTracker {
     initDB() {
         const adapter = new FileSync("aliases.json")
         this.db = low(adapter)
-        this.db.defaults({ aliases: {} })
+        this.db.defaults({ aliases: [] })
             .write()
     }
 
     writeAlias(alias, aliascommand) {
-        let aliasArr = aliascommand.split("&")
+
+        aliascommand = aliascommand.split("&")
+
         this.db.get("aliases")
             .push({
-                key: alias,
-                value: aliasArr
+                alias: alias,
+                command: aliascommand
             })
             .write()
     }
 
     removeAlias(alias) {
         this.db.get("aliases")
-            .remove({ key: alias })
+            .remove({ alias: alias })
             .write()
     }
 
@@ -37,7 +39,7 @@ module.exports = class AliasTracker {
 
     checkForAlias(alias) {
         return this.db.get("aliases")
-            .filter({ key: alias })
+            .filter({ alias: alias })
             .take(1)
             .value()
     }

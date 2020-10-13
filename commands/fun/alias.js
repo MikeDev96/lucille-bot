@@ -36,9 +36,12 @@ module.exports = class Alias extends Command {
             return msg.channel.send("Pls dont break this too much")
         //List all
         else if (aliasname === "list") {
+
             const List = this.client.aliasTracker.listAliases()
-            console.log(List.length)
-            if (List.length !== 0) {
+            console.log(List)
+
+            if (List.length) {
+
                 // Build the embed
                 msg.channel.send({
                     embed: {
@@ -46,8 +49,8 @@ module.exports = class Alias extends Command {
                         title: "Lucille alias commands",
                         fields: [
                             ...List.map(alias => ({
-                                name: alias.key,
-                                value: alias.value,
+                                name: alias.alias,
+                                value: alias.command,
                             })),
                         ],
                         footer: {
@@ -61,8 +64,10 @@ module.exports = class Alias extends Command {
         }
         //Succesfully finds a command
         else if (aliasvalue === "") {
+
             //Made for readabillity
-            const AliasCommand = this.client.aliasTracker.checkForAlias(aliasname)[0].value
+            const AliasCommand = this.client.aliasTracker.checkForAlias(aliasname)[0].command
+            
             AliasCommand.forEach((command) => {
                 setTimeout(() => {
                     if (command.includes(Prefix)) {
