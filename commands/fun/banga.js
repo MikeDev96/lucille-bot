@@ -162,17 +162,17 @@ module.exports = class extends Command {
 
     list(songs, nickname) {
         const songArr = []
-        let bigSong = "-"
+        let bigSong = ""
         let i = 0;
         songs.map(e => {
             bigSong += "- " + e.song + "\n"
             if(bigSong.length > 500) {
                 songArr.push({name: `${nickname} Bangers ${++i}`, value: bigSong})
-                bigSong = "-"
+                bigSong = ""
             }
 
         })
-        songArr.push({name: `${nickname} Bangers ${++i}`, value: bigSong})
+        if(bigSong.length > 0) songArr.push({name: `${nickname} Bangers ${++i}`, value: bigSong})
         return songArr
     }
 }
