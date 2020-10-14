@@ -1,7 +1,7 @@
 const { Command } = require("discord.js-commando")
 const config = require("../../config.json")
-const { getMusic } = require("../../messageHelpers")
-const { run } = require("../music/play")
+const { getRequestee, getVoiceChannel, getMusic } = require("../../messageHelpers")
+const Track = require("../../classes/Track")
 
 module.exports = class extends Command {
     constructor (client) {
@@ -31,10 +31,13 @@ module.exports = class extends Command {
 
     async run (msg, args) {
 
+        const music = getMusic(msg);
+
         if(args.arg1.toLowerCase() === "list") {
             let listId = this.findUserId(msg, args.arg2)
             if(!listId) return
             let nickname = msg.guild.member(listId).nickname
+            if(nickname) nickname = msg.guild.member(listId).user.username
             const tempArr = this.list(this.client.bangaTracker.listBangas(listId), nickname)
             const embed = { embed: {
                 color: 0x0099ff,
@@ -58,9 +61,11 @@ module.exports = class extends Command {
             let playId = this.findUserId(msg, args.arg2)
             if(!playId) return
             playArr = this.client.bangaTracker.listBangas(playId)
-            playArr.map(dbSong => {
-                run(msg, {input: dbSong.song})
-            })
+            let trackedMusic = playArr.map(dbSong => new Track()
+            .setPlatform("search")
+            .setQuery(dbSong.song)
+            .setYouTubeTitle(dbSong.song))
+            music.add(trackedMusic, getRequestee(msg), getVoiceChannel(msg))
             return
         }
 
@@ -87,7 +92,6 @@ module.exports = class extends Command {
             return
         }
 
-        const music = getMusic(msg);
         let currTrack = false;
 
         if(music.state.queue[0]) currTrack = music.state.queue[0].youTubeTitle;
