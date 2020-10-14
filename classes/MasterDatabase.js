@@ -81,7 +81,7 @@ module.exports = class {
   }
 
   getAllPenisSize(serverId) {
-    const rslts = this.runQuery("SELECT * FROM PenisSize ps INNER JOIN UserInfo ui ON ps.UserId = ui.UserId WHERE ps.ServerId = ? AND ui.UserId = ?", serverId, userId)
+    const rslts = this.runQuery("SELECT * FROM PenisSize ps INNER JOIN UserInfo ui ON ps.UserId = ui.UserId WHERE ui.ServerId = ?", serverId)
     return !rslts ? [] : rslts;
   }
 
