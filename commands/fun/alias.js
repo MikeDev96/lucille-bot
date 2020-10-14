@@ -1,6 +1,7 @@
 const { Command, CommandoMessage } = require("discord.js-commando")
 const { Discord } = require('discord.js')
 const config = require("../../config.json")
+const { strike } = require("ffmpeg-static")
 
 module.exports = class Alias extends Command {
     constructor(client) {
@@ -14,6 +15,14 @@ module.exports = class Alias extends Command {
                     key: "aliasname",
                     prompt: "alias name",
                     type: "string",
+                    validate: val => {
+                        if (val.length > 10)
+                            return "Alias length needs to be 10 characters or less"
+                        else if (!(RegExp("^[a-zA-Z0-9 ]*$").test(val)))
+                            return "Can only contain alphanumerics, ! and &"
+                        else
+                            return true
+                    }
                 },
                 {
                     key: "aliasvalue",
@@ -21,16 +30,14 @@ module.exports = class Alias extends Command {
                     type: "string",
                     default: "",
                     validate: val => {
-<<<<<<< HEAD
-                        return false
-=======
-                        if(val.includes("!al") || val.includes("!alias") || aliasvalue.includes(aliasname) || aliasvalue.length > 75 || aliasname.length > 10) {
-                            return false
-                        }
-                        else {
+                        if ((val.toLowerCase()).replace("/\s+/g", "").includes("!al") || (val.toLowerCase()).replace("/\s+/g", "").includes("!alias"))
+                            return "Alias cannot reference another alias"
+                        else if (val.length > 75)
+                            return "Alias commands can be 100 characters of less"
+                        else if (!(RegExp("^[a-zA-Z0-9&!\" ]*$").test(val)))
+                            return "Can only contain alphanumerics, ! and &"
+                        else
                             return true
-                        }
->>>>>>> 42b3ad92f35b33f645523a405b14fa80f2ee7f99
                     },
                 }
             ],
@@ -43,15 +50,9 @@ module.exports = class Alias extends Command {
         const { aliasname, aliasvalue } = args
         const Prefix = this.client.commandPrefix
 
-        //Prevent infinite loops
-        if (aliasvalue == aliasname) {
-            msg.channel.send("Pls dont break this too much")
-            return null
-        }
-        else if (aliasname === "list") {
+        if (aliasname === "list") {
 
             const List = this.client.aliasTracker.listAliases()
-            console.log(List)
 
             if (List.length) {
 
@@ -77,35 +78,45 @@ module.exports = class Alias extends Command {
         }
         else if (aliasvalue === "") {
 
-            //Made for readabillity
-            const AliasCommand = this.client.aliasTracker.checkForAlias(aliasname)[0].command
-            
-            AliasCommand.forEach((command) => {
-                setTimeout(() => {
-                    if (command.includes(Prefix)) {
-                        this.client.dispatcher.handleMessage(
-                            new CommandoMessage(this.client,
-                                {
-                                    id: msg.author.id,
-                                    content: `${command}`,
-                                    author: msg.author
-                                },
-                                msg.channel)
-                        )
-                    } else msg.channel.send(command)
-                }, 2000)
-            })
+            if (this.client.aliasTracker.checkForAlias(aliasname).length) {
+
+                const AliasCommand = this.client.aliasTracker.checkForAlias(aliasname)[0].command
+
+                AliasCommand.forEach((command, index) => {
+                    if (command.length !== 0) {
+                        setTimeout(() => {
+                            if (command[0] === (Prefix)) {
+                                this.client.dispatcher.handleMessage(
+                                    new CommandoMessage(this.client,
+                                        {
+                                            id: msg.author.id,
+                                            content: `${command}`,
+                                            author: msg.author
+                                        },
+                                        msg.channel)
+                                )
+                            } else msg.channel.send(command)
+                        }, 1000 * (index + 1))
+                    }
+                })
+            } else
+                msg.reply("Command not defined")
         }
         else {
-            if (aliasvalue === 'delete') {
+            if (aliasvalue === 'delete' || aliasvalue === 'remove') {
                 this.client.aliasTracker.removeAlias(args.aliasname)
                 msg.reply(`Deleted alias '${aliasname}' :)`)
             }
             else if (this.client.aliasTracker.checkForAlias(aliasname).length)
                 msg.reply("This alias already exists :(")
             else {
-                this.client.aliasTracker.writeAlias(aliasname, aliasvalue)
-                msg.reply("Alias added :)")
+                if (aliasvalue.split("&").filter(cmd => cmd !== "").length) {
+                    this.client.aliasTracker.writeAlias(aliasname, aliasvalue)
+                    msg.reply("Alias added :)")
+                }
+                else {
+                    msg.reply("Cannot supply empty commands")
+                }
             }
         }
     }
