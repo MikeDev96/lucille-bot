@@ -21,7 +21,16 @@ module.exports = class Alias extends Command {
                     type: "string",
                     default: "",
                     validate: val => {
+<<<<<<< HEAD
                         return false
+=======
+                        if(val.includes("!al") || val.includes("!alias") || aliasvalue.includes(aliasname) || aliasvalue.length > 75 || aliasname.length > 10) {
+                            return false
+                        }
+                        else {
+                            return true
+                        }
+>>>>>>> 42b3ad92f35b33f645523a405b14fa80f2ee7f99
                     },
                 }
             ],
