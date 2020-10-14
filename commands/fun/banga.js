@@ -37,7 +37,7 @@ module.exports = class extends Command {
             let listId = this.findUserId(msg, args.arg2)
             if(!listId) return
             let nickname = msg.guild.member(listId).nickname
-            if(nickname) nickname = msg.guild.member(listId).user.username
+            if(!nickname) nickname = msg.guild.member(listId).user.username
             const tempArr = this.list(this.client.bangaTracker.listBangas(listId), nickname)
             const embed = { embed: {
                 color: 0x0099ff,
