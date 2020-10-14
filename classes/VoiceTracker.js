@@ -1,6 +1,7 @@
 const low = require("lowdb")
 const FileSync = require("lowdb/adapters/FileSync")
 const humanizeDuration = require("humanize-duration")
+const config = require("../config.json")
 
 module.exports = class {
   constructor (client) {
