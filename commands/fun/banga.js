@@ -89,7 +89,7 @@ module.exports = class extends Command {
 
         const music = getMusic(msg);
         let currTrack = false;
-        
+
         if(music.state.queue[0]) currTrack = music.state.queue[0].youTubeTitle;
         if(music.state.queue[0] && music.state.queue[0].radioMetadata && music.state.queue[0].radioMetadata.info) currTrack = music.state.queue[0].radioMetadata.info.artist + " - " + music.state.queue[0].radioMetadata.info.title;
         if(music.state.queue[0] && music.state.queue[0].platform === "soundcloud") currTrack = music.state.queue[0].title;
@@ -162,13 +162,13 @@ module.exports = class extends Command {
 
     list(songs, nickname) {
         const songArr = []
-        let bigSong = ""
+        let bigSong = "-"
         let i = 0;
         songs.map(e => {
-            bigSong += e.song + "\n"
+            bigSong += "- " + e.song + "\n"
             if(bigSong.length > 500) {
                 songArr.push({name: `${nickname} Bangers ${++i}`, value: bigSong})
-                bigSong = ""
+                bigSong = "-"
             }
 
         })
