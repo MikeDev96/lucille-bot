@@ -19,7 +19,7 @@ module.exports = class Alias extends Command {
                         if (val.length > 10)
                             return "Alias length needs to be 10 characters or less"
                         else if (!(RegExp("^[a-zA-Z0-9 ]*$").test(val)))
-                            return "Can only contain alphanumerics, ! and &"
+                            return "Can only contain alphanumerics"
                         else
                             return true
                     }
@@ -30,12 +30,13 @@ module.exports = class Alias extends Command {
                     type: "string",
                     default: "",
                     validate: val => {
-                        if ((val.toLowerCase()).replace("/\s+/g", "").includes("!al") || (val.toLowerCase()).replace("/\s+/g", "").includes("!alias"))
+                        const Prefix = this.client.commandPrefix
+                        if ((val.toLowerCase()).replace("/\s+/g", "").includes(`${Prefix}al`) || (val.toLowerCase()).replace("/\s+/g", "").includes(`${Prefix}alias`))
                             return "Alias cannot reference another alias"
                         else if (val.length > 75)
                             return "Alias commands can be 100 characters of less"
-                        else if (!(RegExp("^[a-zA-Z0-9&!\" ]*$").test(val)))
-                            return "Can only contain alphanumerics, ! and &"
+                        else if (!(RegExp(`^[a-zA-Z0-9&${Prefix}\" ]*$`).test(val)))
+                            return `Can only contain alphanumerics, ${Prefix} and &`
                         else
                             return true
                     },
