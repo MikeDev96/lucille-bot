@@ -3,14 +3,14 @@ const FileSync = require("lowdb/adapters/FileSync")
 const humanizeDuration = require("humanize-duration")
 
 module.exports = class {
-  constructor(client) {
+  constructor (client) {
     this.client = client
     this.monitor = {}
     this.initDB()
     this.initClient()
   }
 
-  initDB() {
+  initDB () {
     const adapter = new FileSync("db.json")
     this.db = low(adapter)
 
@@ -18,7 +18,7 @@ module.exports = class {
       .write()
   }
 
-  initClient() {
+  initClient () {
     this.client.once("ready", () => {
       console.log("Discord client ready")
 
@@ -44,7 +44,7 @@ module.exports = class {
     this.client.on("voiceStateUpdate", this.voiceStateUpdate.bind(this))
   }
 
-  async voiceStateUpdate(oldMember, newMember) {
+  async voiceStateUpdate (oldMember, newMember) {
     if (!(oldMember.id in this.monitor)) {
       this.monitor[oldMember.id] = {}
     }
@@ -212,24 +212,21 @@ module.exports = class {
       this.db.get("users")
         .set(userId, displayName)
         .write()
-
-      // Soooooo i see you only update the names when something happens in the voice channel huh, is this evern server based?
-      this.client.db.updateUser(userId, displayName)
     }
   }
 
-  formatMs(ms) {
+  formatMs (ms) {
     return `${humanizeDuration(this.round1000(ms))}`
   }
 
-  async notify(channel, displayName, isServer, method, duration) {
+  async notify (channel, displayName, isServer, method, duration) {
     const replyMsg = await channel.send(`\`${displayName}\` was ${isServer ? "server " : ""}${method} for ${this.formatMs(duration)}`)
     if (replyMsg === 0) {
       replyMsg.react("🏆")
     }
   }
 
-  getLeaderboard(serverId, author = {}) {
+  getLeaderboard (serverId, author = {}) {
     const server = this.db.get("servers." + serverId).value()
     if (!server) {
       return false
@@ -303,7 +300,7 @@ module.exports = class {
     return embed
   }
 
-  round1000(num) {
+  round1000 (num) {
     if (num < 1000) {
       return Math.ceil(num / 100) * 100
     }
