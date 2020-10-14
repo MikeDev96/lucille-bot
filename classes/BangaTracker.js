@@ -42,4 +42,40 @@ module.exports = class {
         .assign(data[0])
         .write();
   }
+
+  removeBanga(banger, user) {
+    let data = this.db.get("bangers")
+                .find(e => {
+                  return e.song.toLowerCase().includes(banger.toLowerCase()) && (e.users.indexOf(user) > -1)
+                })
+                .value();
+
+    const index = data.users.indexOf(user)
+
+    if(index > -1) data.users.splice(index, 1)
+    
+    this.db.get("bangers")
+      .find({song: banger})
+      .assign(data)
+      .write();
+  }
+
+  findBanga(banger, user) {
+    let data = this.db.get("bangers")
+                .find(e => {
+                  return e.song.toLowerCase().includes(banger.toLowerCase()) && (e.users.indexOf(user) > -1)
+                })
+                .value();
+    
+
+    if(!data) data = {song: null}
+    
+    return data.song;
+  }
+
+  listBangas(user) {
+    return this.db.get("bangers")
+      .filter({users: [user]})
+      .value();
+  }
 }
