@@ -5,6 +5,10 @@ const fs = require("fs")
 const VoiceTracker = require("./classes/VoiceTracker")
 const MusicTracker = require("./classes/MusicTracker")
 const BangaTracker = require("./classes/BangaTracker")
+const AliasTracker = require("./classes/AliasTracker")
+const MasterDatabase = require("./classes/MasterDatabase")
+const VoiceCommands = require("./classes/VoiceCommands")
+const { bootClientFromAllVoiceChannels } = require("./classes/Helpers")
 require("dotenv").config()
 
 const emojis = [
@@ -18,6 +22,7 @@ const emojis = [
 
 const client = new Commando.CommandoClient({
   owner: config.discord.owner,
+  commandPrefix: ";",
 })
 
 client.registry
@@ -58,8 +63,13 @@ client.once("ready", () => {
   client.voiceTracker = new VoiceTracker(client)
   client.musicTracker = new MusicTracker(client)
   client.bangaTracker = new BangaTracker(client)
+  client.aliasTracker = new AliasTracker(client)
+  client.voiceCommands = new VoiceCommands(client)
+  client.db = new MasterDatabase()
 
   client.on("message", msg => client.musicTracker.run(msg))
+
+  bootClientFromAllVoiceChannels(client)
 })
 
 client.on("guildCreate", createEmojis)

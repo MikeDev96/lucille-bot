@@ -42,6 +42,7 @@ module.exports = class {
       playCount: 0,
       repeat: "off",
       radioAdBlock: new RadioAdBlock(),
+      summoned: false,
     }
 
     // Move the embed down every 5 minutes, it can get lost when a radio is left on for ages
@@ -52,7 +53,46 @@ module.exports = class {
     })
   }
 
+  async summon (voiceChannel, userSummoned = false) {
+    if (userSummoned) {
+      this.state.summoned = true
+    }
+
+    // Join the voice channel if not already joining/joined
+    if (this.state.joinState === 0) {
+      this.state.joinState = 1
+
+      try {
+        const connection = await voiceChannel.join()
+        connection.play("./assets/sounds/silence.mp3")
+
+        this.state.joinState = 2
+        this.state.voiceChannel = voiceChannel
+        this.state.voiceConnection = connection
+        this.state.playCount = 0
+
+        this.state.voiceConnection.on("disconnect", () => {
+          this.state.queue.splice(0, this.state.queue.length)
+          this.state.summoned = false
+          this.cleanUp()
+        })
+      }
+      catch (err) {
+        this.state.joinState = 0
+        console.log(err)
+      }
+    }
+    else if (this.state.joinState === 2) {
+      if (this.state.voiceConnection && this.state.voiceConnection.voice) {
+        await this.state.voiceConnection.voice.setChannel(voiceChannel)
+        this.state.voiceChannel = voiceChannel
+      }
+    }
+  }
+
   async add (input, requestee, voiceChannel, index = -1) {
+    const isPlaying = !!this.state.queue.length
+
     let insertAt = index < 0 ? this.state.queue.length : index
     let tracks = []
 
@@ -73,7 +113,7 @@ module.exports = class {
         const searchResults = (await scrapeYt.search(track.query)).filter(res => res.type === "video")
         const searchResult = searchResults[0]
 
-        console.log(`Search YouTube for ${track.query}\nTrack object: ${JSON.stringify(track)}\nSearch object: ${JSON.stringify(searchResults)}`)
+        // console.log(`Search YouTube for ${track.query}\nTrack object: ${JSON.stringify(track)}\nSearch object: ${JSON.stringify(searchResults)}`)
 
         if (searchResult) {
           track
@@ -118,24 +158,12 @@ module.exports = class {
     if (this.state.queue.length > 0) {
       // Join the voice channel if not already joining/joined
       if (this.state.joinState === 0) {
-        this.state.joinState = 1
+        await this.summon(voiceChannel)
+      }
 
-        voiceChannel.join().then(connection => {
-          this.state.joinState = 2
-          this.state.voiceChannel = voiceChannel
-          this.state.voiceConnection = connection
-          this.state.playCount = 0
-
-          this.state.voiceConnection.on("disconnect", () => {
-            this.state.queue.splice(0, this.state.queue.length)
-            this.cleanUp()
-          })
-
-          this.searchAndPlay()
-        }).catch(err => {
-          this.state.joinState = 0
-          console.log(err)
-        })
+      // If there's nothing playing, get the ball rolling
+      if (!isPlaying) {
+        this.searchAndPlay()
       }
       else {
         // If there's a radio currently playing & there's something else in the queue (because we've just added it above)
@@ -373,7 +401,9 @@ module.exports = class {
     const dispatcher = this.state.voiceConnection.play(`assets/sounds/disconnect/${selectRandom(sounds)}`)
     dispatcher.setVolumeLogarithmic(3)
     dispatcher.on("finish", () => {
-      this.state.voiceConnection.disconnect()
+      if (!this.state.summoned) {
+        this.state.voiceConnection.disconnect()
+      }
       this.cleanUp()
     })
   }
@@ -559,7 +589,7 @@ module.exports = class {
           }] : [],
         ],
         footer: {
-          text: "Created with ♥ by Migul, Keef, Jakub and Jue, Powered by Keef Web Services",
+          text: config.discord.footer,
           icon_url: config.discord.authorAvatarUrl,
         },
       },

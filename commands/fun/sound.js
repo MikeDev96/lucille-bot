@@ -140,7 +140,7 @@ module.exports = class extends Command {
                 },
               ],
               footer: {
-                text: "Created with ♥ by Migul, Powered by Keef Web Services",
+                text: config.discord.footer,
                 icon_url: config.discord.authorAvatarUrl,
               },
             },

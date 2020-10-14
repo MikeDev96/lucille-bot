@@ -1,6 +1,7 @@
 const low = require("lowdb")
 const FileSync = require("lowdb/adapters/FileSync")
 const humanizeDuration = require("humanize-duration")
+const config = require("../config.json")
 
 module.exports = class {
   constructor (client) {
@@ -292,8 +293,8 @@ module.exports = class {
       ].join("\n"),
       fields,
       footer: {
-        text: "Created with ♥ by Migul",
-        icon_url: "https://cdn.discordapp.com/avatars/155065678318141440/8b109982662eac1033c824d8d61d3859.png?size=2048",
+        text: config.discord.footer,
+        icon_url: config.discord.authorAvatarUrl,
       },
     }
 
