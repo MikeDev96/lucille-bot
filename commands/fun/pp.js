@@ -4,10 +4,10 @@ const { discord } = require("../../config")
 module.exports = class extends Command {
   constructor(client) {
     super(client, {
-      name: "penis",
-      aliases: ["pp"],
+      name: "pp",
+      aliases: [],
       group: "fun",
-      memberName: "penis",
+      memberName: "pp",
       description: "Penis Length",
       args: [
         {
@@ -83,14 +83,13 @@ module.exports = class extends Command {
         },
 
         fields: [
-          ...all.sort((pp1, pp2) => pp1.Size >= pp2.Size)
-            .map(pp => (
-              {
-                name: pp.DisplayName !== null
-                  ? pp.DisplayName
-                  : this.client.users.cache.find(user => user.id === pp.UserId).username,
-                value: this.getLocalised(pp.Size)
-              }))
+          {
+            name: msg.guild.name,
+            value: all.sort((pp1, pp2) => pp2.Size - pp1.Size)
+              .map(pp =>
+                `\`${(pp.DisplayName !== null ? pp.DisplayName : this.client.users.cache.find(user => user.id === pp.UserId).username)}\`\r\n\t\t${this.getLocalised(pp.Size)}\r\n`
+              ).join("\r\n")
+          }
         ],
         footer: {
           text: discord.footer,
