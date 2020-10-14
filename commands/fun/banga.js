@@ -31,8 +31,11 @@ module.exports = class extends Command {
 
     async run (msg, args) {
 
-        if(args.arg1 === "list") {
-            const tempArr = this.list(this.client.bangaTracker.listBangas(msg.author.id))
+        if(args.arg1.toLowerCase() === "list") {
+            let listId = this.findUserId(msg, args.arg2)
+            if(!listId) return
+            let nickname = msg.guild.member(listId).nickname
+            const tempArr = this.list(this.client.bangaTracker.listBangas(listId), nickname)
             const embed = { embed: {
                 color: 0x0099ff,
                 title: "Lucille :musical_note:",
@@ -50,25 +53,18 @@ module.exports = class extends Command {
             return
         }
 
-        if(args.arg1 === "play") {
+        if(args.arg1.toLowerCase() === "play") {
             let playArr = []
-            const userBangers = this.client.users.cache.find(u => u.username === args.arg2)
-            if(userBangers) {
-                playArr = this.client.bangaTracker.listBangas(userBangers.id)
-            } else {
-                if(args.arg2.length > 0) {
-                    msg.channel.send("Be more specific")
-                    return
-                }
-                playArr = this.client.bangaTracker.listBangas(msg.author.id)
-            }
+            let playId = this.findUserId(msg, args.arg2)
+            if(!playId) return
+            playArr = this.client.bangaTracker.listBangas(playId)
             playArr.map(dbSong => {
                 run(msg, {input: dbSong.song})
             })
             return
         }
 
-        if(args.arg1 === "remove") {
+        if(args.arg1.toLowerCase() === "remove") {
             const grug = this.client.bangaTracker.findBanga(args.arg2, msg.author.id);
             if(!grug) {
                 msg.channel.send("Nice try")
@@ -93,9 +89,9 @@ module.exports = class extends Command {
 
         const music = getMusic(msg);
         let currTrack = false;
-
+        
         if(music.state.queue[0]) currTrack = music.state.queue[0].youTubeTitle;
-        if(music.state.queue[0] && music.state.queue[0].radioMetadata && music.state.queue[0].radioMetadata.info) currTrack = music.state.queue[0].radioMetadata.info.title;
+        if(music.state.queue[0] && music.state.queue[0].radioMetadata && music.state.queue[0].radioMetadata.info) currTrack = music.state.queue[0].radioMetadata.info.artist + " - " + music.state.queue[0].radioMetadata.info.title;
         if(music.state.queue[0] && music.state.queue[0].platform === "soundcloud") currTrack = music.state.queue[0].title;
 
         if(!currTrack) {
@@ -148,19 +144,35 @@ module.exports = class extends Command {
         return usrArr;
     }
 
-    list(songs) {
+    findUserId(msg, user) {
+        let userID
+        if(user.length > 0) {
+            msg.guild.members.cache.map(e => {
+                if(e.user.username.toLowerCase().includes(user.toLowerCase())) userID = e.user.id
+            })
+        } else {
+            userID = msg.author.id
+        }
+        if(!userID) {
+            msg.channel.send("No user found")
+            return null
+        }
+        return userID
+    }
+
+    list(songs, nickname) {
         const songArr = []
         let bigSong = ""
         let i = 0;
         songs.map(e => {
             bigSong += e.song + "\n"
             if(bigSong.length > 500) {
-                songArr.push({name: `Your bangers part ${++i}`, value: bigSong})
+                songArr.push({name: `${nickname} Bangers ${++i}`, value: bigSong})
                 bigSong = ""
             }
 
         })
-        songArr.push({name: `Your bangers part ${++i}`, value: bigSong})
+        songArr.push({name: `${nickname} Bangers ${++i}`, value: bigSong})
         return songArr
     }
 }
