@@ -6,6 +6,8 @@ const VoiceTracker = require("./classes/VoiceTracker")
 const MusicTracker = require("./classes/MusicTracker")
 const BangaTracker = require("./classes/BangaTracker")
 const AliasTracker = require("./classes/AliasTracker")
+const MasterDatabase = require("./classes/MasterDatabase")
+
 require("dotenv").config()
 
 const emojis = [
@@ -60,6 +62,7 @@ client.once("ready", () => {
   client.musicTracker = new MusicTracker(client)
   client.bangaTracker = new BangaTracker(client)
   client.aliasTracker = new AliasTracker(client)
+  client.db = new MasterDatabase()
 
   client.on("message", msg => client.musicTracker.run(msg))
 })

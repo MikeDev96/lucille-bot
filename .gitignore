@@ -6,3 +6,4 @@ aliases.json
 logs
 .env
 assets/sounds
+main.db
