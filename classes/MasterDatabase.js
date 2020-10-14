@@ -21,8 +21,10 @@ module.exports = class {
       // DISPLAY NAME
       .exec(`
        CREATE TABLE IF NOT EXISTS UserInfo (
-          UserId	 		PRIMARY KEY,
-          DisplayName TEXT
+          UserId	 		TEXT,
+          ServerId    TEXT,
+          DisplayName TEXT,
+          PRIMARY KEY (UserId, ServerId)
         ) 
       `)
 
@@ -83,16 +85,16 @@ module.exports = class {
     return !rslts ? [] : rslts;
   }
 
-  updateUser(userId, displayName) {
-    const rslts = this.runScalarQuery("SELECT userId FROM UserInfo WHERE UserId = ?", userId)
+  updateUser(userId, serverId, displayName) {
+    const rslts = this.runScalarQuery("SELECT [UserId] FROM UserInfo WHERE [UserId] = ? AND [ServerId] = ?", userId, serverId)
     if (rslts) {
-      this.run("UPDATE UserInfo SET [DisplayName] = ? WHERE [UserId] = ?", displayName, userId)
+      this.run("UPDATE UserInfo SET [DisplayName] = ? WHERE [UserId] = ? AND [ServerId] = ?", displayName, userId, serverId)
     } else {
-      this.run("INSERT INTO UserInfo ([UserId], [DisplayName]) VALUES (?, ?)", userId, displayName)
+      this.run("INSERT INTO UserInfo ([UserId], [ServerId], [DisplayName]) VALUES (?, ?, ?)", userId, serverId, displayName)
     }
   }
 
-  getDisplayName(userId) {
-    return this.runScalarQuery("SELECT DisplayName FROM UserInfo WHERE UserId = ?", userId)
+  getDisplayName(userId, serverId) {
+    return this.runScalarQuery("SELECT [DisplayName] FROM UserInfo WHERE [UserId] = ? AND [ServerId] = ?", userId, serverId)
   }
 }

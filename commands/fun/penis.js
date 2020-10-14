@@ -53,7 +53,7 @@ module.exports = class extends Command {
     const ppLength = this.getSize(isPerm, msg.author.id, msg.guild.id)
 
     // Update the users display name
-    this.client.db.updateUser(msg.author.id, msg.member.displayName)
+    this.client.db.updateUser(msg.author.id, msg.guild.id, msg.member.displayName)
 
     if (isPermLeaderboard) {
       msg.reply(this.getLeaderboard(msg))
