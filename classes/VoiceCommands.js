@@ -5,6 +5,8 @@ const SpeechToText = require("./SpeechToText")
 const VoiceStateAdapter = require("./VoiceStateAdapter")
 const { PassThrough } = require("stream")
 const { proxyCommand } = require("./DiscordJSHelpers")
+const { GuildMember } = require("discord.js")
+const { getMusic } = require("./Helpers")
 
 class VoiceCommands {
   constructor (client) {
@@ -146,29 +148,25 @@ class VoiceCommands {
   }
 
   getTextChannel (member) {
-    if (!member) {
-      return Error("Member must be supplied")
+    if (!(member instanceof GuildMember)) {
+      throw Error("Member param must be instance of GuildMember")
     }
 
-    const guildChannels = member.guild.channels.cache
-    if (member.voice && member.voice.channel) {
-      const voiceChannelName = member.voice.channel.name || ""
-      const matchingTextChannel = guildChannels.find(channel => channel.type === "text" && channel.name.toLowerCase() === voiceChannelName.toLowerCase())
-      if (matchingTextChannel) {
-        return matchingTextChannel
-      }
+    const music = getMusic(member.guild)
+    if (music && music.state && music.state.textChannel) {
+      return music.state.textChannel
     }
 
     if (member.guild.systemChannel) {
       return member.guild.systemChannel
     }
 
-    const firstGuildChannel = guildChannels.filter(channel => channel.type === "text").first()
+    const firstGuildChannel = member.guild.channels.cache.filter(channel => channel.type === "text").first()
     if (firstGuildChannel) {
       return firstGuildChannel
     }
 
-    return Error("Text channel could not be found")
+    return null
   }
 
   destroyAllStreams () {

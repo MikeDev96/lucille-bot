@@ -28,7 +28,7 @@ module.exports = class {
         ) 
       `)
 
-    console.log("main.db ready")
+    console.log("Master database initialised")
   }
 
   /**

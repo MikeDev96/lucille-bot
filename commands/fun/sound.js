@@ -3,7 +3,7 @@ const axios = require("axios")
 const fs = require("fs")
 const { getAudioDurationInSeconds } = require("get-audio-duration")
 const config = require("../../config.json")
-const { getMusic, getRequestee, getVoiceChannel } = require("../../messageHelpers")
+const { getOrCreateMusic, getRequestee, getVoiceChannel } = require("../../classes/Helpers")
 const Track = require("../../classes/Track")
 const { PLATFORM_OTHER } = require("../../classes/TrackExtractor")
 
@@ -100,7 +100,7 @@ module.exports = class extends Command {
       if (key) {
         fs.readdir(`./assets/sounds/${key}`, (err, files) => {
           if (!err) {
-            const music = getMusic(msg)
+            const music = getOrCreateMusic(msg)
             const tracks = files.map(f =>
               new Track("", f, "")
                 .setPlatform(PLATFORM_OTHER)

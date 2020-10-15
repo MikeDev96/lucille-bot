@@ -1,6 +1,6 @@
 const { Command } = require("discord.js-commando")
 const config = require("../../config.json")
-const { getRequestee, getVoiceChannel, getMusic } = require("../../messageHelpers")
+const { getRequestee, getVoiceChannel, getOrCreateMusic } = require("../../classes/Helpers")
 const Track = require("../../classes/Track")
 
 module.exports = class extends Command {
@@ -31,7 +31,7 @@ module.exports = class extends Command {
 
     async run (msg, args) {
 
-        const music = getMusic(msg);
+        const music = getOrCreateMusic(msg);
 
         if(args.arg1.toLowerCase() === "list") {
             let listId = this.findUserId(msg, args.arg2)
