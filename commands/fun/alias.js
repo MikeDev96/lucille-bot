@@ -97,7 +97,7 @@ module.exports = class Alias extends Command {
                                         msg.channel)
                                 )
                             } else msg.channel.send(command)
-                        }, 1000 * (index + 1))
+                        }, 1000 * (index))
                     }
                 })
             } else
