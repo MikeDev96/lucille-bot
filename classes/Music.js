@@ -621,6 +621,10 @@ module.exports = class {
     return ""
   }
 
+  getTextChannel () {
+    return this.state.textChannel
+  }
+
   dispatcherExec (callback) {
     if (this.state.voiceConnection && this.state.voiceConnection.dispatcher) {
       return callback(this.state.voiceConnection.dispatcher)

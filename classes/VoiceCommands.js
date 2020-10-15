@@ -153,8 +153,11 @@ class VoiceCommands {
     }
 
     const music = getMusic(member.guild)
-    if (music && music.state && music.state.textChannel) {
-      return music.state.textChannel
+    if (music) {
+      const textChannel = music.getTextChannel()
+      if (textChannel) {
+        return textChannel
+      }
     }
 
     if (member.guild.systemChannel) {
