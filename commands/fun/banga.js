@@ -39,6 +39,10 @@ module.exports = class extends Command {
             let nickname = msg.guild.member(listId).nickname
             if(!nickname) nickname = msg.guild.member(listId).user.username
             const tempArr = this.list(this.client.bangaTracker.listBangas(listId), nickname)
+            if(tempArr.length === 0) {
+                msg.channel.send("This person is boring and has no bangers")
+                return
+            }
             const embed = { embed: {
                 color: 0x0099ff,
                 title: "Lucille :musical_note:",
