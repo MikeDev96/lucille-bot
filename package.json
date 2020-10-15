@@ -26,6 +26,7 @@
     "lodash": "^4.17.19",
     "lodash.debounce": "^4.0.8",
     "lowdb": "^1.0.0",
+    "luxon": "^1.25.0",
     "parse-duration": "^0.4.4",
     "query-string": "^6.13.1",
     "scrape-yt": "^1.4.0",
