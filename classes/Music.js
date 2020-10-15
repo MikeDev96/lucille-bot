@@ -1,6 +1,6 @@
 const scrapeYt = require("scrape-yt")
 const ytdl = require("discord-ytdl-core")
-const StringSplitter = require("./StringSplitter")
+const { splitMessage, escapeMarkdown } = require("discord.js/src/util/Util")
 const index = require("../index")
 const config = require("../config.json")
 const TopMostMessagePump = require("./TopMostMessagePump")
@@ -516,15 +516,17 @@ module.exports = class {
   }
 
   createQueueEmbed (currentlyPlaying, progressPerc) {
-    const queue = this.state.queue.slice(1).map((t, i) => `${i + 1}. ${this.getTrackTitle(t)} <@${t.requestee.id}>`)
-    const splitQueue = new StringSplitter(queue).split()
+    const queue = this.state.queue.slice(1).map((t, i) => `\`${(i + 1).toString().padStart(2, "0")}\` ${escapeMarkdown(this.getTrackTitle(t))} <@${t.requestee.id}>`.slice(0, 1024))
+    const top10Items = queue.slice(0, 10)
+    const top10 = splitMessage(top10Items, { maxLength: 1024 })
+    const remainingCount = this.state.queue.length - 1 - top10Items.length
 
     const platformEmoji = this.getPlatformEmoji(currentlyPlaying.platform)
-    const nowPlayingSource = ![PLATFORM_YOUTUBE, "search"].includes(currentlyPlaying.platform) ? `${platformEmoji ? `${platformEmoji} ` : ""}${safeJoin([currentlyPlaying.artists, currentlyPlaying.title], " - ")}` : ""
-    const nowPlayingYouTube = PLATFORMS_REQUIRE_YT_SEARCH.includes(currentlyPlaying.platform) ? `${this.state.emojis.youtube} [${currentlyPlaying.youTubeTitle}](${currentlyPlaying.link})` : ""
+    const nowPlayingSource = ![PLATFORM_YOUTUBE, "search"].includes(currentlyPlaying.platform) ? `${platformEmoji ? `${platformEmoji} ` : ""}${escapeMarkdown(safeJoin([currentlyPlaying.artists, currentlyPlaying.title], " - "))}` : ""
+    const nowPlayingYouTube = PLATFORMS_REQUIRE_YT_SEARCH.includes(currentlyPlaying.platform) ? `${this.state.emojis.youtube} [${escapeMarkdown(currentlyPlaying.youTubeTitle)}](${currentlyPlaying.link})` : ""
 
     const radioMusicToX = this.getRadioMusicToXInfo(currentlyPlaying)
-    const radioNowPlaying = currentlyPlaying.platform === PLATFORM_RADIO && currentlyPlaying.radioMetadata && currentlyPlaying.radioMetadata.info ? [currentlyPlaying.radioMetadata.info.artist || "", currentlyPlaying.radioMetadata.info.title || ""].filter(s => s.trim()).join(" - ") + (radioMusicToX ? " " + radioMusicToX : "") : ""
+    const radioNowPlaying = currentlyPlaying.platform === PLATFORM_RADIO && currentlyPlaying.radioMetadata && currentlyPlaying.radioMetadata.info ? escapeMarkdown([currentlyPlaying.radioMetadata.info.artist || "", currentlyPlaying.radioMetadata.info.title || ""].filter(s => s.trim()).join(" - ") + (radioMusicToX ? " " + radioMusicToX : "")) : ""
 
     const nowPlaying = [nowPlayingSource, nowPlayingYouTube, radioNowPlaying].filter(s => s.trim()).join("\n")
     const blocks = Math.ceil(20 * progressPerc)
@@ -543,13 +545,13 @@ module.exports = class {
             value: nowPlaying,
             inline: true,
           },
-          ...splitQueue.strings.map(q => ({
+          ...this.state.queue.length > 1 ? [{
             name: "Up Next",
-            value: q.subString,
-          })),
-          ...splitQueue.remaining.length > 0 ? [{
+            value: top10[0],
+          }] : [],
+          ...remainingCount > 0 ? [{
             name: "Up Next",
-            value: `${splitQueue.remaining.length} more song(s)...`,
+            value: `${remainingCount} more song(s)...`,
           }] : [],
           ...this.state.voiceConnection && this.state.voiceConnection.dispatcher && this.state.voiceConnection.dispatcher.paused ? [{
             name: "Paused By",
