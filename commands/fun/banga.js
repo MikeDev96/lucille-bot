@@ -2,6 +2,8 @@ const { Command } = require("discord.js-commando")
 const config = require("../../config.json")
 const { getRequestee, getVoiceChannel, getOrCreateMusic } = require("../../classes/Helpers")
 const Track = require("../../classes/Track")
+const { truncate } = require("lodash")
+const { MessageAttachment } = require("discord.js")
 
 module.exports = class extends Command {
     constructor (client) {
@@ -115,16 +117,20 @@ module.exports = class extends Command {
             return;
         }
 
+        let bangerStampImg = new MessageAttachment(`./assets/images/bangerstamps/${msg.author.id}.png`)
+
         if(checkEx.length) {
             if (this.checkForUser(checkEx, msg)) {
                 msg.channel.send("You've already said this was a banger");
             } else {
                 this.client.bangaTracker.updateUsers(currTrack, msg.author.id)
                 msg.react("👍")
+                msg.channel.send(bangerStampImg)
             }
         } else {
             this.client.bangaTracker.writeBanga(currTrack, msg.author.id);
             msg.react("👍")
+            msg.channel.send(bangerStampImg)
         }
         
     }
