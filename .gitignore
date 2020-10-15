@@ -6,4 +6,5 @@ aliases.json
 logs
 .env
 assets/sounds
+assets/images/bangerstamps
 main.db
