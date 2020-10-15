@@ -102,7 +102,7 @@ module.exports = class extends Command {
         if(music.state.queue[0] && music.state.queue[0].radioMetadata && music.state.queue[0].radioMetadata.info) currTrack = music.state.queue[0].radioMetadata.info.artist + " - " + music.state.queue[0].radioMetadata.info.title;
         if(music.state.queue[0] && music.state.queue[0].platform === "soundcloud") currTrack = music.state.queue[0].title;
 
-        if(!currTrack) {
+        if(!currTrack || currTrack === "-") {
             msg.channel.send("Hold your horses")
             return
         }
