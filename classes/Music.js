@@ -26,7 +26,6 @@ module.exports = class {
       textChannel: textChannel,
       voiceConnection: null,
       queue: [],
-      currentVideo: {},
       emojis: index.emojis.reduce((acc, cur) => {
         acc[cur.name] = (textChannel.guild.emojis.cache.find(e => e.name === cur.name) || "").toString()
         return acc
@@ -204,7 +203,6 @@ module.exports = class {
         item.setLink(`https://www.youtube.com/watch?v=${searchResult.id}`)
           .setYouTubeTitle(searchResult.title)
           .setDuration(searchResult.duration)
-        this.state.currentVideo = searchResult
         this.play()
       }
       else {
