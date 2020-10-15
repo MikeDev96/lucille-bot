@@ -97,12 +97,13 @@ module.exports = class extends Command {
         }
 
         let currTrack = false;
+        let queueItem = music.state.queue[0]
 
-        if(music.state.queue[0]) currTrack = music.state.queue[0].youTubeTitle;
-        if(music.state.queue[0] && music.state.queue[0].radioMetadata && music.state.queue[0].radioMetadata.info) currTrack = music.state.queue[0].radioMetadata.info.artist + " - " + music.state.queue[0].radioMetadata.info.title;
-        if(music.state.queue[0] && music.state.queue[0].platform === "soundcloud") currTrack = music.state.queue[0].title;
+        if(queueItem) currTrack = queueItem.youTubeTitle;
+        if(queueItem && queueItem.radioMetadata && queueItem.radioMetadata.info && queueItem.radioMetadata.info.title && queueItem.radioMetadata.info.artist) currTrack = queueItem.radioMetadata.info.artist + " - " + queueItem.radioMetadata.info.title;
+        if(queueItem && queueItem.platform === "soundcloud") currTrack = queueItem.title;
 
-        if(!currTrack || currTrack === "-") {
+        if(!currTrack) {
             msg.channel.send("Hold your horses")
             return
         }
