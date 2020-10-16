@@ -472,7 +472,7 @@ module.exports = class {
 
       try {
         const res = await m2x.processLink()
-        if (res) {
+        if (res && item.radioMetadata) {
           item.radioMetadata.musicToX = res
           this.updateEmbed(true, true)
         }
