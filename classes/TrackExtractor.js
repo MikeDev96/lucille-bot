@@ -243,7 +243,7 @@ module.exports = class {
       ).setPlatform(PLATFORM_YOUTUBE)
         .setLink(info.videoDetails.video_url)
         .setYouTubeTitle(info.videoDetails.title)
-        .setDuration(parseInt(info.videoDetails.length_seconds))
+        .setDuration(parseInt(info.videoDetails.lengthSeconds))
         .setStartTime(startTime),
     ]
   }
