@@ -35,8 +35,8 @@ module.exports = class Alias extends Command {
                             return "Alias cannot reference another alias"
                         else if (val.length > 200)
                             return "Alias commands can be 200 characters of less"
-                        else if (!(RegExp(`^[a-zA-Z0-9&${Prefix}\" :/-_]*$`).test(val)))
-                            return `Can only contain alphanumerics, ${Prefix}, :, /, -, _ and &`
+                        else if (!(RegExp(`^[a-zA-Z0-9&${Prefix}\" :/-_.]*$`).test(val)))
+                            return `Can only contain alphanumerics, ${Prefix}, :, /, -, _, . and &`
                         else
                             return true
                     },
