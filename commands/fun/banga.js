@@ -175,7 +175,7 @@ module.exports = class extends Command {
     }
 
     list(songs, nickname) {
-        return Util.splitMessage(songs.map(s => Util.escapeMarkdown(s.song)), { maxLength: 1024 }).map((str, idx) => ({
+        return Util.splitMessage(songs.map(s => Util.escapeMarkdown(`- ${s.song}`)), { maxLength: 1024 }).map((str, idx) => ({
             name: `${nickname}'s Bangers ${idx + 1}`,
             value: str,
         }))
