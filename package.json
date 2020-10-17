@@ -31,7 +31,8 @@
     "query-string": "^6.13.1",
     "scrape-yt": "^1.4.0",
     "spotify-web-api-node": "^4.0.0",
-    "ws": "^7.3.1"
+    "ws": "^7.3.1",
+    "ytpl": "^1.0.1"
   },
   "devDependencies": {
     "eslint": "^7.1.0",

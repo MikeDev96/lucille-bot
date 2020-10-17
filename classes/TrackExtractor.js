@@ -6,6 +6,8 @@ const Track = require("./Track")
 const queryString = require("query-string")
 const radios = require("../radios.json")
 const parseDuration = require("parse-duration")
+const ytpl = require("ytpl")
+const parseTime = require("m3u8stream/dist/parse-time")
 
 const PLATFORM_SPOTIFY = "spotify"
 const PLATFORM_TIDAL = "tidal"
@@ -57,6 +59,14 @@ module.exports = class {
           link.startTime = duration
         }
       }
+      this.links.push(link)
+    }
+
+    const youtubePlaylistPattern = /(?:https?:\/\/www.)?youtube.com\/playlist\?list=(PL[\w-]+)/g
+    let youtubePlaylistMatch
+    while ((youtubePlaylistMatch = youtubePlaylistPattern.exec(this.input))) {
+      const [, id] = youtubePlaylistMatch
+      const link = { platform: "youtube", type: "playlist", id }
       this.links.push(link)
     }
 
@@ -234,18 +244,38 @@ module.exports = class {
   }
 
   async getYouTube (type, id, startTime) {
-    const info = await ytdl.getBasicInfo(`https://youtube.com/watch?v=${id}`)
-    return [
-      new Track(
-        info.videoDetails.author.name,
-        info.videoDetails.title,
-        info.videoDetails.thumbnail.thumbnails[info.videoDetails.thumbnail.thumbnails.length - 1].url,
-      ).setPlatform(PLATFORM_YOUTUBE)
-        .setLink(info.videoDetails.video_url)
-        .setYouTubeTitle(info.videoDetails.title)
-        .setDuration(parseInt(info.videoDetails.lengthSeconds))
-        .setStartTime(startTime),
-    ]
+    try {
+      if (type === "track") {
+        const info = await ytdl.getBasicInfo(`https://youtube.com/watch?v=${id}`)
+        return [
+          new Track(
+            info.videoDetails.author.name,
+            info.videoDetails.title,
+            info.videoDetails.thumbnail.thumbnails[info.videoDetails.thumbnail.thumbnails.length - 1].url,
+          ).setPlatform(PLATFORM_YOUTUBE)
+            .setLink(info.videoDetails.video_url)
+            .setYouTubeTitle(info.videoDetails.title)
+            .setDuration(parseInt(info.videoDetails.lengthSeconds))
+            .setStartTime(startTime),
+        ]
+      }
+      else if (type === "playlist") {
+        const res = await ytpl(id, { limit: Infinity })
+        return res.items.map(item =>
+          new Track(item.author.name, item.title, item.thumbnail)
+            .setPlatform(PLATFORM_YOUTUBE)
+            .setLink(item.url_simple)
+            .setYouTubeTitle(item.title)
+            .setDuration(Math.floor(parseTime.humanStr(item.duration) / 1000)),
+        )
+      }
+    }
+    catch (err) {
+      console.log("Get YouTube failed")
+      console.log(err)
+    }
+
+    return []
   }
 
   async getSoundCloud (type, id) {
