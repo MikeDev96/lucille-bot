@@ -6,6 +6,7 @@ const config = require("../../config.json")
 const { getOrCreateMusic, getRequestee, getVoiceChannel } = require("../../classes/Helpers")
 const Track = require("../../classes/Track")
 const { PLATFORM_OTHER } = require("../../classes/TrackExtractor")
+const { Util } = require("discord.js")
 
 module.exports = class extends Command {
   constructor (client) {
@@ -18,12 +19,12 @@ module.exports = class extends Command {
       args: [
         {
           key: "arg1",
-          prompt: "Arg1",
+          prompt: "upload [u] | list [l] | play [p]",
           type: "string",
         },
         {
           key: "arg2",
-          prompt: "Arg2",
+          prompt: "connect [c] | disconnect [d]",
           type: "string",
         },
       ],
@@ -32,7 +33,8 @@ module.exports = class extends Command {
   }
 
   async run (msg, args) {
-    if (args.arg1 === "upload") {
+    const arg1 = args.arg1.toLowerCase()
+    if (["upload", "u"].includes(arg1)) {
       const file = msg.attachments.first()
       if (!file) {
         msg.reply("You must attach an audio file")
@@ -88,14 +90,14 @@ module.exports = class extends Command {
         })
       }
     }
-    else if (args.arg1 === "list") {
+    else if (["list", "l"].includes(arg1)) {
       const key = typeMap[args.arg2.toLowerCase()]
       if (key) {
         const embed = await this.getFilesEmbed(msg, `./assets/sounds/${key}`, key)
         msg.reply(embed)
       }
     }
-    else if (args.arg1 === "play") {
+    else if (["play", "p"].includes(arg1)) {
       const key = typeMap[args.arg2.toLowerCase()]
       if (key) {
         fs.readdir(`./assets/sounds/${key}`, (err, files) => {
@@ -133,12 +135,10 @@ module.exports = class extends Command {
                 name: msg.member.displayName,
                 icon_url: msg.author.displayAvatarURL(),
               },
-              fields: [
-                {
-                  name: `${type.slice(0, 1).toUpperCase()}${type.slice(1)} Files`,
-                  value: files.map(f => f === highlightFile ? `**${f}**` : f).join("\n"),
-                },
-              ],
+              fields: Util.splitMessage(files.map(f => f === highlightFile ? `> **${Util.escapeMarkdown(f)}**` : Util.escapeMarkdown(f)), { maxLength: 1024 }).map(str => ({
+                name: "Files",
+                value: str,
+              })),
               footer: {
                 text: config.discord.footer,
                 icon_url: config.discord.authorAvatarUrl,
