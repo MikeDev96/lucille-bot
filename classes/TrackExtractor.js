@@ -62,12 +62,14 @@ module.exports = class {
       this.links.push(link)
     }
 
-    const youtubePlaylistPattern = /(?:https?:\/\/www.)?youtube.com\/playlist\?list=(PL[\w-]+)/g
+    const youtubePlaylistPattern = /(?:https?:\/\/www.)?youtube.com\/playlist\?list=([\w-]+)/g
     let youtubePlaylistMatch
     while ((youtubePlaylistMatch = youtubePlaylistPattern.exec(this.input))) {
       const [, id] = youtubePlaylistMatch
-      const link = { platform: "youtube", type: "playlist", id }
-      this.links.push(link)
+      if (ytpl.validateID(id)) {
+        const link = { platform: "youtube", type: "playlist", id }
+        this.links.push(link)
+      }
     }
 
     const soundCloudPattern = /soundcloud.com\/((?:[\w-]+?)\/(?:sets\/)?(?:[\w-]+)(?:\/\b[\w-]+)?)\b/g
