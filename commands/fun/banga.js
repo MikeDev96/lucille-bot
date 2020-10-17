@@ -2,14 +2,13 @@ const { Command } = require("discord.js-commando")
 const config = require("../../config.json")
 const { getRequestee, getVoiceChannel, getOrCreateMusic } = require("../../classes/Helpers")
 const Track = require("../../classes/Track")
-const { truncate } = require("lodash")
-const { MessageAttachment } = require("discord.js")
+const { MessageAttachment, Util } = require("discord.js")
 
 module.exports = class extends Command {
     constructor (client) {
       super(client, {
         name: "banga",
-        aliases: ["banger", "banging", "bangin"],
+        aliases: ["banger", "banging", "bangin", "b"],
         group: "fun",
         memberName: "banga",
         description: "Logs user bangers",
@@ -176,18 +175,9 @@ module.exports = class extends Command {
     }
 
     list(songs, nickname) {
-        const songArr = []
-        let bigSong = ""
-        let i = 0;
-        songs.map(e => {
-            bigSong += "- " + e.song + "\n"
-            if(bigSong.length > 500) {
-                songArr.push({name: `${nickname} Bangers ${++i}`, value: bigSong})
-                bigSong = ""
-            }
-
-        })
-        if(bigSong.length > 0) songArr.push({name: `${nickname} Bangers ${++i}`, value: bigSong})
-        return songArr
+        return Util.splitMessage(songs.map(s => Util.escapeMarkdown(s.song)), { maxLength: 1024 }).map((str, idx) => ({
+            name: `${nickname}'s Bangers ${idx + 1}`,
+            value: str,
+        }))
     }
 }
