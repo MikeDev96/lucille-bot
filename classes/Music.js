@@ -36,7 +36,6 @@ module.exports = class {
       bassBoost: 0,
       tempo: 1,
       volume: 100,
-      progress: 0,
       progressHandle: null,
       playCount: 0,
       repeat: "off",
@@ -284,7 +283,7 @@ module.exports = class {
       console.log("Stream starting...")
       this.cleanProgress()
       if (item.duration > 0) {
-        this.state.progressHandle = setInterval(() => this.updateEmbed(true, false), 5000)
+        this.state.progressHandle = setInterval(() => this.updateEmbed(true), 5000)
       }
       this.startRadioMetadata(item)
     })
@@ -292,8 +291,8 @@ module.exports = class {
     dispatcher.on("finish", () => {
       console.log("Stream finished...")
 
-      // One last update so the progress bar reaches the end
-      this.updateEmbed(true, false)
+      item.setFinished()
+      this.updateEmbed(true)
       this.cleanProgress()
       this.stopRadioMetadata(item)
       this.processQueue()
@@ -438,7 +437,7 @@ module.exports = class {
         metadata.info = info
 
         this.radioMusicToX(item)
-        this.updateEmbed(true, true)
+        this.updateEmbed(true)
       })
 
       radioMetadata.subscribe(info => {
@@ -474,7 +473,7 @@ module.exports = class {
         const res = await m2x.processLink()
         if (res && item.radioMetadata) {
           item.radioMetadata.musicToX = res
-          this.updateEmbed(true, true)
+          this.updateEmbed(true)
         }
       }
       catch (err) {
@@ -489,13 +488,11 @@ module.exports = class {
     }
   }
 
-  updateEmbed (edit = false, force = true) {
+  updateEmbed (edit = false) {
     const currentlyPlaying = this.state.queue[0]
     if (currentlyPlaying) {
-      const progressPerc = this.getPlaybackProgress(currentlyPlaying.duration)
-      if (this.state.progress !== progressPerc || force) {
-        this.state.messagePump.set(this.createQueueEmbed(currentlyPlaying, progressPerc), edit)
-      }
+      const progressPerc = this.getPlaybackProgress(currentlyPlaying)
+      this.state.messagePump.set(this.createQueueEmbed(currentlyPlaying, progressPerc), edit)
 
       if (!edit) {
         this.debouncer()
@@ -503,8 +500,11 @@ module.exports = class {
     }
   }
 
-  getPlaybackProgress (duration) {
-    const durationMs = duration * 1000
+  getPlaybackProgress (track) {
+    if (track.finished) {
+      return 1
+    }
+    const durationMs = track.duration * 1000
     const elapsed = Math.min(this.state.playTime + (this.dispatcherExec(d => d.streamTime) || 0), durationMs)
     const progressPerc = durationMs === 0 ? 0 : elapsed / durationMs
 
@@ -529,7 +529,7 @@ module.exports = class {
     const radioNowPlaying = currentlyPlaying.platform === PLATFORM_RADIO && currentlyPlaying.radioMetadata && currentlyPlaying.radioMetadata.info ? Util.escapeMarkdown([currentlyPlaying.radioMetadata.info.artist || "", currentlyPlaying.radioMetadata.info.title || ""].filter(s => s.trim()).join(" - ") + (radioMusicToX ? " " + radioMusicToX : "")) : ""
 
     const nowPlaying = [nowPlayingSource, nowPlayingYouTube, radioNowPlaying].filter(s => s.trim()).join("\n")
-    const blocks = Math.ceil(20 * progressPerc)
+    const blocks = Math.round(20 * progressPerc)
 
     return {
       embed: {
@@ -585,7 +585,7 @@ module.exports = class {
           }] : [],
           ...currentlyPlaying.duration > 0 ? [{
             name: "Progress",
-            value: "`" + msToTimestamp((currentlyPlaying.duration * 1000) * progressPerc) + "` " + ("▬".repeat(blocks)) + "🔵" + ("▬".repeat(Math.max(0, 20 - blocks - 1))) + " `" + msToTimestamp(currentlyPlaying.duration * 1000) + "`",
+            value: "`" + msToTimestamp((currentlyPlaying.duration * 1000) * progressPerc) + "` " + ("▬".repeat(blocks)) + "🔵" + ("▬".repeat(Math.max(0, 20 - blocks))) + " `" + msToTimestamp(currentlyPlaying.duration * 1000) + "`",
           }] : [],
         ],
         footer: {
