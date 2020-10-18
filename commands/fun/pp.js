@@ -20,8 +20,8 @@ module.exports = class extends Command {
         {
           key: "arg2",
           prompt: `
-!pp perm \`@Mention\` gets the pp size.,
-!pp perm \`lb\` gets the pp leaderboard, see whose rocking the biggest shlong!`,
+${client.commandPrefix}pp perm \`@Mention\` gets the pp size.,
+${client.commandPrefix}pp perm \`lb\` gets the pp leaderboard, see whose rocking the biggest shlong!`,
           type: "string",
           default: ""
         },
@@ -33,7 +33,7 @@ module.exports = class extends Command {
   run(msg, args) {
     // if user types !pp help | !pp <> help etc...
     if (Object.values(args).filter(x => x.toLowerCase() === "help").length > 0) {
-      msg.reply(this.getHelpMessage())
+      msg.reply(this.getHelpMessage(msg.client.commandPrefix))
       return;
     }
 
@@ -45,7 +45,7 @@ module.exports = class extends Command {
 
     // Incorrect args
     if ((a1 !== "" || a2 !== "") && !isPerm && !isPermLeaderboard) {
-      msg.reply(this.getHelpMessage())
+      msg.reply(this.getHelpMessage(msg.client.commandPrefix))
       return
     }
 
@@ -98,11 +98,11 @@ module.exports = class extends Command {
     }
   }
 
-  getHelpMessage() {
+  getHelpMessage(commandPrefix) {
     return `
-__**!PP command:**__    
-\`!pp\` - Random (RDM) pp size.
-\`!pp\` \`perm\` - RDM permenant pp size
-\`!pp\` \`perm\` \`lb\` - Leaderboard for permanent pp.`
+__**${commandPrefix}PP command:**__    
+\`${commandPrefix}pp\` - Random (RDM) pp size.
+\`${commandPrefix}pp\` \`perm\` - RDM permenant pp size
+\`${commandPrefix}pp\` \`perm\` \`lb\` - Leaderboard for permanent pp.`
   }
 }
