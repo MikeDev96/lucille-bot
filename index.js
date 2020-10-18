@@ -63,7 +63,7 @@ client.once("ready", () => {
   client.guilds.cache.forEach(createEmojis)
 
   client.db = new MasterDatabase()
-  client.dailyTracker = new DailyTracker(client, "16:25:00")
+  client.dailyTracker = new DailyTracker(client, "18:00:00")
   client.voiceTracker = new VoiceTracker(client)
   client.musicTracker = new MusicTracker(client)
   client.bangaTracker = new BangaTracker(client)

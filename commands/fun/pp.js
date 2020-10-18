@@ -1,6 +1,7 @@
 const { Command } = require("discord.js-commando")
 const { isEmpty } = require("lodash")
 const { discord } = require("../../config")
+const { groupBy } = require("lodash/groupBy")
 
 module.exports = class extends Command {
   constructor (client) {
@@ -42,10 +43,10 @@ ${client.commandPrefix}pp perm \`lb\` gets the pp leaderboard, see whose rocking
     const a2 = args.arg2.toLowerCase()
 
     // Rather than if's ill just determine the type here
-    const isPerm = a1 === "perm" && a2 === ""
-    const isDaily = a1 === "daily" && a2 === ""
-    const isPermLeaderboard = a1 === "perm" && ["lb", "leaderboard", "score", "scoreboard"].includes(a2)
-    const isDailyLeaderboard = a1 === "daily" && ["lb", "leaderboard", "score", "scoreboard"].includes(a2)
+    const isPerm = ["perm", "p"].includes(a1) && a2 === ""
+    const isDaily = ["daily", "d"].includes(a1) && a2 === ""
+    const isPermLeaderboard = ["perm", "p"].includes(a1) && ["lb", "leaderboard", "score", "scoreboard"].includes(a2)
+    const isDailyLeaderboard = ["daily", "d"].includes(a1) && ["lb", "leaderboard", "score", "scoreboard"].includes(a2)
 
     // Incorrect args
     if ((a1 !== "" || a2 !== "") && !isPerm && !isPermLeaderboard && !isDaily && !isDailyLeaderboard) {
@@ -89,7 +90,9 @@ ${client.commandPrefix}pp perm \`lb\` gets the pp leaderboard, see whose rocking
 
   getLeaderboard (msg, isDaily) {
     const all = this.client.db.getAllPenisSize(msg.guild.id)
-    const fields = all.sort((pp1, pp2) => pp2.Size - pp1.Size)
+    const fields = all.sort((pp1, pp2) => {
+      return !isDaily ? pp2.Size - pp1.Size : pp2.DailyPP - pp1.DailyPP
+    })
       .filter(pp => {
         if (isDaily && pp.DailyPP && pp.DailyPP !== -1) {
           return true
@@ -134,21 +137,36 @@ ${client.commandPrefix}pp perm \`lb\` gets the pp leaderboard, see whose rocking
 
   getHelpMessage (prefix) {
     return `
-__**!PP command:**__    
+__**${prefix}PP command:**__    
 \`${prefix}pp\` - Random (RDM) pp size.
-\`${prefix}pp\` \`perm\` - RDM permenant pp size
-\`${prefix}pp\` \`perm\` \`lb\` - Leaderboard for permanent pp.`
+\`${prefix}pp\` \`perm\` - RDM permanent pp size
+\`${prefix}pp\` \`daily\` - Daily pp size
+\`${prefix}pp\` \`perm\` \`lb\` - Leaderboard for permanent pp.
+\`${prefix}pp\` \`daily\` \`lb\` - Leaderboard for the current daily pp.`
   }
 
   static ppResetDaily (client, guild) {
-    const fields = client.db.getAllPenisSize(guild.id)
-      .filter(pp => pp.DailyPP !== -1)
-      .sort((pp1, pp2) => pp2.Size - pp1.Size)
-      .map(pp =>
-        `\`${(pp.DisplayName !== null ? pp.DisplayName : guild.users.cache.find(user => user.id === pp.UserId).username)}\`\r\n8=${"=".repeat(pp.DailyPP)}D${pp.DailyPP === 15 ? " ~ ~ ~" : ""}\r\n`,
-      ).join("\r\n")
+    const all = client.db.getAllPenisSize(guild.id)
 
-    if (fields === "") {
+    const groupedBySize = all.reduce((acc, cur) => {
+      if (!acc.has(cur.DailyPP)) {
+        acc.set(cur.DailyPP, [])
+      }
+
+      acc.get(cur.DailyPP).push(cur)
+      return acc
+    }, new Map())
+
+    const medals = ["🥇", "🥈", "🥉"]
+    const fields = Array.from(groupedBySize.keys())
+      .filter(val => val !== -1)
+      .sort((val1, val2) => val2 - val1)
+      .map((val1, idx) =>
+         `${medals[idx] || ""} ${groupedBySize.get(val1).map(user => "`" + (user.DisplayName !== null ? user.DisplayName : guild.users.cache.find(user => user.id === user.UserId).username) + "`").join(" & ")}
+8=${"=".repeat(val1)}D${val1 === 15 ? " ~ ~ ~" : ""}\r\n`,
+      )
+
+    if (!fields.length) {
       return
     }
 
