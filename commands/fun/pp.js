@@ -1,8 +1,10 @@
 const { Command } = require("discord.js-commando")
+const { isEmpty } = require("lodash")
 const { discord } = require("../../config")
+const { groupBy } = require("lodash/groupBy")
 
 module.exports = class extends Command {
-  constructor(client) {
+  constructor (client) {
     super(client, {
       name: "pp",
       aliases: ["penis"],
@@ -14,67 +16,105 @@ module.exports = class extends Command {
           key: "arg1",
           prompt: "`Perm` sets a permenant `penis` size that is unchangable. Goodluck!",
           type: "string",
-          default: ""
+          default: "",
         },
 
         {
           key: "arg2",
           prompt: `
-!pp perm \`@Mention\` gets the pp size.,
-!pp perm \`lb\` gets the pp leaderboard, see whose rocking the biggest shlong!`,
+${client.commandPrefix}pp perm \`@Mention\` gets the pp size.,
+${client.commandPrefix}pp perm \`lb\` gets the pp leaderboard, see whose rocking the biggest shlong!`,
           type: "string",
-          default: ""
+          default: "",
         },
       ],
       guildOnly: true,
     })
   }
 
-  run(msg, args) {
+  run (msg, args) {
     // if user types !pp help | !pp <> help etc...
     if (Object.values(args).filter(x => x.toLowerCase() === "help").length > 0) {
-      msg.reply(this.getHelpMessage())
-      return;
+      msg.reply(this.getHelpMessage(msg.client.commandPrefix))
+      return
     }
 
-    const a1 = args.arg1.toLowerCase(), a2 = args.arg2.toLowerCase()
+    const a1 = args.arg1.toLowerCase()
+    const a2 = args.arg2.toLowerCase()
 
     // Rather than if's ill just determine the type here
-    const isPerm = a1 === "perm" && a2 === ""
-    const isPermLeaderboard = a1 === "perm" && ["lb", "leaderboard", "score", "scoreboard"].includes(a2)
+    const isPerm = ["perm", "p"].includes(a1) && a2 === ""
+    const isDaily = ["daily", "d"].includes(a1) && a2 === ""
+    const isPermLeaderboard = ["perm", "p"].includes(a1) && ["lb", "leaderboard", "score", "scoreboard"].includes(a2)
+    const isDailyLeaderboard = ["daily", "d"].includes(a1) && ["lb", "leaderboard", "score", "scoreboard"].includes(a2)
 
     // Incorrect args
-    if ((a1 !== "" || a2 !== "") && !isPerm && !isPermLeaderboard) {
-      msg.reply(this.getHelpMessage())
+    if ((a1 !== "" || a2 !== "") && !isPerm && !isPermLeaderboard && !isDaily && !isDailyLeaderboard) {
+      msg.reply(this.getHelpMessage(msg.client.commandPrefix))
       return
     }
 
     // get the pp length
-    const ppLength = this.getSize(isPerm, msg.author.id, msg.guild.id)
+    const ppLength = this.getSize(isPerm, isDaily, msg.author.id, msg.guild.id)
 
     // Update the users display name
     this.client.db.updateUser(msg.author.id, msg.guild.id, msg.member.displayName)
 
-    if (isPermLeaderboard) {
-      msg.reply(this.getLeaderboard(msg))
-    } else
+    if (isPermLeaderboard || isDailyLeaderboard) {
+      const lbEmbed = this.getLeaderboard(msg, isDailyLeaderboard)
+      if (lbEmbed) msg.reply(lbEmbed)
+      else msg.reply("Nothing to show")
+    }
+    else {
       msg.reply(`${this.getLocalised(ppLength)}${isPerm ? "  (Your everlasting pp size)" : ""}`)
+    }
   }
 
-  getLocalised(ppLength) {
+  getLocalised (ppLength) {
     return `8=${"=".repeat(ppLength)}D${ppLength === 15 ? " ~ ~ ~" : ""}`
   }
 
-  getSize(isPerm, authorId, guildId) {
+  getSize (isPerm, isDaily, authorId, guildId) {
     let realLength = Math.ceil(Math.random() * 15)
-    return isPerm ? this.client.db.getPenisSize(authorId, guildId, realLength) : realLength
+
+    if (isPerm) {
+      realLength = this.client.db.getPenisSize(authorId, guildId, realLength, -1)
+    }
+
+    if (isDaily) {
+      realLength = this.client.db.getPenisSize(authorId, guildId, -1, realLength)
+    }
+
+    return realLength
   }
 
-  getLeaderboard(msg) {
+  getLeaderboard (msg, isDaily) {
     const all = this.client.db.getAllPenisSize(msg.guild.id)
+    const fields = all.sort((pp1, pp2) => {
+      return !isDaily ? pp2.Size - pp1.Size : pp2.DailyPP - pp1.DailyPP
+    })
+      .filter(pp => {
+        if (isDaily && pp.DailyPP && pp.DailyPP !== -1) {
+          return true
+        }
+
+        if (!isDaily && pp.Size && pp.Size !== -1) {
+          return true
+        }
+
+        return false
+      })
+      .map(pp =>
+        `\`${(pp.DisplayName !== null ? pp.DisplayName : this.client.users.cache.find(user => user.id === pp.UserId).username)}\`\r\n${this.getLocalised(isDaily ? pp.DailyPP : pp.Size)}\r\n`,
+      ).join("\r\n")
+
+    if (isEmpty(fields)) {
+      return undefined
+    }
+
     return {
       embed: {
-        title: "PP Leaderboard",
+        title: `PP ${isDaily ? "Daily" : "Perm"} Leaderboard`,
         description: "See where you stack up against the competition.",
         color: 4187927,
         author: {
@@ -85,24 +125,77 @@ module.exports = class extends Command {
         fields: [
           {
             name: msg.guild.name,
-            value: all.sort((pp1, pp2) => pp2.Size - pp1.Size)
-              .map(pp =>
-                `\`${(pp.DisplayName !== null ? pp.DisplayName : this.client.users.cache.find(user => user.id === pp.UserId).username)}\`\r\n\t\t${this.getLocalised(pp.Size)}\r\n`
-              ).join("\r\n")
-          }
+            value: fields,
+          },
         ],
         footer: {
           text: discord.footer,
         },
-      }
+      },
     }
   }
 
-  getHelpMessage() {
+  getHelpMessage (prefix) {
     return `
-__**!PP command:**__    
-\`!pp\` - Random (RDM) pp size.
-\`!pp\` \`perm\` - RDM permenant pp size
-\`!pp\` \`perm\` \`lb\` - Leaderboard for permanent pp.`
+__**${prefix}PP command:**__    
+\`${prefix}pp\` - Random (RDM) pp size.
+\`${prefix}pp\` \`perm\` - RDM permanent pp size
+\`${prefix}pp\` \`daily\` - Daily pp size
+\`${prefix}pp\` \`perm\` \`lb\` - Leaderboard for permanent pp.
+\`${prefix}pp\` \`daily\` \`lb\` - Leaderboard for the current daily pp.`
+  }
+
+  static ppResetDaily (client, guild) {
+    const all = client.db.getAllPenisSize(guild.id)
+
+    const groupedBySize = all.reduce((acc, cur) => {
+      if (!acc.has(cur.DailyPP)) {
+        acc.set(cur.DailyPP, [])
+      }
+
+      acc.get(cur.DailyPP).push(cur)
+      return acc
+    }, new Map())
+
+    const medals = ["🥇", "🥈", "🥉"]
+    const fields = Array.from(groupedBySize.keys())
+      .filter(val => val !== -1)
+      .sort((val1, val2) => val2 - val1)
+      .map((val1, idx) =>
+         `${medals[idx] || ""} ${groupedBySize.get(val1).map(user => "`" + (user.DisplayName !== null ? user.DisplayName : guild.users.cache.find(user => user.id === user.UserId).username) + "`").join(" & ")}
+8=${"=".repeat(val1)}D${val1 === 15 ? " ~ ~ ~" : ""}\r\n`,
+      )
+
+    if (!fields.length) {
+      return
+    }
+
+    const dailyEmbed = {
+      embed: {
+        title: `PP Daily Leaderboard`,
+        description: "The daily reset is here and now its time to see where you placed!",
+        color: 4187927,
+        author: {
+          name: "PP Daily Message",
+          icon_url: client.user.displayAvatarURL(),
+        },
+
+        fields: [
+          {
+            name: "Daily PP",
+            value: fields,
+          },
+        ],
+        footer: {
+          text: discord.footer,
+        },
+      },
+    }
+
+    const firstGuildChannel = guild.channels.cache.filter(channel => channel.type === "text").first()
+
+    firstGuildChannel.send(dailyEmbed)
+
+    client.db.resetDailyPPSize(guild.id)
   }
 }

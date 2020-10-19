@@ -6,9 +6,11 @@ const VoiceTracker = require("./classes/VoiceTracker")
 const MusicTracker = require("./classes/MusicTracker")
 const BangaTracker = require("./classes/BangaTracker")
 const AliasTracker = require("./classes/AliasTracker")
+const DailyTracker = require("./classes/DailyTracker")
 const MasterDatabase = require("./classes/MasterDatabase")
 const VoiceCommands = require("./classes/VoiceCommands")
 const { bootClientFromAllVoiceChannels } = require("./classes/Helpers")
+const { ppResetDaily } = require("./commands/fun/pp")
 require("dotenv").config()
 
 const emojis = [
@@ -60,16 +62,19 @@ client.once("ready", () => {
 
   client.guilds.cache.forEach(createEmojis)
 
+  client.db = new MasterDatabase()
+  client.dailyTracker = new DailyTracker(client, "18:00:00")
   client.voiceTracker = new VoiceTracker(client)
   client.musicTracker = new MusicTracker(client)
   client.bangaTracker = new BangaTracker(client)
   client.aliasTracker = new AliasTracker(client)
   client.voiceCommands = new VoiceCommands(client)
-  client.db = new MasterDatabase()
 
   client.on("message", msg => client.musicTracker.run(msg))
 
   bootClientFromAllVoiceChannels(client)
+
+  client.dailyTracker.on("reset", () => client.guilds.cache.forEach(guild => ppResetDaily(client, guild)))
 })
 
 client.on("guildCreate", createEmojis)
