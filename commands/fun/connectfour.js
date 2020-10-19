@@ -123,7 +123,7 @@ module.exports = class extends Command {
           },
         ],
         footer: {
-          text: discord.footer,
+          text: "",
         },
       },
     }
