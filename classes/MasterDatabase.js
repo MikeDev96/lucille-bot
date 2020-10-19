@@ -1,4 +1,5 @@
 const sqlite = require("better-sqlite3")
+const { entriesIn } = require("lodash")
 
 module.exports = class {
   constructor () {
@@ -40,11 +41,23 @@ module.exports = class {
         ) 
       `)
 
+      .exec(`
+       CREATE TABLE IF NOT EXISTS ConnectFour (
+          Id          INTEGER PRIMARY KEY AUTOINCREMENT,
+          ServerId    TEXT,
+          PlayerOne   TEXT,
+          PlayerTwo   TEXT,
+          Winner      TEXT
+        ) 
+      `)
+
     // probably should use some sort of versioning? maybe user_version
     if (!this.columnExists("PenisSize", "DailyPP")) {
       this.db.exec("ALTER TABLE PenisSize ADD COLUMN DailyPP INTEGER DEFAULT -1")
       console.log("Added DailyPP to PenisSize.")
     }
+
+    console.log(this.runQuery("select * from connectfour"))
 
     console.log("Master database initialised")
   }
@@ -136,6 +149,10 @@ module.exports = class {
 
   getDisplayName (userId, serverId) {
     return this.runScalarQuery("SELECT [DisplayName] FROM UserInfo WHERE [UserId] = ? AND [ServerId] = ?", userId, serverId)
+  }
+
+  insertConnectFourWinner (serverId, playerOne, playerTwo, winner) {
+    this.run("INSERT INTO ConnectFour ([ServerId], [PlayerOne], [PlayerTwo], [Winner]) VALUES (?, ?, ?, ?)", serverId, playerOne, playerTwo, winner)
   }
 
   getSetting (serverId, key, $default = undefined) {
