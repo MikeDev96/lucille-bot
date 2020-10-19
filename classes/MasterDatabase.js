@@ -1,5 +1,4 @@
 const sqlite = require("better-sqlite3")
-const { entriesIn } = require("lodash")
 
 module.exports = class {
   constructor () {

@@ -34,13 +34,13 @@ module.exports = class extends Command {
       const playerTwoId = member.user.id
 
       if (!await this.sendChallenge(msg, playerTwoId)) {
-        console.log("declined")
+        msg.react("👎")
         return
       }
 
-      const turn = Math.ceil(Math.random() * 2) - 1
+      msg.react("👍")
 
-      console.log(turn)
+      const turn = Math.ceil(Math.random() * 2) - 1
 
       const cf = new ConnectFour(msg.client)
       const boardMsg = await msg.reply(this.getEmbed(msg.guild.members.cache.find(x => x.id === playerOneId), cf.displayBoard(), msg.client, false))
@@ -51,7 +51,7 @@ module.exports = class extends Command {
       await this.monitorReactions(boardMsg, playerOneId, playerTwoId, turn === 0, cf, reactions)
     }
     catch (err) {
-      console.log(err)
+      console.error("connectfour: " + err)
     }
   }
 
@@ -95,8 +95,8 @@ module.exports = class extends Command {
       // log winner
       cf.uploadWin(msg.guild.id, playerOneId, playerTwoId, winnerId)
     }
-    catch (Err) {
-      console.log(Err)
+    catch (err) {
+      console.error("connectfour: " + err)
     }
 
     // cleanup
@@ -120,6 +120,17 @@ module.exports = class extends Command {
           {
             name: "The Game:",
             value: board,
+            inline: true,
+          },
+          {
+            name: "\u200B",
+            value: "\u200B",
+            inline: true,
+          },
+          {
+            name: "\u200B",
+            value: "\u200B",
+            inline: true,
           },
         ],
         footer: {
@@ -150,7 +161,7 @@ module.exports = class extends Command {
       }
     }
     catch (err) {
-      console.log(err)
+      console.error(err)
     }
 
     return false
