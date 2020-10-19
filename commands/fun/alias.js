@@ -1,7 +1,6 @@
-const { Command, CommandoMessage } = require("discord.js-commando")
-const { Discord } = require('discord.js')
+const { Command } = require("discord.js-commando")
 const config = require("../../config.json")
-const { strike } = require("ffmpeg-static")
+const { proxyCommand } = require("../../classes/DiscordJSHelpers")
 
 module.exports = class Alias extends Command {
     constructor(client) {
@@ -87,15 +86,7 @@ module.exports = class Alias extends Command {
                     if (command.length !== 0) {
                         setTimeout(() => {
                             if (command[0] === (Prefix)) {
-                                this.client.dispatcher.handleMessage(
-                                    new CommandoMessage(this.client,
-                                        {
-                                            id: msg.author.id,
-                                            content: `${command}`,
-                                            author: msg.author
-                                        },
-                                        msg.channel)
-                                )
+                                proxyCommand (msg, msg.author, command, false)
                             } else msg.channel.send(command)
                         }, 1000 * (index))
                     }
