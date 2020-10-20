@@ -77,7 +77,7 @@ module.exports = class extends Command {
         const slot = cf.nextFreeSlot(reactIdx + 1)
         const success = cf.setPiece(slot, turn + 1)
         if (success) {
-          if (cf.checkForWin(slot, turn + 1)) {
+          if (cf.checkForWin(turn + 1)) {
             winnerId = usersTurn
           }
           else {

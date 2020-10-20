@@ -58,78 +58,15 @@ class ConnectFour {
     this.db.insertConnectFourWinner(serverId, playerOne, playerTwo, winner)
   }
 
-  checkForWin (idx, turn) {
-    const piece = turn
-    const idxOnRow = idx % 7
-    const clmIdx = (this.boardVals.length / 7) - Math.ceil(idx / 7)
+  checkForWin (turn) {
+    const row = [0, 0, 0, 0]
 
-    //
-    // horizontal: left->right
-    //
-    let counter = 0
-    for (let i = idx - idxOnRow; i < (idx - idxOnRow + 7); i++) {
-      if (this.boardVals[i] === piece) {
-        if (++counter === 4) {
-          return true
-        }
-        continue
-      }
-      counter = 0
-    }
-
-    //
-    // vertical: top->down
-    //
-    counter = 0
-    for (let i = idxOnRow; i < (idxOnRow + (7 * 6)); i += 7) {
-      if (this.boardVals[i] === piece) {
-        if (++counter === 4) {
-          return true
-        }
-        continue
-      }
-      counter = 0
-    }
-
-    //
-    // diagnol: topleft->bottomright
-    //
-    counter = 0
-    let posLf = (idx - (7 * idxOnRow)) - idxOnRow
-    if (posLf < this.boardVals.length) {
-      do {
-        if (this.boardVals[posLf] === piece) {
-          if (++counter === 4) {
-            return true
-          }
-        }
-        else {
-          counter = 0
-        }
-
-        posLf += 8
-      } while (posLf < this.boardVals.length)
-    }
-
-    //
-    // diagnol: bottomleft->topright
-    //
-    counter = 0
-    let posRt = idx + (clmIdx * 7) - clmIdx // gets the column your on
-    if (posRt > 0 && posRt < this.boardVals.length) {
-      do {
-        if (this.boardVals[posRt] === piece) {
-          if (++counter === 4) {
-            return true
-          }
-        }
-        else {
-          counter = 0
-        }
-
-        posRt -= 6
-      } while (posRt > 0)
-    }
+    return this.boardVals.some((_val, idx, arr) => (
+      ((idx % 7) < 4 && row.every((_v, i) => arr[idx + i] === turn)) || // Horizontal
+        (idx < 21 && row.every((_v, i) => arr[idx + i * 7] === turn)) || // Vertical
+        ((idx % 7) < 4 && idx < 21 && row.every((_v, i) => arr[idx + i * 7 + i] === turn)) || // NW-SE
+        ((idx % 7) > 2 && idx < 21 && row.every((_v, i) => arr[idx + i * 7 - i] === turn)) // NE-SW
+    ))
   }
 }
 
