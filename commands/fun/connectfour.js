@@ -60,7 +60,7 @@ module.exports = class extends Command {
 
     try {
       do {
-        const usersTurn = (!turn ? playerOneId : playerTwoId)
+        const usersTurn = (turn ? playerOneId : playerTwoId)
         const filter = (reaction, user) => reactions.includes(reaction.emoji.name) && user.id === usersTurn
 
         const collected = await msg.awaitReactions(filter, { time: 30000, max: 1 })
@@ -120,17 +120,6 @@ module.exports = class extends Command {
           {
             name: "The Game:",
             value: board,
-            inline: true,
-          },
-          {
-            name: "\u200B",
-            value: "\u200B",
-            inline: true,
-          },
-          {
-            name: "\u200B",
-            value: "\u200B",
-            inline: true,
           },
         ],
         footer: {
