@@ -43,7 +43,7 @@ module.exports = class extends Command {
       const turn = Math.ceil(Math.random() * 2) - 1
 
       const cf = new ConnectFour(msg.client)
-      const boardMsg = await msg.reply(this.getEmbed(msg.guild.members.cache.find(x => x.id === playerOneId), cf.displayBoard(), msg.client, false))
+      const boardMsg = await msg.reply(this.getEmbed(msg.guild.members.cache.find(x => x.id === playerOneId), cf.displayBoard(), msg.client, turn === 0))
 
       const reactions = ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣"]
       reactions.forEach(async (react) => await boardMsg.react(react))
