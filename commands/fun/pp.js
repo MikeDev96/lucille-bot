@@ -1,7 +1,6 @@
 const { Command } = require("discord.js-commando")
 const { isEmpty } = require("lodash")
 const { discord } = require("../../config")
-const { groupBy } = require("lodash/groupBy")
 
 module.exports = class extends Command {
   constructor (client) {

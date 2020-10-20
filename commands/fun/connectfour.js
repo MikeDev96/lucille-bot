@@ -34,16 +34,16 @@ module.exports = class extends Command {
       const playerTwoId = member.user.id
 
       if (!await this.sendChallenge(msg, playerTwoId)) {
-        console.log("declined")
+        msg.react("👎")
         return
       }
 
+      msg.react("👍")
+
       const turn = Math.ceil(Math.random() * 2) - 1
 
-      console.log(turn)
-
       const cf = new ConnectFour(msg.client)
-      const boardMsg = await msg.reply(this.getEmbed(msg.guild.members.cache.find(x => x.id === playerOneId), cf.displayBoard(), msg.client, false))
+      const boardMsg = await msg.reply(this.getEmbed(msg.guild.members.cache.find(x => x.id === playerOneId), cf.displayBoard(), msg.client, turn === 0))
 
       const reactions = ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣"]
       reactions.forEach(async (react) => await boardMsg.react(react))
@@ -51,7 +51,7 @@ module.exports = class extends Command {
       await this.monitorReactions(boardMsg, playerOneId, playerTwoId, turn === 0, cf, reactions)
     }
     catch (err) {
-      console.log(err)
+      console.error("connectfour: " + err)
     }
   }
 
@@ -60,7 +60,7 @@ module.exports = class extends Command {
 
     try {
       do {
-        const usersTurn = (!turn ? playerOneId : playerTwoId)
+        const usersTurn = (turn ? playerOneId : playerTwoId)
         const filter = (reaction, user) => reactions.includes(reaction.emoji.name) && user.id === usersTurn
 
         const collected = await msg.awaitReactions(filter, { time: 30000, max: 1 })
@@ -95,8 +95,8 @@ module.exports = class extends Command {
       // log winner
       cf.uploadWin(msg.guild.id, playerOneId, playerTwoId, winnerId)
     }
-    catch (Err) {
-      console.log(Err)
+    catch (err) {
+      console.error("connectfour: " + err)
     }
 
     // cleanup
@@ -150,7 +150,7 @@ module.exports = class extends Command {
       }
     }
     catch (err) {
-      console.log(err)
+      console.error(err)
     }
 
     return false
