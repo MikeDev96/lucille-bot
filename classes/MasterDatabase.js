@@ -47,7 +47,17 @@ module.exports = class {
           PlayerOne   TEXT,
           PlayerTwo   TEXT,
           Winner      TEXT
-        ) 
+        )
+      `)
+
+      .exec(`
+       CREATE TABLE IF NOT EXISTS TicTacToe (
+          Id          INTEGER PRIMARY KEY AUTOINCREMENT,
+          ServerId    TEXT,
+          PlayerOne   TEXT,
+          PlayerTwo   TEXT,
+          Winner      TEXT
+        )
       `)
 
     // probably should use some sort of versioning? maybe user_version
@@ -55,8 +65,6 @@ module.exports = class {
       this.db.exec("ALTER TABLE PenisSize ADD COLUMN DailyPP INTEGER DEFAULT -1")
       console.log("Added DailyPP to PenisSize.")
     }
-
-    console.log(this.runQuery("select * from connectfour"))
 
     console.log("Master database initialised")
   }
@@ -152,6 +160,10 @@ module.exports = class {
 
   insertConnectFourWinner (serverId, playerOne, playerTwo, winner) {
     this.run("INSERT INTO ConnectFour ([ServerId], [PlayerOne], [PlayerTwo], [Winner]) VALUES (?, ?, ?, ?)", serverId, playerOne, playerTwo, winner)
+  }
+
+  insertTicTacToeWinner (serverId, playerOne, playerTwo, winner) {
+    this.run("INSERT INTO TicTacToe ([ServerId], [PlayerOne], [PlayerTwo], [Winner]) VALUES (?, ?, ?, ?)", serverId, playerOne, playerTwo, winner)
   }
 
   getSetting (serverId, key, $default = undefined) {
