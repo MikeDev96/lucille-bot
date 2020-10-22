@@ -1,5 +1,5 @@
 
-class ConnectFour {
+class TicTacToe {
   constructor (msg, playerOneId, playerTwoId) {
     this.playerIds = [playerOneId, playerTwoId]
     this.msg = msg
@@ -85,9 +85,9 @@ class ConnectFour {
     msgOutput = `.\r\n${hasDrawn ? "It's a draw!" : `${this.boardKey[this.turn]} <@!${this.playerIds[this.turn]}> ${hasWon ? " is the winner 🏆" : " turn"}`}\n\r\n`
     msgOutput += this.boardVals.map((val, idx) => (val === "0" ? this.boardReacts[idx] : this.boardKey[val]) + ((idx + 1) % 3 === 0 ? "\r\n" : "")).join("")
 
-    if (!hasWon && !hasDrawn) {
-      msgOutput += "\r\nYou have " + this.turnCountdown + "s remaining"
-    }
+    // if (!hasWon && !hasDrawn) {
+    //   msgOutput += "\r\nYou have " + this.turnCountdown + "s remaining"
+    // }
 
     return msgOutput
   }
@@ -168,4 +168,4 @@ class ConnectFour {
   }
 }
 
-module.exports = ConnectFour
+module.exports = TicTacToe
