@@ -8,7 +8,6 @@ class ConnectFour {
     this.boardReacts = "1️⃣,2️⃣,3️⃣,4️⃣,5️⃣,6️⃣,7️⃣,8️⃣,9️⃣".split(",")
     this.boardKey = "⭕❌"
     this.turn = Math.floor(Math.random() * 2)
-    this.turnCountdown = 30
   }
 
   // async buildBoardImage () {
@@ -137,10 +136,6 @@ class ConnectFour {
     this.boardReacts.forEach(async (react) => await this.msg.react(react))
 
     // not accurate, but does the job
-    setInterval(() => {
-      this.msg.edit(this.buildMessage())
-      this.turnCountdown -= 5
-    }, 5000)
 
     do {
       this.msg.edit(this.buildMessage())
@@ -166,7 +161,6 @@ class ConnectFour {
       }
 
       this.swapTurn()
-      this.turnCountdown = 30
     } while (true)
 
     this.msg.edit(this.buildMessage(this.hasWon(), this.hasDrawn()))

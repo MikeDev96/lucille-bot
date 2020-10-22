@@ -39,7 +39,8 @@ module.exports = class extends Command {
         return
       }
 
-      // msg.react("👍")
+      msg.react("👍")
+
       const gmMessage = await msg.reply("")
       const tic = new TicTacToe(gmMessage, playerOneId, playerTwoId)
       await tic.runLoop()
