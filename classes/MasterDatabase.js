@@ -1,8 +1,8 @@
-const sqlite = require("better-sqlite3")
+const SQLite = require("better-sqlite3")
 
 module.exports = class {
   constructor () {
-    this.db = new sqlite("main.db", { readonly: false })
+    this.db = new SQLite("main.db", { readonly: false })
     this.initTables()
   }
 
@@ -65,6 +65,8 @@ module.exports = class {
       this.db.exec("ALTER TABLE PenisSize ADD COLUMN DailyPP INTEGER DEFAULT -1")
       console.log("Added DailyPP to PenisSize.")
     }
+
+    console.log(this.runQuery("SELECT * FROM TicTacToe"))
 
     console.log("Master database initialised")
   }
@@ -164,6 +166,19 @@ module.exports = class {
 
   insertTicTacToeWinner (serverId, playerOne, playerTwo, winner) {
     this.run("INSERT INTO TicTacToe ([ServerId], [PlayerOne], [PlayerTwo], [Winner]) VALUES (?, ?, ?, ?)", serverId, playerOne, playerTwo, winner)
+  }
+
+  getGameWins (tbl, serverId) {
+    return this.runQuery(`
+SELECT [PlayerOne] as 'PlayerId', [Winner]
+FROM ${tbl}
+WHERE [ServerId] = @server 
+  AND [PlayerOne] <> [PlayerTwo]
+UNION ALL
+SELECT [PlayerTwo] as 'PlayerId', [Winner]
+FROM ${tbl}
+WHERE [ServerId] = @server
+  AND [PlayerOne] <> [PlayerTwo]`, { server: serverId })
   }
 
   getSetting (serverId, key, $default = undefined) {
