@@ -117,8 +117,8 @@ module.exports = class extends Command {
     // cleanup
   }
 
-  getEmbed (user, board, client, turn, winnerId = "") {
-    const description = winnerId !== ""
+  getEmbed (user, board, client, turn, winnerId = "-") {
+    const description = winnerId !== "-"
       ? `${["🟡", "🔴"][!turn ? 0 : 1]} <@!${user.id}> Won!`
       : `${["🟡", "🔴"][!turn ? 0 : 1]} It's <@!${user.id}> turn\r\n30s Per turn`
     return {
