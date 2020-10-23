@@ -71,11 +71,11 @@ module.exports = class extends Command {
   }
 
   async monitorReactions (msg, playerOneId, playerTwoId, turn, cf, reactions) {
-    let winnerId = ""
+    let winnerId = "-"
 
     try {
       do {
-        const usersTurn = (turn ? playerOneId : playerTwoId)
+        const usersTurn = (!turn ? playerOneId : playerTwoId)
         const filter = (reaction, user) => reactions.includes(reaction.emoji.name) && user.id === usersTurn
 
         const collected = await msg.awaitReactions(filter, { time: 30000, max: 1 })
@@ -107,7 +107,7 @@ module.exports = class extends Command {
       // cleanup
       await msg.reactions.removeAll()
 
-      // log winner
+      // log winner, "-" = draw
       cf.uploadWin(msg.guild.id, playerOneId, playerTwoId, winnerId)
     }
     catch (err) {
@@ -188,8 +188,11 @@ module.exports = class extends Command {
       if (cur.PlayerId === cur.Winner) {
         acc.get(cur.PlayerId).win++
       }
-      else {
+      else if (cur.PlayerId !== cur.Winner) {
         acc.get(cur.PlayerId).loss++
+      }
+      else if (cur.Winner === "-") {
+        acc.get(cur.PlayerId).draw++
       }
 
       return acc
