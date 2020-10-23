@@ -66,8 +66,6 @@ module.exports = class {
       console.log("Added DailyPP to PenisSize.")
     }
 
-    console.log(this.runQuery("SELECT * FROM TicTacToe"))
-
     console.log("Master database initialised")
   }
 
