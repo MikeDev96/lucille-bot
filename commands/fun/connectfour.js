@@ -102,7 +102,7 @@ module.exports = class extends Command {
 
         // load board
         await msg.edit(this.getEmbed(msg.guild.members.cache.find(x => x.id === (!turn ? playerOneId : playerTwoId)), cf.displayBoard(), msg.client, turn, winnerId))
-      } while (winnerId === "" && cf.possibleMove())
+      } while (winnerId === "-" && cf.possibleMove())
 
       // cleanup
       await msg.reactions.removeAll()
@@ -117,8 +117,8 @@ module.exports = class extends Command {
     // cleanup
   }
 
-  getEmbed (user, board, client, turn, winnerId = "") {
-    const description = winnerId !== ""
+  getEmbed (user, board, client, turn, winnerId = "-") {
+    const description = winnerId !== "-"
       ? `${["🟡", "🔴"][!turn ? 0 : 1]} <@!${user.id}> Won!`
       : `${["🟡", "🔴"][!turn ? 0 : 1]} It's <@!${user.id}> turn\r\n30s Per turn`
     return {
@@ -188,7 +188,7 @@ module.exports = class extends Command {
       if (cur.PlayerId === cur.Winner) {
         acc.get(cur.PlayerId).win++
       }
-      else if (cur.PlayerId !== cur.Winner) {
+      else if (cur.PlayerId !== "-" && cur.PlayerId !== cur.Winner) {
         acc.get(cur.PlayerId).loss++
       }
       else if (cur.Winner === "-") {

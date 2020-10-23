@@ -106,7 +106,7 @@ module.exports = class extends Command {
       if (cur.PlayerId === cur.Winner) {
         acc.get(cur.PlayerId).win++
       }
-      else if (cur.PlayerId !== cur.Winner) {
+      else if (cur.Winner !== "-" && cur.PlayerId !== cur.Winner) {
         acc.get(cur.PlayerId).loss++
       }
       else {
