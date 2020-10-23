@@ -82,7 +82,7 @@ class TicTacToe {
   buildMessage (hasWon = false, hasDrawn = false) {
     let msgOutput = ""
 
-    msgOutput = `.\r\n${hasDrawn ? "It's a draw!" : `${this.boardKey[this.turn]} <@!${this.playerIds[this.turn]}> ${hasWon ? " is the winner 🏆" : " turn"}`}\n\r\n`
+    msgOutput = `.\r\n${hasDrawn && !hasWon ? "It's a draw!" : `${this.boardKey[this.turn]} <@!${this.playerIds[this.turn]}> ${hasWon ? " is the winner 🏆" : " turn"}`}\n\r\n`
     msgOutput += this.boardVals.map((val, idx) => (val === "0" ? this.boardReacts[idx] : this.boardKey[val]) + ((idx + 1) % 3 === 0 ? "\r\n" : "")).join("")
 
     // if (!hasWon && !hasDrawn) {
@@ -129,7 +129,7 @@ class TicTacToe {
   }
 
   uploadResult () {
-    this.db.insertTicTacToeWinner(this.msg.guild.id, this.playerIds[0], this.playerIds[1], this.hasDrawn() ? "-" : this.playerIds[this.turn])
+    this.db.insertTicTacToeWinner(this.msg.guild.id, this.playerIds[0], this.playerIds[1], this.hasDrawn() && !this.hasWon() ? "-" : this.playerIds[this.turn])
   }
 
   async runLoop () {
