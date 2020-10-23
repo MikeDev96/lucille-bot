@@ -5,6 +5,7 @@ banga.json
 aliases.json
 logs
 .env
-assets/sounds
+assets/sounds/connect*
+assets/sounds/disconnect*
 assets/images/bangerstamps
 main.db

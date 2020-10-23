@@ -381,28 +381,42 @@ module.exports = class {
 
   connectSound () {
     return new Promise((resolve, reject) => {
-      const sounds = fs.readdirSync("assets/sounds/connect")
-      const dispatcher = this.state.voiceConnection.play(`assets/sounds/connect/${selectRandom(sounds)}`)
-      dispatcher.setVolumeLogarithmic(3)
-      dispatcher.on("finish", () => {
+      const path = "assets/sounds/connect"
+      const sounds = fs.existsSync(path) && fs.readdirSync(path)
+      if (sounds && !sounds.length) {
         resolve()
-      })
-      dispatcher.on("error", err => {
-        reject(err)
-      })
+      }
+      else {
+        const dispatcher = this.state.voiceConnection.play(`${path}/${selectRandom(sounds)}`)
+        dispatcher.setVolumeLogarithmic(3)
+        dispatcher.on("finish", () => {
+          resolve()
+        })
+        dispatcher.on("error", err => {
+          reject(err)
+        })
+      }
     })
   }
 
   disconnectSound () {
-    const sounds = fs.readdirSync("assets/sounds/disconnect")
-    const dispatcher = this.state.voiceConnection.play(`assets/sounds/disconnect/${selectRandom(sounds)}`)
-    dispatcher.setVolumeLogarithmic(3)
-    dispatcher.on("finish", () => {
+    const disconnect = () => {
       if (!this.state.summoned) {
         this.state.voiceConnection.disconnect()
       }
       this.cleanUp()
-    })
+    }
+
+    const path = "assets/sounds/disconnect"
+    const sounds = fs.existsSync(path) && fs.readdirSync(path)
+    if (sounds && !sounds.length) {
+      disconnect()
+    }
+    else {
+      const dispatcher = this.state.voiceConnection.play(`${path}/${selectRandom(sounds)}`)
+      dispatcher.setVolumeLogarithmic(3)
+      dispatcher.once("finish", disconnect)
+    }
   }
 
   cleanProgress () {
