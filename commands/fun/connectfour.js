@@ -102,7 +102,7 @@ module.exports = class extends Command {
 
         // load board
         await msg.edit(this.getEmbed(msg.guild.members.cache.find(x => x.id === (!turn ? playerOneId : playerTwoId)), cf.displayBoard(), msg.client, turn, winnerId))
-      } while (winnerId === "" && cf.possibleMove())
+      } while (winnerId === "-" && cf.possibleMove())
 
       // cleanup
       await msg.reactions.removeAll()
