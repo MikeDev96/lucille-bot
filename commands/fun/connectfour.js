@@ -76,17 +76,21 @@ module.exports = class extends Command {
     try {
       do {
         const usersTurn = (!turn ? playerOneId : playerTwoId)
+        const isLucille = usersTurn === msg.author.id
         const filter = (reaction, user) => reactions.includes(reaction.emoji.name) && user.id === usersTurn
 
-        const collected = await msg.awaitReactions(filter, { time: 30000, max: 1 })
-        const key = collected.firstKey()
+        const collected = !isLucille ? await msg.awaitReactions(filter, { time: isLucille ? 1000 : 30000, max: 1 }) : undefined
+        const key = collected && collected.firstKey()
         let reactIdx = -1
         if (!key) {
           reactIdx = cf.randomFreeSlot()
         }
         else {
           reactIdx = reactions.findIndex(react => react === key)
-          collected.get(key).users.remove(usersTurn)
+
+          if (!isLucille) {
+            collected.get(key).users.remove(usersTurn)
+          }
         }
 
         const slot = cf.nextFreeSlot(reactIdx + 1)
@@ -152,9 +156,17 @@ module.exports = class extends Command {
 
   async sendChallenge (msg, playerTwoId) {
     try {
-      const queryMsg = await msg.reply(`You have challenged <@!${playerTwoId}> to a game of connect four. <@!${playerTwoId}>, Would you like to accept?`)
+      const queryMsg = await msg.reply(`You have challenged <@!${playerTwoId}> to a game of Connect Four. <@!${playerTwoId}>, Would you like to accept?`)
+
+      if (queryMsg.author.id === playerTwoId) {
+        return true
+      }
+
       const reactions = ["✅", "❌"]
-      reactions.forEach(async (react) => await queryMsg.react(react))
+      for (let i = 0; i < reactions.length; i++) {
+        await queryMsg.react(reactions[i])
+      }
+
       const collected = await queryMsg.awaitReactions((reaction, user) => reactions.includes(reaction.emoji.name) && user.id === playerTwoId, { time: 60000, max: 1 })
       const key = collected.firstKey()
 
