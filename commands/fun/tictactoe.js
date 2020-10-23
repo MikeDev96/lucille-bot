@@ -118,7 +118,7 @@ module.exports = class extends Command {
       .sort((usr1, usr2) => Math.round((usr2.win / usr2.loss) * 100) - Math.round((usr1.win / usr1.loss) * 100))
       .map((usr) => ({
         name: usr.name,
-        value: `Win: \`${usr.win}\` Loss: \`${usr.loss}\` W/L: \`${(usr.win / (!usr.loss ? 1 : usr.loss)).toFixed(2)}\` Win %: \`${!usr.loss ? 100 : Math.round((usr.win / usr.loss) * 100)}%\``,
+        value: `Win: \`${usr.win}\` Loss: \`${usr.loss}\` W/L: \`${(usr.win / (!usr.loss ? 1 : usr.loss)).toFixed(2)}\` Win %: \`${!usr.loss ? 100 : Math.round((usr.win / (usr.win + usr.loss)) * 100)}%\``,
       }))
 
     return {
