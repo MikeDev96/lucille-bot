@@ -1,7 +1,6 @@
 const { Command } = require("discord.js-commando")
-const { cloneWith } = require("lodash")
 const ConnectFour = require("../../classes/ConnectFour")
-const { discord } = require("../../config.json")
+const { discord } = require("../../config")
 
 module.exports = class extends Command {
   constructor (client) {
@@ -23,35 +22,51 @@ module.exports = class extends Command {
   }
 
   async run (msg, args) {
-    try {
-    // does player exist in game
-      const plrName = args.player
-      const guild = msg.guild
-
-      const member = this.getMemberFromArg(guild, plrName)
-
-      const playerOneId = msg.author.id
-      const playerTwoId = member.user.id
-
-      if (!await this.sendChallenge(msg, playerTwoId)) {
-        msg.react("👎")
-        return
-      }
-
-      msg.react("👍")
-
-      const turn = Math.ceil(Math.random() * 2) - 1
-
-      const cf = new ConnectFour(msg.client)
-      const boardMsg = await msg.reply(this.getEmbed(msg.guild.members.cache.find(x => x.id === playerOneId), cf.displayBoard(), msg.client, turn === 0))
-
-      const reactions = ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣"]
-      reactions.forEach(async (react) => await boardMsg.react(react))
-
-      await this.monitorReactions(boardMsg, playerOneId, playerTwoId, turn === 0, cf, reactions)
+    if (args.player.toLowerCase() === "lb") {
+      const embed = this.getLeaderBoard(msg)
+      msg.reply(embed)
     }
-    catch (err) {
-      console.error("connectfour: " + err)
+    else {
+      try {
+        // does player exist in game
+        const plrName = args.player
+        const guild = msg.guild
+
+        const member = this.getMemberFromArg(guild, plrName)
+
+        if (!member) {
+          msg.reply("User not found, please try mentioning them or use their username.")
+          return
+        }
+
+        const playerOneId = msg.author.id
+        const playerTwoId = member.user.id
+
+        if (playerOneId === playerTwoId) {
+          msg.react("👎")
+          return
+        }
+
+        if (!await this.sendChallenge(msg, playerTwoId)) {
+          msg.react("👎")
+          return
+        }
+
+        msg.react("👍")
+
+        const turn = Math.ceil(Math.random() * 2) - 1
+
+        const cf = new ConnectFour(msg.client)
+        const boardMsg = await msg.reply(this.getEmbed(msg.guild.members.cache.find(x => x.id === playerOneId), cf.displayBoard(), msg.client, turn === 0))
+
+        const reactions = ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣"]
+        reactions.forEach(async (react) => await boardMsg.react(react))
+
+        await this.monitorReactions(boardMsg, playerOneId, playerTwoId, turn === 0, cf, reactions)
+      }
+      catch (err) {
+        console.error("connectfour: " + err)
+      }
     }
   }
 
@@ -140,7 +155,7 @@ module.exports = class extends Command {
       const queryMsg = await msg.reply(`You have challenged <@!${playerTwoId}> to a game of connect four. <@!${playerTwoId}>, Would you like to accept?`)
       const reactions = ["✅", "❌"]
       reactions.forEach(async (react) => await queryMsg.react(react))
-      const collected = await queryMsg.awaitReactions((reaction, user) => reactions.includes(reaction.emoji.name) && user.id === playerTwoId, { time: 10000, max: 1 })
+      const collected = await queryMsg.awaitReactions((reaction, user) => reactions.includes(reaction.emoji.name) && user.id === playerTwoId, { time: 60000, max: 1 })
       const key = collected.firstKey()
 
       queryMsg.delete()
@@ -154,5 +169,55 @@ module.exports = class extends Command {
     }
 
     return false
+  }
+
+  getLeaderBoard (msg) {
+    const stats = msg.client.db.getGameWins("ConnectFour", msg.guild.id)
+
+    const winloss = stats.reduce((acc, cur) => {
+      if (!acc.has(cur.PlayerId)) {
+        // no point if the member has left, yes we could look elsewhere but why display someone who has left
+        const member = msg.guild.members.cache.find(user => user.id === cur.PlayerId)
+        if (!member) {
+          return acc
+        }
+
+        acc.set(cur.PlayerId, { win: 0, loss: 0, draw: 0, name: member.displayName })
+      }
+
+      if (cur.PlayerId === cur.Winner) {
+        acc.get(cur.PlayerId).win++
+      }
+      else {
+        acc.get(cur.PlayerId).loss++
+      }
+
+      return acc
+    }, new Map())
+
+    const fields = Array.from(winloss.values())
+      .filter((usr) => usr !== null)
+      .sort((usr1, usr2) => Math.round((usr2.win / usr2.loss) * 100) - Math.round((usr1.win / usr1.loss) * 100))
+      .map((usr) => ({
+        name: usr.name,
+        value: `Win: \`${usr.win}\` Loss: \`${usr.loss}\` W/L: \`${(usr.win / (!usr.loss ? 1 : usr.loss)).toFixed(2)}\` Win %: \`${!usr.loss ? 100 : Math.round((usr.win / (usr.win + usr.loss)) * 100)}%\``,
+      }))
+
+    return {
+      embed: {
+        title: `Connect Four Leaderboard`,
+        description: "Connect Four leaderboard",
+        color: 4187927,
+        author: {
+          name: "Lucille",
+          icon_url: msg.client.user.displayAvatarURL(),
+        },
+
+        fields: [...fields],
+        footer: {
+          text: discord.footer,
+        },
+      },
+    }
   }
 }
