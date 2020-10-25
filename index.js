@@ -8,7 +8,7 @@ const BangaTracker = require("./classes/BangaTracker")
 const AliasTracker = require("./classes/AliasTracker")
 const DailyTracker = require("./classes/DailyTracker")
 const MasterDatabase = require("./classes/MasterDatabase")
-const VoiceCommands = require("./classes/VoiceCommands")
+// const VoiceCommands = require("./classes/VoiceCommands")
 const { bootClientFromAllVoiceChannels } = require("./classes/Helpers")
 const { ppResetDaily } = require("./commands/fun/pp")
 require("dotenv").config()
@@ -68,7 +68,7 @@ client.once("ready", () => {
   client.musicTracker = new MusicTracker(client)
   client.bangaTracker = new BangaTracker(client)
   client.aliasTracker = new AliasTracker(client)
-  client.voiceCommands = new VoiceCommands(client)
+  // client.voiceCommands = new VoiceCommands(client)
 
   client.on("message", msg => client.musicTracker.run(msg))
 
