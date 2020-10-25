@@ -172,11 +172,13 @@ SELECT [PlayerOne] as 'PlayerId', [Winner]
 FROM ${tbl}
 WHERE [ServerId] = @server 
   AND [PlayerOne] <> [PlayerTwo]
+  AND [PlayerOne] <> '713072255487443017'
 UNION ALL
 SELECT [PlayerTwo] as 'PlayerId', [Winner]
 FROM ${tbl}
 WHERE [ServerId] = @server
-  AND [PlayerOne] <> [PlayerTwo]`, { server: serverId })
+  AND [PlayerOne] <> [PlayerTwo]
+  AND [PlayerTwo] <> '713072255487443017'`, { server: serverId })
   }
 
   getSetting (serverId, key, $default = undefined) {

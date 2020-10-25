@@ -71,22 +71,26 @@ module.exports = class extends Command {
   }
 
   async monitorReactions (msg, playerOneId, playerTwoId, turn, cf, reactions) {
-    let winnerId = ""
+    let winnerId = "-"
 
     try {
       do {
-        const usersTurn = (turn ? playerOneId : playerTwoId)
+        const usersTurn = (!turn ? playerOneId : playerTwoId)
+        const isLucille = usersTurn === msg.author.id
         const filter = (reaction, user) => reactions.includes(reaction.emoji.name) && user.id === usersTurn
 
-        const collected = await msg.awaitReactions(filter, { time: 30000, max: 1 })
-        const key = collected.firstKey()
+        const collected = !isLucille ? await msg.awaitReactions(filter, { time: isLucille ? 1000 : 30000, max: 1 }) : undefined
+        const key = collected && collected.firstKey()
         let reactIdx = -1
         if (!key) {
           reactIdx = cf.randomFreeSlot()
         }
         else {
           reactIdx = reactions.findIndex(react => react === key)
-          collected.get(key).users.remove(usersTurn)
+
+          if (!isLucille) {
+            collected.get(key).users.remove(usersTurn)
+          }
         }
 
         const slot = cf.nextFreeSlot(reactIdx + 1)
@@ -102,12 +106,12 @@ module.exports = class extends Command {
 
         // load board
         await msg.edit(this.getEmbed(msg.guild.members.cache.find(x => x.id === (!turn ? playerOneId : playerTwoId)), cf.displayBoard(), msg.client, turn, winnerId))
-      } while (winnerId === "" && cf.possibleMove())
+      } while (winnerId === "-" && cf.possibleMove())
 
       // cleanup
       await msg.reactions.removeAll()
 
-      // log winner
+      // log winner, "-" = draw
       cf.uploadWin(msg.guild.id, playerOneId, playerTwoId, winnerId)
     }
     catch (err) {
@@ -117,8 +121,8 @@ module.exports = class extends Command {
     // cleanup
   }
 
-  getEmbed (user, board, client, turn, winnerId = "") {
-    const description = winnerId !== ""
+  getEmbed (user, board, client, turn, winnerId = "-") {
+    const description = winnerId !== "-"
       ? `${["🟡", "🔴"][!turn ? 0 : 1]} <@!${user.id}> Won!`
       : `${["🟡", "🔴"][!turn ? 0 : 1]} It's <@!${user.id}> turn\r\n30s Per turn`
     return {
@@ -152,9 +156,17 @@ module.exports = class extends Command {
 
   async sendChallenge (msg, playerTwoId) {
     try {
-      const queryMsg = await msg.reply(`You have challenged <@!${playerTwoId}> to a game of connect four. <@!${playerTwoId}>, Would you like to accept?`)
+      const queryMsg = await msg.reply(`You have challenged <@!${playerTwoId}> to a game of Connect Four. <@!${playerTwoId}>, Would you like to accept?`)
+
+      if (queryMsg.author.id === playerTwoId) {
+        return true
+      }
+
       const reactions = ["✅", "❌"]
-      reactions.forEach(async (react) => await queryMsg.react(react))
+      for (let i = 0; i < reactions.length; i++) {
+        await queryMsg.react(reactions[i])
+      }
+
       const collected = await queryMsg.awaitReactions((reaction, user) => reactions.includes(reaction.emoji.name) && user.id === playerTwoId, { time: 60000, max: 1 })
       const key = collected.firstKey()
 
@@ -188,8 +200,11 @@ module.exports = class extends Command {
       if (cur.PlayerId === cur.Winner) {
         acc.get(cur.PlayerId).win++
       }
-      else {
+      else if (cur.PlayerId !== "-" && cur.PlayerId !== cur.Winner) {
         acc.get(cur.PlayerId).loss++
+      }
+      else if (cur.Winner === "-") {
+        acc.get(cur.PlayerId).draw++
       }
 
       return acc

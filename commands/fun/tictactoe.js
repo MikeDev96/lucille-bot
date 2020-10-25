@@ -51,7 +51,7 @@ module.exports = class extends Command {
 
         msg.react("👍")
 
-        const gmMessage = await msg.reply("")
+        const gmMessage = await msg.reply("Setup...")
         const tic = new TicTacToe(gmMessage, playerOneId, playerTwoId)
         await tic.runLoop()
       }
@@ -70,8 +70,16 @@ module.exports = class extends Command {
   async sendChallenge (msg, playerTwoId) {
     try {
       const queryMsg = await msg.reply(`You have challenged <@!${playerTwoId}> to a game of tic tac toe. <@!${playerTwoId}>, Would you like to accept?`)
+
+      if (queryMsg.author.id === playerTwoId) {
+        return true
+      }
+
       const reactions = ["✅", "❌"]
-      reactions.forEach(async (react) => await queryMsg.react(react))
+      for (let i = 0; i < reactions.length; i++) {
+        await queryMsg.react(reactions[i])
+      }
+
       const collected = await queryMsg.awaitReactions((reaction, user) => reactions.includes(reaction.emoji.name) && user.id === playerTwoId, { time: 60000, max: 1 })
       const key = collected.firstKey()
 
@@ -106,8 +114,11 @@ module.exports = class extends Command {
       if (cur.PlayerId === cur.Winner) {
         acc.get(cur.PlayerId).win++
       }
-      else {
+      else if (cur.Winner !== "-" && cur.PlayerId !== cur.Winner) {
         acc.get(cur.PlayerId).loss++
+      }
+      else {
+        acc.get(cur.PlayerId).draw++
       }
 
       return acc
