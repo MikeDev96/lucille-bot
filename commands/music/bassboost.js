@@ -25,7 +25,7 @@ module.exports = class extends Command {
     const music = getOrCreateMusic(msg)
     music.state.playTime += music.dispatcherExec(d => d.streamTime) || 0
     music.state.bassBoost = bassBoostToAmountMap[args.amount.toLowerCase()]
-    music.play()
+    music.play("after")
     msg.react("🎸")
   }
 }
