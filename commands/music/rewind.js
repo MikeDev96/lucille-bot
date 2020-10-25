@@ -44,7 +44,7 @@ module.exports = class extends Command {
 
     const position = music.state.playTime + music.dispatcherExec(d => d.streamTime)
     music.state.playTime = Math.max(position - amount * 1000, 0)
-    music.play()
+    music.play("after")
     msg.react("⏪")
   }
 }

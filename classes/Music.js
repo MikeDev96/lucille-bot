@@ -1,10 +1,10 @@
 const scrapeYt = require("scrape-yt")
-const ytdl = require("discord-ytdl-core")
+const ytdl = require("ytdl-core")
 const { Util } = require("discord.js")
 const index = require("../index")
 const config = require("../config.json")
 const TopMostMessagePump = require("./TopMostMessagePump")
-const { safeJoin, sleep, msToTimestamp, selectRandom } = require("../helpers")
+const { safeJoin, msToTimestamp, selectRandom } = require("../helpers")
 const TrackExtractor = require("./TrackExtractor")
 const { PLATFORM_YOUTUBE, PLATFORM_RADIO, PLATFORM_SPOTIFY, PLATFORM_TIDAL, PLATFORM_APPLE } = require("./TrackExtractor")
 const Track = require("./Track")
@@ -15,6 +15,9 @@ const Axios = require("axios")
 const MusicToX = require("./MusicToX")
 const debounce = require("lodash.debounce")
 const RadioAdBlock = require("./RadioAdBlock")
+const { opus: Opus, FFmpeg } = require("prism-media")
+const { PassThrough } = require("stream")
+const { chooseFormat } = require("ytdl-core")
 
 const PLATFORMS_REQUIRE_YT_SEARCH = [PLATFORM_SPOTIFY, PLATFORM_TIDAL, PLATFORM_APPLE, PLATFORM_YOUTUBE, "search"]
 
@@ -211,37 +214,46 @@ module.exports = class {
   }
 
   async getYTStream (url) {
-    let stream = null
+    return new Promise((resolve, reject) => {
+      ytdl.getInfo(url)
+        .then(info => {
+          const format = chooseFormat(info.formats, { quality: "highestaudio" })
+          const FFmpegArgs = [
+            "-ss", msToTimestamp(this.state.playTime, { ms: true }),
+            "-i", format.url,
+            ...this.getFFMpegArgs(),
+            "-analyzeduration", "0",
+            "-loglevel", "0",
+            "-f", "s16le",
+            "-ar", "48000",
+            "-ac", "2",
+          ]
 
-    for (let i = 0; i < 5; i++) {
-      try {
-        if (!url) {
-          console.error(`YouTube url is ${url}`)
-        }
+          const passThroughStream = new PassThrough({ highWaterMark: 1 << 25 })
+          const transcoder = new FFmpeg({ args: FFmpegArgs })
+          const opus = new Opus.Encoder({
+            rate: 48000,
+            channels: 2,
+            frameSize: 960,
+          })
 
-        stream = ytdl(url, {
-          highWaterMark: 1 << 25,
-          seek: this.state.playTime / 1000,
-          encoderArgs: this.getFFMpegArgs(),
-          opusEncoded: true,
+          const output = transcoder.pipe(passThroughStream)
+          const outputStream = output.pipe(opus)
+
+          outputStream.on("close", () => {
+            transcoder.destroy()
+            opus.destroy()
+          })
+
+          transcoder.once("readable", () => {
+            resolve(outputStream)
+          })
         })
-
-        break
-      }
-      catch (err) {
-        console.log(`Failed to get YT stream, attempt ${i + 1} of 5`)
-        console.error(err)
-
-        stream = null
-
-        await sleep(3000)
-      }
-    }
-
-    return stream
+        .catch(reject)
+    })
   }
 
-  async play () {
+  async play (update = "before") {
     const item = this.state.queue[0]
     const fetchYTStream = PLATFORMS_REQUIRE_YT_SEARCH.includes(item.platform)
     let stream
@@ -250,11 +262,15 @@ module.exports = class {
       this.state.playTime = item.startTime * 1000
     }
 
-    this.updateEmbed()
+    if (update === "before") {
+      this.updateEmbed()
+    }
 
     if (fetchYTStream) {
-      stream = await this.getYTStream(item.link)
-      if (!stream) {
+      try {
+        stream = await this.getYTStream(item.link)
+      }
+      catch (err) {
         this.state.textChannel.send(`Failed to get a YouTube stream for\n${this.getTrackTitle(item)}\n${item.link}`)
         this.processQueue()
         return
@@ -278,6 +294,10 @@ module.exports = class {
 
     const dispatcher = this.state.voiceConnection.play(stream, fetchYTStream ? { type: "opus" } : undefined)
     dispatcher.setVolumeLogarithmic(this.state.volume / 100)
+
+    if (update === "after") {
+      this.updateEmbed()
+    }
 
     dispatcher.on("start", () => {
       console.log("Stream starting...")
@@ -320,11 +340,7 @@ module.exports = class {
 
             item.setRequestStream(res)
 
-            return ytdl.arbitraryStream(res.data, {
-              opusEncoded: false,
-              fmt: "mp3",
-              encoderArgs: this.getFFMpegArgs(),
-            })
+            return res.data
           }
           catch (err) {
             console.log("Error occured when getting radio stream")

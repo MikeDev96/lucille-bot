@@ -43,7 +43,7 @@ module.exports = class extends Command {
     }
 
     music.state.playTime = position * 1000
-    music.play()
+    music.play("after")
     msg.react("⏩")
   }
 }

@@ -15,7 +15,6 @@
     "@picovoice/porcupine-node": "^1.8.2",
     "axios": "^0.19.2",
     "better-sqlite3": "^7.1.1",
-    "discord-ytdl-core": "^4.0.7",
     "discord.js": "^12.2.0",
     "discord.js-commando": "github:discordjs/Commando",
     "dotenv": "^8.2.0",
@@ -32,6 +31,7 @@
     "scrape-yt": "^1.4.0",
     "spotify-web-api-node": "^4.0.0",
     "ws": "^7.3.1",
+    "ytdl-core": "^3.4.2",
     "ytpl": "^1.0.1"
   },
   "devDependencies": {
