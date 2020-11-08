@@ -18,11 +18,11 @@ const PLATFORM_OTHER = "other"
 const PLATFORM_RADIO = "radio"
 
 module.exports = class {
-  constructor (input) {
+  constructor(input) {
     this.input = input
   }
 
-  parseLinks () {
+  parseLinks() {
     this.links = []
 
     const spotPattern = /(?:open\.)?spotify(?:.com)?[/:](track|album|artist|playlist)[/:](\w+)/g
@@ -89,7 +89,7 @@ module.exports = class {
     return this.links.length > 0
   }
 
-  async getAllLinkInfo () {
+  async getAllLinkInfo() {
     try {
       const linksTracks = await Promise.all(this.links.map(l => this.getLinkTracks(l)))
       return linksTracks.reduce((acc, cur) => {
@@ -103,7 +103,7 @@ module.exports = class {
     }
   }
 
-  async getLinkTracks (link) {
+  async getLinkTracks(link) {
     try {
       switch (link.platform) {
         case PLATFORM_SPOTIFY: return await this.getSpotify(link.type, link.id)
@@ -121,7 +121,7 @@ module.exports = class {
     return []
   }
 
-  async getSpotify (type, id) {
+  async getSpotify(type, id) {
     const spotifyApi = await this.getSpotifyApi()
     if (!spotifyApi) {
       return null
@@ -134,7 +134,9 @@ module.exports = class {
           res.body.artists.map(a => a.name).join(", "),
           res.body.name,
           res.body.album.images[0].url,
-        ).setPlatform(PLATFORM_SPOTIFY)]
+        )
+          .setPlatform(PLATFORM_SPOTIFY)
+          .setSpotifyUri(res.body.uri)]
       }
       else if (type === "album") {
         const res = await spotifyApi.getAlbum(id)
@@ -143,7 +145,10 @@ module.exports = class {
           t.artists.map(a => a.name).join(", "),
           t.name,
           res.body.images[0].url,
-        ).setPlatform(PLATFORM_SPOTIFY))
+        )
+          .setPlatform(PLATFORM_SPOTIFY)
+          .setSpotifyUri(t.uri)
+        )
       }
       else if (type === "artist") {
         const res = await spotifyApi.getArtist(id)
@@ -167,7 +172,9 @@ module.exports = class {
           t.track.artists.map(a => a.name).join(", "),
           t.track.name,
           playlistRes.body.images[0].url,
-        ).setPlatform(PLATFORM_SPOTIFY))
+        )
+        .setPlatform(PLATFORM_SPOTIFY)
+        .setSpotifyUri(t.track.uri))
       }
     }
     catch (err) {
@@ -178,11 +185,11 @@ module.exports = class {
     return []
   }
 
-  async getSpotifyApi () {
+  async getSpotifyApi() {
     return await (this.spotifyApi || (this.spotifyApi = this.spotifyApiFactory()))
   }
 
-  async spotifyApiFactory () {
+  async spotifyApiFactory() {
     const spotifyApi = new SpotifyWebApi({
       clientId: config.spotify.clientId,
       clientSecret: config.spotify.clientSecret,
@@ -201,7 +208,7 @@ module.exports = class {
     return spotifyApi
   }
 
-  async getTidal (type, id) {
+  async getTidal(type, id) {
     try {
       const res = await axios.get(`https://api.tidal.com/v1/${type}s/${id}${["playlist", "album"].includes(type) ? "/tracks" : type === "artist" ? "/toptracks" : ""}?limit=10000&countryCode=GB`, {
         headers: {
@@ -225,7 +232,7 @@ module.exports = class {
     return []
   }
 
-  async getApple (type, id) {
+  async getApple(type, id) {
     try {
       const res = await axios.get(`https://itunes.apple.com/lookup?id=${id}&entity=song`)
 
@@ -245,7 +252,7 @@ module.exports = class {
     return []
   }
 
-  async getYouTube (type, id, startTime) {
+  async getYouTube(type, id, startTime) {
     try {
       if (type === "track") {
         const info = await ytdl.getBasicInfo(`https://youtube.com/watch?v=${id}`)
@@ -280,7 +287,7 @@ module.exports = class {
     return []
   }
 
-  async getSoundCloud (type, id) {
+  async getSoundCloud(type, id) {
     try {
       const res = await axios.get(`https://api-v2.soundcloud.com/resolve?url=${encodeURIComponent(`https://soundcloud.com/${id}`)}&client_id=${config.soundCloud.clientId}`)
 
@@ -307,7 +314,7 @@ module.exports = class {
     return []
   }
 
-  async getSoundCloudLink (transcodings) {
+  async getSoundCloudLink(transcodings) {
     if (transcodings) {
       const transcoding = transcodings[0]
       if (transcoding) {
@@ -324,7 +331,7 @@ module.exports = class {
     return null
   }
 
-  async getOther (id) {
+  async getOther(id) {
     try {
       const radio = Object.values(radios).find(r => r.url === id)
       if (radio) {
