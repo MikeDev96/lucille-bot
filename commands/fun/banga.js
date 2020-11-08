@@ -120,11 +120,14 @@ module.exports = class extends Command {
             let SongsArr = this.client.bangaTracker.listBangas(playId)
 
             SongsArr = SongsArr.map(song => {
-                if (song.spotifyUri.length)
+                console.log(song)
+                if (song.spotifyUri)
                     return song.spotifyUri
             })
 
             SongsArr = SongsArr.filter(Boolean)
+
+            console.log(SongsArr)
 
             if (SongsArr.length === 0) {
                 msg.reply("You have 0 bangas with spotify uris")
