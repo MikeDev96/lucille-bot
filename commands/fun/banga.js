@@ -3,7 +3,6 @@ const config = require("../../config.json")
 const { getRequestee, getVoiceChannel, getOrCreateMusic } = require("../../classes/Helpers")
 const Track = require("../../classes/Track")
 const { MessageAttachment, Util } = require("discord.js")
-const SpotifyWebApi = require("spotify-web-api-node")
 const AWS = require("aws-sdk")
 
 AWS.config.update({
@@ -170,20 +169,6 @@ module.exports = class extends Command {
             return
         }
 
-        if (args.arg1.toLowerCase() === "update") {
-
-            let Bangas = this.client.bangaTracker.getAllBangas()
-
-            Bangas.forEach((banga, index) => {
-                setTimeout(async () => {
-                    let URI = await this.getSpotifyUri(banga.song)
-                    this.client.bangaTracker.updateBangas(banga.song, URI)
-                }, 1000 * index)
-            })
-
-            return
-        }
-
         let currTrack = false;
         let queueItem = music.state.queue[0]
 
@@ -219,31 +204,6 @@ module.exports = class extends Command {
             msg.channel.send(bangerStampImg)
         }
 
-    }
-
-    async getSpotifyUri(song) {
-
-        let spotifyUri = ""
-
-        var spotifyApi = new SpotifyWebApi({
-            clientId: config.spotify.clientId,
-            clientSecret: config.spotify.clientSecret,
-        })
-
-        const res = await spotifyApi.clientCredentialsGrant()
-        spotifyApi.setAccessToken(res.body.access_token)
-
-        await spotifyApi.searchTracks(song)
-            .then(function (data) {
-                spotifyUri = ""
-                if (data.body.tracks.items.length) {
-                    spotifyUri = data.body.tracks.items[0].uri
-                }
-            }, function (err) {
-                console.error(err);
-            })
-
-        return spotifyUri
     }
 
     checkForUser(user, mess) {
