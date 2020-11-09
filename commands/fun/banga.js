@@ -3,6 +3,7 @@ const config = require("../../config.json")
 const { getRequestee, getVoiceChannel, getOrCreateMusic } = require("../../classes/Helpers")
 const Track = require("../../classes/Track")
 const { MessageAttachment, Util } = require("discord.js")
+const SpotifyWebApi = require("spotify-web-api-node")
 const AWS = require("aws-sdk")
 
 AWS.config.update({
@@ -120,14 +121,12 @@ module.exports = class extends Command {
             let SongsArr = this.client.bangaTracker.listBangas(playId)
 
             SongsArr = SongsArr.map(song => {
-                console.log(song)
                 if (song.spotifyUri)
-                    return song.spotifyUri
+                    if (song.spotifyUri.length)
+                        return song.spotifyUri
             })
 
             SongsArr = SongsArr.filter(Boolean)
-
-            console.log(SongsArr)
 
             if (SongsArr.length === 0) {
                 msg.reply("You have 0 bangas with spotify uris")
@@ -135,20 +134,22 @@ module.exports = class extends Command {
                 msg.reply("You have more than 100 bangas with spotify uris please remove some and then try again")
             } else {
                 msg.reply("Sent you a dm with information")
-                msg.author.send({embed: {
-                    color: 0x0099ff,
-                    title: "Lucille Spotify Exporter",
-                    fields: [
-                        {
-                            name: "Spotify Exporter Link",
-                            value: `Visit [this link](${config.export.url}/home/${UserId}) and authorise with Spotify`,
+                msg.author.send({
+                    embed: {
+                        color: 0x0099ff,
+                        title: "Lucille Spotify Exporter",
+                        fields: [
+                            {
+                                name: "Spotify Exporter Link",
+                                value: `Visit [this link](${config.export.url}/home/${UserId}) and authorise with Spotify`,
+                            },
+                        ],
+                        footer: {
+                            text: config.discord.footer,
+                            icon_url: config.discord.authorAvatarUrl,
                         },
-                    ],
-                    footer: {
-                        text: config.discord.footer,
-                        icon_url: config.discord.authorAvatarUrl,
-                    },
-                }})
+                    }
+                })
 
                 var params = {
                     TableName: "Lucille-SpotifyURIs",
@@ -166,6 +167,20 @@ module.exports = class extends Command {
                     }
                 })
             }
+            return
+        }
+
+        if (args.arg1.toLowerCase() === "update") {
+
+            let Bangas = this.client.bangaTracker.getAllBangas()
+
+            Bangas.forEach((banga, index) => {
+                setTimeout(async () => {
+                    let URI = await this.getSpotifyUri(banga.song)
+                    this.client.bangaTracker.updateBangas(banga.song, URI)
+                }, 1000 * index)
+            })
+
             return
         }
 
@@ -204,6 +219,31 @@ module.exports = class extends Command {
             msg.channel.send(bangerStampImg)
         }
 
+    }
+
+    async getSpotifyUri(song) {
+
+        let spotifyUri = ""
+
+        var spotifyApi = new SpotifyWebApi({
+            clientId: config.spotify.clientId,
+            clientSecret: config.spotify.clientSecret,
+        })
+
+        const res = await spotifyApi.clientCredentialsGrant()
+        spotifyApi.setAccessToken(res.body.access_token)
+
+        await spotifyApi.searchTracks(song)
+            .then(function (data) {
+                spotifyUri = ""
+                if (data.body.tracks.items.length) {
+                    spotifyUri = data.body.tracks.items[0].uri
+                }
+            }, function (err) {
+                console.error(err);
+            })
+
+        return spotifyUri
     }
 
     checkForUser(user, mess) {
