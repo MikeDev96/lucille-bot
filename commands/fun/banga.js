@@ -120,14 +120,12 @@ module.exports = class extends Command {
             let SongsArr = this.client.bangaTracker.listBangas(playId)
 
             SongsArr = SongsArr.map(song => {
-                console.log(song)
                 if (song.spotifyUri)
-                    return song.spotifyUri
+                    if (song.spotifyUri.length)
+                        return song.spotifyUri
             })
 
             SongsArr = SongsArr.filter(Boolean)
-
-            console.log(SongsArr)
 
             if (SongsArr.length === 0) {
                 msg.reply("You have 0 bangas with spotify uris")
@@ -135,20 +133,22 @@ module.exports = class extends Command {
                 msg.reply("You have more than 100 bangas with spotify uris please remove some and then try again")
             } else {
                 msg.reply("Sent you a dm with information")
-                msg.author.send({embed: {
-                    color: 0x0099ff,
-                    title: "Lucille Spotify Exporter",
-                    fields: [
-                        {
-                            name: "Spotify Exporter Link",
-                            value: `Visit [this link](${config.export.url}/home/${UserId}) and authorise with Spotify`,
+                msg.author.send({
+                    embed: {
+                        color: 0x0099ff,
+                        title: "Lucille Spotify Exporter",
+                        fields: [
+                            {
+                                name: "Spotify Exporter Link",
+                                value: `Visit [this link](${config.export.url}/home/${UserId}) and authorise with Spotify`,
+                            },
+                        ],
+                        footer: {
+                            text: config.discord.footer,
+                            icon_url: config.discord.authorAvatarUrl,
                         },
-                    ],
-                    footer: {
-                        text: config.discord.footer,
-                        icon_url: config.discord.authorAvatarUrl,
-                    },
-                }})
+                    }
+                })
 
                 var params = {
                     TableName: "Lucille-SpotifyURIs",
