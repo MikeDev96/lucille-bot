@@ -31,7 +31,7 @@
     "scrape-yt": "^1.4.0",
     "spotify-web-api-node": "^4.0.0",
     "ws": "^7.3.1",
-    "ytdl-core": "^4.0.0",
+    "ytdl-core": "^4.1.0",
     "ytpl": "^1.0.1"
   },
   "devDependencies": {
