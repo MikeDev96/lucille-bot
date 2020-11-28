@@ -1,5 +1,5 @@
 const { Command } = require("discord.js-commando")
-const { getMusic } = require("../../messageHelpers")
+const { getOrCreateMusic } = require("../../classes/Helpers")
 
 module.exports = class extends Command {
   constructor (client) {
@@ -32,7 +32,7 @@ module.exports = class extends Command {
   }
 
   async run (msg, args) {
-    const music = getMusic(msg)
+    const music = getOrCreateMusic(msg)
     let range = [1, 1]
     const match = args.range.match(/^(\d+)\W(\d+)$/)
     if (match) {

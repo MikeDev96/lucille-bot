@@ -1,5 +1,5 @@
 const { Command } = require("discord.js-commando")
-const { getMusic } = require("../../messageHelpers")
+const { getOrCreateMusic } = require("../../classes/Helpers")
 
 module.exports = class extends Command {
   constructor (client) {
@@ -14,7 +14,7 @@ module.exports = class extends Command {
   }
 
   async run (msg, args) {
-    const music = getMusic(msg)
+    const music = getOrCreateMusic(msg)
     if (music && music.state && music.state.voiceConnection) {
       msg.react("🛑")
       music.state.voiceConnection.disconnect()

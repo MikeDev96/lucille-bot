@@ -19,12 +19,16 @@ module.exports = class AliasTracker {
 
         aliascommand = aliascommand.split("&")
 
-        this.db.get("aliases")
-            .push({
-                alias: alias,
-                command: aliascommand
-            })
-            .write()
+        aliascommand = aliascommand.filter(cmd => cmd !== "")
+
+        if (aliascommand.length) {
+            this.db.get("aliases")
+                .push({
+                    alias: alias,
+                    command: aliascommand
+                })
+                .write()
+        }
     }
 
     removeAlias(alias) {

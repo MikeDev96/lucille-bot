@@ -1,6 +1,6 @@
 const { Command } = require("discord.js-commando")
 const radios = require("../../radios.json")
-const { getRequestee, getVoiceChannel, getMusic } = require("../../messageHelpers")
+const { getRequestee, getVoiceChannel, getOrCreateMusic } = require("../../classes/Helpers")
 
 module.exports = class extends Command {
   constructor (client) {
@@ -23,7 +23,7 @@ module.exports = class extends Command {
   }
 
   async run (msg, args) {
-    const music = getMusic(msg)
+    const music = getOrCreateMusic(msg)
     const success = music.add(radios[args.station].url, getRequestee(msg), getVoiceChannel(msg), undefined)
     if (success) {
       msg.react("📻")

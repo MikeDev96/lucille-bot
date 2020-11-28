@@ -3,6 +3,7 @@ module.exports = class Track {
     this.artists = artists || ""
     this.title = title || ""
     this.thumbnail = thumbnail || ""
+    this.finished = false
   }
 
   setArtists (artists) {
@@ -70,6 +71,16 @@ module.exports = class Track {
     return this
   }
 
+  setFinished () {
+    this.finished = true
+    return this
+  }
+
+  setSpotifyUri(spotifyUri) {
+    this.spotifyUri = spotifyUri
+    return this
+  }
+
   clone (track) {
     this.artists = track.artists
     this.title = track.title
@@ -84,6 +95,8 @@ module.exports = class Track {
     this.radio = track.radio
     this.startTime = track.startTime
     this.radioMetadata = track.radioMetadata
+    this.finished = track.finished
+    this.spotifyUri = track.spotifyUri
     return this
   }
 }

@@ -1,72 +1,95 @@
 const { Command } = require("discord.js-commando")
 const config = require("../../config.json")
-const { getMusic } = require("../../messageHelpers")
-const { run } = require("../music/play")
+const { getRequestee, getVoiceChannel, getOrCreateMusic } = require("../../classes/Helpers")
+const Track = require("../../classes/Track")
+const { MessageAttachment, Util } = require("discord.js")
+const AWS = require("aws-sdk")
+
+AWS.config.update({
+    credentials: {
+        accessKeyId: config.aws.accessKeyId,
+        secretAccessKey: config.aws.secretAccessKey
+    },
+    region: 'eu-west-1'
+});
+
+const DynamoDB = new AWS.DynamoDB.DocumentClient();
 
 module.exports = class extends Command {
-    constructor (client) {
-      super(client, {
-        name: "banga",
-        aliases: ["banger", "banging", "bangin"],
-        group: "fun",
-        memberName: "banga",
-        description: "Logs user bangers",
-        args: [
-            {
-              key: "arg1",
-              prompt: "Arg1",
-              type: "string",
-              default: "",
-            },
-            {
-              key: "arg2",
-              prompt: "Arg2",
-              type: "string",
-              default: "",
-            },
-          ],
-        guildOnly: true,
-      })
+    constructor(client) {
+        super(client, {
+            name: "banga",
+            aliases: ["banger", "banging", "bangin", "b"],
+            group: "fun",
+            memberName: "banga",
+            description: "Logs user bangers",
+            args: [
+                {
+                    key: "arg1",
+                    prompt: "Arg1",
+                    type: "string",
+                    default: "",
+                },
+                {
+                    key: "arg2",
+                    prompt: "Arg2",
+                    type: "string",
+                    default: "",
+                },
+            ],
+            guildOnly: true,
+        })
     }
 
-    async run (msg, args) {
+    async run(msg, args) {
 
-        if(args.arg1.toLowerCase() === "list") {
+        const music = getOrCreateMusic(msg);
+
+        if (args.arg1.toLowerCase() === "list") {
             let listId = this.findUserId(msg, args.arg2)
-            if(!listId) return
+            if (!listId) return
             let nickname = msg.guild.member(listId).nickname
-            const tempArr = this.list(this.client.bangaTracker.listBangas(listId), nickname)
-            const embed = { embed: {
-                color: 0x0099ff,
-                title: "Lucille :musical_note:",
-                author: {
-                  name: msg.member.displayName,
-                  icon_url: msg.author.displayAvatarURL(),
-                },
-                fields: tempArr,
-                footer: {
-                  text: config.discord.footer,
-                },
-              }
+            if (!nickname) nickname = msg.guild.member(listId).user.username
+            const bangas = this.client.bangaTracker.listBangas(listId)
+            if (!bangas.length) {
+                msg.channel.send("This person is boring and has no bangers")
+                return
+            }
+            const tempArr = this.list(bangas, nickname)
+            const embed = {
+                embed: {
+                    color: 0x0099ff,
+                    title: "Lucille :musical_note:",
+                    author: {
+                        name: msg.member.displayName,
+                        icon_url: msg.author.displayAvatarURL(),
+                    },
+                    fields: tempArr,
+                    footer: {
+                        text: config.discord.footer,
+                    },
+                }
             }
             msg.reply(embed)
             return
         }
 
-        if(args.arg1.toLowerCase() === "play") {
+        if (args.arg1.toLowerCase() === "play") {
             let playArr = []
             let playId = this.findUserId(msg, args.arg2)
-            if(!playId) return
+            if (!playId) return
             playArr = this.client.bangaTracker.listBangas(playId)
-            playArr.map(dbSong => {
-                run(msg, {input: dbSong.song})
-            })
+            let trackedMusic = playArr.map(dbSong => new Track()
+                .setPlatform("search")
+                .setQuery(dbSong.song)
+                .setYouTubeTitle(dbSong.song))
+            music.add(trackedMusic, getRequestee(msg), getVoiceChannel(msg))
             return
         }
 
-        if(args.arg1.toLowerCase() === "remove") {
+        if (args.arg1.toLowerCase() === "remove") {
             const grug = this.client.bangaTracker.findBanga(args.arg2, msg.author.id);
-            if(!grug) {
+            if (!grug) {
                 msg.channel.send("Nice try")
                 return
             }
@@ -80,50 +103,113 @@ module.exports = class extends Command {
             if (firstKey) {
                 msg.react(firstKey)
 
-                    if (firstKey === "☑️") {
-                      this.client.bangaTracker.removeBanga(args.arg2, msg.author.id)
-                    }
-            } 
+                if (firstKey === "☑️") {
+                    this.client.bangaTracker.removeBanga(args.arg2, msg.author.id)
+                }
+            }
             return
         }
 
-        const music = getMusic(msg);
+        if (args.arg1.toLowerCase() === "export") {
+            let UserId = msg.author.id
+            let playId = this.findUserId(msg, args.arg2)
+
+            if (!playId)
+                return
+
+            let SongsArr = this.client.bangaTracker.listBangas(playId)
+
+            SongsArr = SongsArr.map(song => {
+                if (song.spotifyUri)
+                    if (song.spotifyUri.length)
+                        return song.spotifyUri
+            })
+
+            SongsArr = SongsArr.filter(Boolean)
+
+            if (SongsArr.length === 0) {
+                msg.reply("You have 0 bangas with spotify uris")
+            } else if (SongsArr.length > 100) {
+                msg.reply("You have more than 100 bangas with spotify uris please remove some and then try again")
+            } else {
+                msg.reply("Sent you a dm with information")
+                msg.author.send({
+                    embed: {
+                        color: 0x0099ff,
+                        title: "Lucille Spotify Exporter",
+                        fields: [
+                            {
+                                name: "Spotify Exporter Link",
+                                value: `Visit [this link](${config.export.url}/home/${UserId}) and authorise with Spotify`,
+                            },
+                        ],
+                        footer: {
+                            text: config.discord.footer,
+                            icon_url: config.discord.authorAvatarUrl,
+                        },
+                    }
+                })
+
+                var params = {
+                    TableName: "Lucille-SpotifyURIs",
+                    Item: {
+                        "User": UserId,
+                        "SongsURIs": SongsArr
+                    }
+                }
+
+                DynamoDB.put(params, function (err, data) {
+                    if (err) {
+                        console.log("Error", err);
+                    } else {
+                        console.log("Succesfully wrote to DynamoDB");
+                    }
+                })
+            }
+            return
+        }
+
         let currTrack = false;
+        let queueItem = music.state.queue[0]
 
-        if(music.state.queue[0]) currTrack = music.state.queue[0].youTubeTitle;
-        if(music.state.queue[0] && music.state.queue[0].radioMetadata && music.state.queue[0].radioMetadata.info) currTrack = music.state.queue[0].radioMetadata.info.artist + " - " + music.state.queue[0].radioMetadata.info.title;
-        if(music.state.queue[0] && music.state.queue[0].platform === "soundcloud") currTrack = music.state.queue[0].title;
+        if (queueItem) currTrack = queueItem.youTubeTitle;
+        if (queueItem && queueItem.radioMetadata && queueItem.radioMetadata.info && queueItem.radioMetadata.info.title && queueItem.radioMetadata.info.artist) currTrack = queueItem.radioMetadata.info.artist + " - " + queueItem.radioMetadata.info.title;
+        if (queueItem && queueItem.platform === "soundcloud") currTrack = queueItem.title;
 
-        if(!currTrack) {
+        if (!currTrack) {
             msg.channel.send("Hold your horses")
             return
         }
 
         const checkEx = this.client.bangaTracker.checkForBanga(currTrack);
 
-        if(args.arg1 === "?") {
+        if (args.arg1 === "?") {
             msg.channel.send(`${this.findUsers(checkEx).join(", ")} thinks its a banger`)
             return;
         }
 
-        if(checkEx.length) {
+        let bangerStampImg = new MessageAttachment(`./assets/images/bangerstamps/${msg.author.id}.png`)
+
+        if (checkEx.length) {
             if (this.checkForUser(checkEx, msg)) {
                 msg.channel.send("You've already said this was a banger");
             } else {
                 this.client.bangaTracker.updateUsers(currTrack, msg.author.id)
                 msg.react("👍")
+                msg.channel.send(bangerStampImg)
             }
         } else {
-            this.client.bangaTracker.writeBanga(currTrack, msg.author.id);
+            this.client.bangaTracker.writeBanga(queueItem.spotifyUri, currTrack, msg.author.id);
             msg.react("👍")
+            msg.channel.send(bangerStampImg)
         }
-        
+
     }
 
     checkForUser(user, mess) {
         let greg = false;
         user[0].users.map(e => {
-            if(e === mess.author.id) greg = true; 
+            if (e === mess.author.id) greg = true;
         })
         return greg
     }
@@ -131,10 +217,10 @@ module.exports = class extends Command {
     findUsers(banger) {
         const usrArr = []
         let username
-        if(banger[0]){
+        if (banger[0]) {
             banger[0].users.map(e => {
                 username = this.client.users.cache.get(e);
-                if(username) {
+                if (username) {
                     usrArr.push(username.username)
                 }
             })
@@ -146,14 +232,14 @@ module.exports = class extends Command {
 
     findUserId(msg, user) {
         let userID
-        if(user.length > 0) {
+        if (user.length > 0) {
             msg.guild.members.cache.map(e => {
-                if(e.user.username.toLowerCase().includes(user.toLowerCase())) userID = e.user.id
+                if (e.user.username.toLowerCase().includes(user.toLowerCase())) userID = e.user.id
             })
         } else {
             userID = msg.author.id
         }
-        if(!userID) {
+        if (!userID) {
             msg.channel.send("No user found")
             return null
         }
@@ -161,18 +247,9 @@ module.exports = class extends Command {
     }
 
     list(songs, nickname) {
-        const songArr = []
-        let bigSong = ""
-        let i = 0;
-        songs.map(e => {
-            bigSong += "- " + e.song + "\n"
-            if(bigSong.length > 500) {
-                songArr.push({name: `${nickname} Bangers ${++i}`, value: bigSong})
-                bigSong = ""
-            }
-
-        })
-        if(bigSong.length > 0) songArr.push({name: `${nickname} Bangers ${++i}`, value: bigSong})
-        return songArr
+        return Util.splitMessage(songs.map(s => Util.escapeMarkdown(`- ${s.song}`)), { maxLength: 1024 }).map((str, idx) => ({
+            name: `${nickname}'s Bangers ${idx + 1}`,
+            value: str,
+        }))
     }
 }
