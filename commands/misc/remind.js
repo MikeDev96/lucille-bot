@@ -1,5 +1,8 @@
 const { Command } = require("discord.js-commando")
 const parse = require("parse-duration")
+const { DateTime } = require("luxon")
+
+const timeValidationRegex = /(?:[0-1]\d|2[0-3]):(?:[0-5]\d)(?::(?:[0-5]\d))?/
 
 module.exports = class extends Command {
   constructor (client) {
@@ -12,9 +15,9 @@ module.exports = class extends Command {
       args: [
         {
           key: "when",
-          prompt: "When to remind you",
+          prompt: "When to remind you as a duration (1h 30m) or timestamp (hh:mm:ss)",
           type: "string",
-          validate: val => !!parse(val),
+          validate: val => timeValidationRegex.test(val) || !!parse(val),
         },
         {
           key: "what",
@@ -27,10 +30,29 @@ module.exports = class extends Command {
   }
 
   async run (msg, args) {
-    msg.react("⏲️")
+    let duration = 0
 
-    setTimeout(() => {
-      msg.reply(args.what)
-    }, parse(args.when))
+    const time = timeValidationRegex.test(args.when)
+    if (time) {
+      const nowUtc = DateTime.utc()
+      let targetUtc = DateTime.fromISO(args.when, { zone: "Europe/London" }).toUTC()
+
+      if (nowUtc.valueOf() >= targetUtc.valueOf()) {
+        targetUtc = targetUtc.plus({ days: 1 })
+      }
+
+      duration = targetUtc.diff(nowUtc, "milliseconds").milliseconds
+    }
+    else {
+      duration = parse(args.when)
+    }
+
+    if (duration) {
+      setTimeout(() => {
+        msg.reply(args.what)
+      }, duration)
+
+      msg.react("⏲️")
+    }
   }
 }

@@ -13,21 +13,20 @@ module.exports = class extends Command {
     })
   }
 
-  async run (msg, args) {
-    msg.react("👋")
-
-    const channels = msg.guild.channels.cache.filter(c => c.type === "voice")
-    const members = []
-
-    for (const [, channel] of channels) {
-      for (const [, member] of channel.members) {
-        members.push(member.displayName)
-        member.voice.setChannel(null)
-      }
+  async run (msg, _args) {
+    if (!msg.member.voice || !msg.member.voice.channel) {
+      msg.react("🖕")
+      return
     }
 
-    if (members.length) {
-      msg.channel.send(`Goodbye ${join(members)}`)
+    const kickedMembers = msg.member.voice.channel.members.map(member => {
+      member.voice.setChannel(null)
+      return member.displayName
+    })
+
+    if (kickedMembers.length) {
+      msg.react("👋")
+      msg.channel.send(`Goodbye ${join(kickedMembers)}`)
     }
   }
 }

@@ -15,7 +15,7 @@ class DiscordJSHelpers {
     return stream
   }
 
-  static proxyCommand (message, author = message.author, content) {
+  static proxyCommand (message, author = message.author, content, handlePrefix = true) {
     if (!(message instanceof CommandoMessage)) {
       return Error("Message must be an instance of CommandoMessage")
     }
@@ -25,7 +25,7 @@ class DiscordJSHelpers {
     }
 
     const prefix = message.guild ? message.guild.commandPrefix : message.client.dispatcher.client.commandPrefix
-    const fakeMessage = new CommandoMessage(message.client, { id: message.id, content: `${prefix}${content}`, author }, message.channel)
+    const fakeMessage = new CommandoMessage(message.client, { id: message.id, content: `${handlePrefix ? prefix : ""}${content}`, author }, message.channel)
     message.client.dispatcher.handleMessage(fakeMessage)
   }
 }

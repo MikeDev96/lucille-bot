@@ -16,7 +16,8 @@ const sleep = ms => {
   return new Promise(resolve => setTimeout(resolve, ms))
 }
 
-const msToTimestamp = duration => {
+const msToTimestamp = (duration, { ms = false } = {}) => {
+  const milliseconds = duration % 1000
   const seconds = Math.floor((duration / 1000) % 60)
   const minutes = Math.floor((duration / (1000 * 60)) % 60)
   const hours = Math.floor((duration / (1000 * 60 * 60)) % 24)
@@ -28,6 +29,10 @@ const msToTimestamp = duration => {
   }
 
   out += `${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`
+
+  if (ms && milliseconds > 0) {
+    out += `.${milliseconds}`
+  }
 
   return out
 }

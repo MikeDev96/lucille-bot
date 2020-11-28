@@ -1,7 +1,7 @@
 const { Command } = require("discord.js-commando")
 const scrapeYt = require("scrape-yt")
 const Track = require("../../classes/Track")
-const { getMusic } = require("../../messageHelpers")
+const { getOrCreateMusic } = require("../../classes/Helpers")
 const { msToTimestamp } = require("../../helpers")
 
 module.exports = class extends Command {
@@ -25,7 +25,7 @@ module.exports = class extends Command {
   }
 
   async run (msg, args) {
-    const music = getMusic(msg)
+    const music = getOrCreateMusic(msg)
     const queueIndex = args.index === -1 ? 0 : args.index
     const queueItem = music.state.queue[queueIndex]
     // We can only 'correct' a item in the queue that has been searched on YT
