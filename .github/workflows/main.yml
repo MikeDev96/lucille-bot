@@ -35,7 +35,7 @@ jobs:
           key: ${{ secrets.KEY }}
           port: ${{ secrets.PORT }}
           script: |
-            [ -d "/var/www/lucille-bot" ] && cd /var/www/lucille-bot && git pull && npm install && pm2 reload lucille
+            [ -d "/var/www/lucille-bot" ] && cd /var/www/lucille-bot && git pull && npm ci && pm2 reload lucille
         
       - name: Post-deploy notification to Lucille
         if: github.repository == 'MikeDev96/lucille-bot'
