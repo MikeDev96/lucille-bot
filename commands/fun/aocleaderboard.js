@@ -14,7 +14,7 @@ module.exports = class extends Command {
         })
     }
 
-    async getLeaderboard() {
+    static async getLeaderboard() {
 
         //Query AOC - Cookie expires in 2030, so should be good for the time being
         let res = await axios.get("https://adventofcode.com/2020/leaderboard/private/view/1064962.json", {
@@ -49,13 +49,13 @@ module.exports = class extends Command {
     }
 
     async run(msg, _args) {
-        let leaderboard = await this.getLeaderboard()
+        let leaderboard = await getLeaderboard()
         msg.channel.send(leaderboard)
     }
 
     static async aocResetDaily(guild) {
 
-        let leaderboard = await this.getLeaderboard()
+        let leaderboard = await getLeaderboard()
 
         const firstGuildChannel = guild.channels.cache.filter(channel => channel.type === "text").first()
 
