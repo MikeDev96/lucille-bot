@@ -24,11 +24,12 @@ module.exports = class extends Command {
   }
 
   async run (msg, args) {
-    const [, youtubeId] = args.link.match(YOUTUBE_REGEX_PATTERN) || []
+    const videoMatch = YOUTUBE_REGEX_PATTERN.exec(args.link)
+    const video = videoMatch ? encodeURIComponent(videoMatch[0]) : ""
 
     const res = await axios({
       method: "POST",
-      url: `${process.env.YOUSYNC_API_URL}/api/room?username=${this.client.user.username}&video=${youtubeId}`,
+      url: `${process.env.YOUSYNC_API_URL}/api/room?username=${this.client.user.username}&video=${video}`,
     })
 
     if (res && res.status === 200) {
