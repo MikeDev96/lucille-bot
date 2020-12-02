@@ -11,7 +11,6 @@ const MasterDatabase = require("./classes/MasterDatabase")
 // const VoiceCommands = require("./classes/VoiceCommands")
 const { bootClientFromAllVoiceChannels } = require("./classes/Helpers")
 const { ppResetDaily } = require("./commands/fun/pp")
-const { aocResetDaily } = require("./commands/fun/aocleaderboard")
 require("dotenv").config()
 
 const emojis = [
@@ -75,7 +74,7 @@ client.once("ready", () => {
 
   bootClientFromAllVoiceChannels(client)
 
-  client.dailyTracker.on("reset", () => client.guilds.cache.forEach(guild => { ppResetDaily(client, guild); aocResetDaily(guild) }))
+  client.dailyTracker.on("reset", () => client.guilds.cache.forEach(guild => ppResetDaily(client, guild)))
 })
 
 client.on("guildCreate", createEmojis)
