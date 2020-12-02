@@ -53,7 +53,7 @@ module.exports = class extends Command {
         msg.channel.send(leaderboard)
     }
 
-    static aocResetDaily(guild) {
+    static async aocResetDaily(guild) {
 
         let leaderboard = await this.getLeaderboard()
 
