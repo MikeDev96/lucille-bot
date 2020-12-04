@@ -47,9 +47,7 @@ jobs:
           port: ${{ secrets.PORT }}
           script: |
             function changed {
-              cd /var/www/lucille-bot
-              echo git diff --name-only HEAD@{1} HEAD
-              git diff --name-only HEAD@{1} HEAD | grep "^$1" > /dev/null 2>&1
+              cd /var/www/lucille-bot && echo git diff --name-only HEAD@{1} HEAD && git diff --name-only HEAD@{1} HEAD | grep "^$1" > /dev/null 2>&1
             }
 
             if changed 'package-lock.json'; then
