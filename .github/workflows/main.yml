@@ -35,15 +35,7 @@ jobs:
           key: ${{ secrets.KEY }}
           port: ${{ secrets.PORT }}
           script: |
-            function changed {
-              cd /var/www/lucille-bot && git diff --name-only HEAD@{1} HEAD | grep "^$1" > /dev/null 2>&1
-            }
-
-            if changed 'package-lock.json'; then
               [ -d "/var/www/lucille-bot" ] && cd /var/www/lucille-bot && git pull && npm ci && pm2 reload lucille
-            else 
-              [ -d "/var/www/lucille-bot" ] && cd /var/www/lucille-bot && git pull && pm2 reload lucille
-            fi
           
       - name: Post-deploy notification to Lucille
         if: github.repository == 'MikeDev96/lucille-bot'
