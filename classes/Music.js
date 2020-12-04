@@ -213,7 +213,7 @@ module.exports = class {
     }
   }
 
-  async getYTStream (url) {
+  getYTStream (url) {
     return new Promise((resolve, reject) => {
       ytdl.getInfo(url)
         .then(info => {
@@ -240,16 +240,22 @@ module.exports = class {
           const output = transcoder.pipe(passThroughStream)
           const outputStream = output.pipe(opus)
 
+          transcoder.once("readable", () => {
+            resolve(outputStream)
+          })
+
           outputStream.on("close", () => {
             transcoder.destroy()
             opus.destroy()
           })
 
-          transcoder.once("readable", () => {
-            resolve(outputStream)
-          })
+          outputStream.on("end", () => console.log("ffmpeg end"))
+          outputStream.on("error", err => console.log(`ffmpeg error:\n${err.message}`))
         })
-        .catch(reject)
+        .catch(err => {
+          console.log(`ytdl getInfo error:\n${err.message}`)
+          reject(err)
+        })
     })
   }
 
