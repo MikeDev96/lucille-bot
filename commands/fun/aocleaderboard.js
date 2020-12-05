@@ -15,17 +15,28 @@ module.exports = class extends Command {
     }
 
     async run(msg, _args) {
-        let leaderboard = await getLeaderboard()
-        msg.channel.send(leaderboard)
+        var date = String(new Date())
+        let month = date.substring(4, 7);
+
+        if (month === "Dec") {
+            let leaderboard = await getLeaderboard()
+            msg.channel.send(leaderboard)
+        }
+
     }
 
     static async aocResetDaily(guild) {
 
-        let leaderboard = await getLeaderboard()
+        var date = String(new Date())
+        let month = date.substring(4, 7);
 
-        const firstGuildChannel = guild.channels.cache.filter(channel => channel.type === "text").first()
+        if (month === "Dec") {
+            let leaderboard = await getLeaderboard()
 
-        firstGuildChannel.send(leaderboard)
+            const firstGuildChannel = guild.channels.cache.filter(channel => channel.type === "text").first()
+
+            firstGuildChannel.send(leaderboard)
+        }
     }
 }
 
@@ -51,7 +62,7 @@ async function getLeaderboard() {
                 // Get data filter by local score and then map through
                 ...Object.values(LBInfo.members).sort((a, b) => b.local_score - a.local_score).map((member, index) =>
                     ({
-                        name: `${medals[index] || ""} ${member.name} (Score: ${member.local_score})`,
+                        name: `${medals[index] || ""} ${member.name !== null ? member.name : "Anonymous"} (Score: ${member.local_score})`,
                         value: (member.stars > 0 && member.stars < 10) ? ":star:".repeat(member.stars) : `${member.stars} :star:`
                     })),
             ],
