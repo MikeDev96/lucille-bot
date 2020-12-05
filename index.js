@@ -25,7 +25,7 @@ const emojis = [
 
 const client = new Commando.CommandoClient({
   owner: config.discord.owner,
-  commandPrefix: ";",
+  commandPrefix: config.discord.prefix,
 })
 
 client.registry
@@ -75,7 +75,10 @@ client.once("ready", () => {
 
   bootClientFromAllVoiceChannels(client)
 
-  client.dailyTracker.on("reset", () => client.guilds.cache.forEach(guild => { ppResetDaily(client, guild); aocResetDaily(guild) }))
+  client.dailyTracker.on("reset", () => client.guilds.cache.forEach(guild => {
+    ppResetDaily(client, guild)
+    aocResetDaily(guild)
+  }))
 })
 
 client.on("guildCreate", createEmojis)
