@@ -15,17 +15,28 @@ module.exports = class extends Command {
     }
 
     async run(msg, _args) {
-        let leaderboard = await getLeaderboard()
-        msg.channel.send(leaderboard)
+        var date = String(new Date())
+        let month = date.substring(4, 7);
+
+        if (month === "Dec") {
+            let leaderboard = await getLeaderboard()
+            msg.channel.send(leaderboard)
+        }
+
     }
 
     static async aocResetDaily(guild) {
 
-        let leaderboard = await getLeaderboard()
+        var date = String(new Date())
+        let month = date.substring(4, 7);
 
-        const firstGuildChannel = guild.channels.cache.filter(channel => channel.type === "text").first()
+        if (month === "Dec") {
+            let leaderboard = await getLeaderboard()
 
-        firstGuildChannel.send(leaderboard)
+            const firstGuildChannel = guild.channels.cache.filter(channel => channel.type === "text").first()
+
+            firstGuildChannel.send(leaderboard)
+        }
     }
 }
 
