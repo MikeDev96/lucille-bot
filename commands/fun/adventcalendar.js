@@ -1,4 +1,5 @@
 const { Command } = require("discord.js-commando")
+const { DateTime } = require("luxon")
 const config = require("../../config.json")
 const Tenor = require("tenorjs").client({
     "Key": config.tenor.key,
@@ -7,6 +8,7 @@ const Tenor = require("tenorjs").client({
 });
 
 var gifpairing = {}
+let prevDate = DateTime.local().toISODate()
 
 var keywords = ["christmas pudding", "christmas donkey", "christmas elf", "christmas snowman", "christmas present", "christmas dog", "christmas cake", "christmas baby", "christmas jumper", "christmas bauble", "christmas wreath", "christmas stocking", "christmas robin", "santa sleigh", "rudolph", "christmas candle", "christmas tree", "christmas michael buble", "christmas hat", "christmas cookie", "christmas candy cane", "christmas lights", "christmas cracker", "father christmas", "christmas dinner"]
 
@@ -37,6 +39,11 @@ module.exports = class extends Command {
         }
         else{
             var rdm = Math.floor(Math.random()*10)
+            const curDate = DateTime.local()
+            if (curDate.toISODate() !== prevDate && curDate.hour >= 8) {
+              prevDate = curDate.toISODate()
+              gifpairing = {}
+            }
             if(msg.author.id in gifpairing){
                 msg.reply("you've already had your choccy for the day greedy guts")
             }

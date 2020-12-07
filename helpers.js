@@ -1,3 +1,5 @@
+const { Util } = require("discord.js")
+
 const noop = () => { }
 
 const safeJoin = (array, seperator) => {
@@ -41,9 +43,14 @@ const selectRandom = array => {
   return array[Math.floor(Math.random() * array.length)]
 }
 
+const escapeMarkdown = text => {
+  return Util.escapeMarkdown(text || "")
+}
+
 module.exports.noop = noop
 module.exports.safeJoin = safeJoin
 module.exports.shuffle = shuffle
 module.exports.sleep = sleep
 module.exports.msToTimestamp = msToTimestamp
 module.exports.selectRandom = selectRandom
+module.exports.escapeMarkdown = escapeMarkdown

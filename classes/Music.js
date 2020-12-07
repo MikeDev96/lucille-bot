@@ -4,7 +4,7 @@ const { Util } = require("discord.js")
 const index = require("../index")
 const config = require("../config.json")
 const TopMostMessagePump = require("./TopMostMessagePump")
-const { safeJoin, msToTimestamp, selectRandom } = require("../helpers")
+const { safeJoin, msToTimestamp, selectRandom, escapeMarkdown } = require("../helpers")
 const TrackExtractor = require("./TrackExtractor")
 const { PLATFORM_YOUTUBE, PLATFORM_RADIO, PLATFORM_SPOTIFY, PLATFORM_TIDAL, PLATFORM_APPLE } = require("./TrackExtractor")
 const Track = require("./Track")
@@ -18,7 +18,6 @@ const RadioAdBlock = require("./RadioAdBlock")
 const { opus: Opus, FFmpeg } = require("prism-media")
 const { PassThrough } = require("stream")
 const { chooseFormat } = require("ytdl-core")
-const { escapeMarkdown } = require("./Helpers")
 
 const PLATFORMS_REQUIRE_YT_SEARCH = [PLATFORM_SPOTIFY, PLATFORM_TIDAL, PLATFORM_APPLE, PLATFORM_YOUTUBE, "search"]
 

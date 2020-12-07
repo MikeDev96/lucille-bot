@@ -1,4 +1,4 @@
-const { Guild, Client, Util } = require("discord.js")
+const { Guild, Client } = require("discord.js")
 const Requestee = require("./Requestee")
 const Music = require("./Music")
 
@@ -39,9 +39,5 @@ module.exports = class Helpers {
         }
       })
     })
-  }
-
-  static escapeMarkdown (text) {
-    return Util.escapeMarkdown(text || "")
   }
 }
