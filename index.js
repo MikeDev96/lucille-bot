@@ -12,7 +12,12 @@ const MasterDatabase = require("./classes/MasterDatabase")
 const { bootClientFromAllVoiceChannels } = require("./classes/Helpers")
 const { ppResetDaily } = require("./commands/fun/pp")
 const { aocResetDaily } = require("./commands/fun/aocleaderboard")
-require("dotenv").config()
+const express = require("express")
+const dotenv = require("dotenv")
+const { default: RedditRipper, router: redditRoutes } = require("./classes/RedditRipper")
+const MessageInterceptor = require("./classes/MessageInterceptor")
+
+dotenv.config()
 
 const emojis = [
   { name: "youtube", path: "assets/emojis/youtube.png" },
@@ -23,6 +28,7 @@ const emojis = [
   // { name: "search", path: "assets/emojis/search_white.png" },
 ]
 
+const app = express()
 const client = new Commando.CommandoClient({
   owner: config.discord.owner,
   commandPrefix: config.discord.prefix,
@@ -44,7 +50,7 @@ const createEmojis = guild => {
       if (!guild.emojis.cache.find(e => e.name === emoji.name)) {
         fs.readFile(emoji.path, (err, data) => {
           if (!err) {
-            guild.emojis.create(data, emoji.name, { roles: [botRole], reason: "Used by Tidify" })
+            guild.emojis.create(data, emoji.name, { roles: [botRole], reason: "Used by Lucille" })
           }
           else {
             console.log(err)
@@ -66,12 +72,15 @@ client.once("ready", () => {
   client.db = new MasterDatabase()
   client.dailyTracker = new DailyTracker(client, "18:00:00")
   client.voiceTracker = new VoiceTracker(client)
-  client.musicTracker = new MusicTracker(client)
   client.bangaTracker = new BangaTracker(client)
   client.aliasTracker = new AliasTracker(client)
   // client.voiceCommands = new VoiceCommands(client)
 
-  client.on("message", msg => client.musicTracker.run(msg))
+  client.messageInterceptor = new MessageInterceptor(client)
+  client.messageInterceptor.on("message", msg => {
+    new MusicTracker().run(msg)
+    new RedditRipper().runMessage(msg)
+  })
 
   bootClientFromAllVoiceChannels(client)
 
@@ -84,5 +93,8 @@ client.once("ready", () => {
 client.on("guildCreate", createEmojis)
 
 client.login(config.discord.token)
+
+app.use("/", redditRoutes)
+app.listen(process.env.PORT, () => console.log(`Lucille API listening at http://localhost:${process.env.PORT}`))
 
 exports.emojis = emojis

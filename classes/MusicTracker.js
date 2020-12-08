@@ -4,15 +4,7 @@ const MusicToX = require("./MusicToX")
 const { PLATFORM_SPOTIFY, PLATFORM_TIDAL, PLATFORM_APPLE } = require("./TrackExtractor")
 
 module.exports = class {
-  constructor (client) {
-    this.client = client
-  }
-
   async run (msg) {
-    if (this.client.dispatcher.parseMessage(msg)) {
-      return
-    }
-
     try {
       const te = new TrackExtractor(msg.content)
       if (te.parseLinks()) {
