@@ -33,6 +33,7 @@ router.get("/reddit/video/:videoId", async (req, res) => {
       "Accept-Ranges": "bytes",
       "Content-Length": chunksize,
       "Content-Type": "video/mp4",
+      "Content-Disposition": "attachment",
     }
     res.writeHead(206, head)
     file.pipe(res)
@@ -41,6 +42,7 @@ router.get("/reddit/video/:videoId", async (req, res) => {
     const head = {
       "Content-Length": fileSize,
       "Content-Type": "video/mp4",
+      "Content-Disposition": "attachment",
     }
     res.writeHead(200, head)
     fs.createReadStream(path).pipe(res)
