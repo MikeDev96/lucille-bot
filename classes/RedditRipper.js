@@ -7,6 +7,7 @@ const sanitise = require("sanitize-filename")
 const path = require("path")
 const globby = require("globby")
 const express = require("express")
+const { MessageAttachment } = require("discord.js")
 
 const router = express.Router()
 
@@ -33,7 +34,6 @@ router.get("/reddit/video/:videoId", async (req, res) => {
       "Accept-Ranges": "bytes",
       "Content-Length": chunksize,
       "Content-Type": "video/mp4",
-      "Content-Disposition": "attachment",
     }
     res.writeHead(206, head)
     file.pipe(res)
@@ -42,7 +42,6 @@ router.get("/reddit/video/:videoId", async (req, res) => {
     const head = {
       "Content-Length": fileSize,
       "Content-Type": "video/mp4",
-      "Content-Disposition": "attachment",
     }
     res.writeHead(200, head)
     fs.createReadStream(path).pipe(res)
@@ -58,7 +57,7 @@ const RedditRipper = class {
 
   async runMessage (msg) {
     try {
-      const link = this.parseLink(msg.content)
+      const link = await this.parseLink(msg.content)
       if (!link) {
         return
       }
@@ -66,18 +65,35 @@ const RedditRipper = class {
       const reaction = msg.react("⏳")
 
       const [url, id] = link
-      const endpoint = await this.run(url, id)
-      msg.reply(new URL(endpoint, process.env.PUBLIC_URL).href)
+      const [filename, endpoint] = await this.run(url, id)
+
+      try {
+        const attach = new MessageAttachment(filename)
+        await msg.reply(attach)
+      }
+      catch (err) {
+        msg.reply(new URL(endpoint, process.env.PUBLIC_URL).href)
+      }
 
       reaction.then(r => r.remove())
     }
     catch (err) {
-      msg.reply(`An error occurred while trying to rip the Reddit video`)
-      console.error(err)
+      msg.reply(err.message)
+      await msg.reactions.removeAll()
     }
   }
 
-  parseLink (url) {
+  // https://www.reddit.com/r/ProgrammerHumor/comments/k98mnh/i_just_want_to_cry_at_the_moment/
+  // https://v.redd.it/hilitbi0lc461
+  async parseLink (url) {
+    const shortMatch = /\bhttps?:\/\/(?:www.)?v.redd.it\/[a-zA-Z0-9-_]+?\b/.exec(url)
+    if (shortMatch) {
+      const res = await fetch(shortMatch[0], { redirect: "manual" })
+      const res2 = await fetch(res.headers.get("location"), { redirect: "manual" })
+
+      url = res2.headers.get("location")
+    }
+
     const match = /\bhttps?:\/\/(?:www.)?reddit.com\/r\/[a-zA-Z0-9-_]+?\/comments\/([a-zA-Z0-9-_]+?)\/[a-zA-Z0-9-_]+?\b/.exec(url)
     if (!match) {
       return null
@@ -94,7 +110,7 @@ const RedditRipper = class {
 
     const paths = await globby(`${VIDEOS_PATH}/* ${id}.mp4`)
     if (paths.length) {
-      return `/reddit/video/${id}`
+      return [paths[0], `/reddit/video/${id}`]
     }
 
     return await (this.processing[id] = this.process(url, id))
@@ -124,6 +140,8 @@ const RedditRipper = class {
 
         return await this.convertVideo(url, filename, id)
       }
+
+      throw new Error("Couldn't find video link")
     }
     catch (err) {
       throw new Error(err.message)
@@ -149,10 +167,10 @@ const RedditRipper = class {
 
       ffmpeg.on("exit", code => {
         if (code === 0) {
-          resolve(`/reddit/video/${id}`)
+          resolve([filename, `/reddit/video/${id}`])
         }
         else {
-          reject(code)
+          reject(new Error(`FFMpeg error code ${code}`))
         }
       })
     })
