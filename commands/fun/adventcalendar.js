@@ -40,7 +40,7 @@ module.exports = class extends Command {
         else{
             var rdm = Math.floor(Math.random()*10)
             const curDate = DateTime.local()
-            if (curDate.toISODate() !== prevDate && curDate.hour >= 8) {
+            if (curDate.toISODate() !== prevDate) {
               prevDate = curDate.toISODate()
               gifpairing = {}
             }
