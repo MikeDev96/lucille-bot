@@ -42,6 +42,9 @@ module.exports = class extends Command {
 
 // Get leaderboard function being removed from the class seems to let it be posted daily
 async function getLeaderboard() {
+    if (!config.aoc || !config.aoc.cookie) {
+        return
+    }
 
     //Query AOC - Cookie expires in 2030, so should be good for the time being
     let res = await axios.get("https://adventofcode.com/2020/leaderboard/private/view/1064962.json", {
