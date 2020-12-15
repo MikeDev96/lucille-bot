@@ -33,7 +33,7 @@
     "parse-duration": "^0.4.4",
     "query-string": "^6.13.1",
     "sanitize-filename": "^1.6.3",
-    "scrape-yt": "^1.4.0",
+    "scrape-yt": "^1.4.7",
     "spotify-web-api-node": "^4.0.0",
     "tenorjs": "^1.0.7",
     "ws": "^7.3.1",
