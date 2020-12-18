@@ -37,7 +37,7 @@
     "spotify-web-api-node": "^4.0.0",
     "tenorjs": "^1.0.7",
     "ws": "^7.3.1",
-    "ytdl-core": "^4.1.5",
+    "ytdl-core": "^4.2.0",
     "ytpl": "^1.0.1"
   },
   "devDependencies": {
