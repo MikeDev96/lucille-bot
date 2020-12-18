@@ -72,7 +72,7 @@ module.exports = class {
         this.state.voiceConnection = connection
         this.state.playCount = 0
 
-        this.state.voiceConnection.on("disconnect", () => {
+        this.state.voiceConnection.once("disconnect", () => {
           this.state.queue.splice(0, this.state.queue.length)
           this.state.summoned = false
           this.cleanUp()
@@ -164,7 +164,7 @@ module.exports = class {
 
       // If there's nothing playing, get the ball rolling
       if (!isPlaying) {
-        this.searchAndPlay()
+        await this.searchAndPlay()
       }
       else {
         // If there's a radio currently playing & there's something else in the queue (because we've just added it above)
@@ -195,7 +195,7 @@ module.exports = class {
     const item = this.state.queue[0]
 
     if (item.link) {
-      this.play()
+      await this.play()
     }
     else {
       const searchResults = (await scrapeYt.search(item.query)).filter(res => res.type === "video")
@@ -205,7 +205,7 @@ module.exports = class {
         item.setLink(`https://www.youtube.com/watch?v=${searchResult.id}`)
           .setYouTubeTitle(searchResult.title)
           .setDuration(searchResult.duration)
-        this.play()
+        await this.play()
       }
       else {
         console.log(`Couldn't find a video for: ${item.query}`)
@@ -278,7 +278,7 @@ module.exports = class {
       }
       catch (err) {
         this.state.textChannel.send(`Failed to get a YouTube stream for\n${this.getTrackTitle(item)}\n${item.link}`)
-        this.processQueue()
+        await this.processQueue()
         return
       }
     }
@@ -314,14 +314,14 @@ module.exports = class {
       this.startRadioMetadata(item)
     })
 
-    dispatcher.on("finish", () => {
+    dispatcher.on("finish", async () => {
       console.log("Stream finished...")
 
       item.setFinished()
       this.updateEmbed(true)
       this.cleanProgress()
       this.stopRadioMetadata(item)
-      this.processQueue()
+      await this.processQueue()
     })
 
     dispatcher.on("error", err => {
@@ -366,7 +366,7 @@ module.exports = class {
     ]
   }
 
-  processQueue () {
+  async processQueue () {
     if (this.state.repeat === "all") {
       if (this.state.queue.length > 0) {
         this.state.queue.push(this.state.queue.shift())
@@ -382,7 +382,7 @@ module.exports = class {
       this.disconnectSound()
     }
     else {
-      this.searchAndPlay()
+      await this.searchAndPlay()
     }
   }
 
@@ -469,11 +469,11 @@ module.exports = class {
 
       item.setRadioMetadata(metadata)
 
-      radioMetadata.subscribe(info => {
+      radioMetadata.subscribe(async info => {
         metadata.info = info
 
-        this.radioMusicToX(item)
         this.updateEmbed(true)
+        await this.radioMusicToX(item)
       })
 
       radioMetadata.subscribe(info => {
