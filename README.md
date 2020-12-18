@@ -44,8 +44,8 @@ For example, converting Spotify links to Tidal won't work as both of their corre
 ### Create a .env file in the root folder.
 Populate it with the following:
 ```
-YOUSYNC_API_URL = "http://mikedev.uk/yousync"
-YOUSYNC_URL = "http://mikedev.uk/yousync"
+YOUSYNC_API_URL = "http://yousync.mikedev.uk"
+YOUSYNC_URL = "http://yousync.mikedev.uk"
 PUBLIC_URL = http://lucille.mikedev.uk
 PORT = 3000
 ```
