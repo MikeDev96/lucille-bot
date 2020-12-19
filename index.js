@@ -16,6 +16,7 @@ const express = require("express")
 const dotenv = require("dotenv")
 const { default: RedditRipper, router: redditRoutes } = require("./classes/RedditRipper")
 const MessageInterceptor = require("./classes/MessageInterceptor")
+const { default: AmazonRipper } = require("./classes/AmazonRipper")
 
 dotenv.config()
 
@@ -80,6 +81,7 @@ client.once("ready", () => {
   client.messageInterceptor.on("message", msg => {
     new MusicTracker().run(msg)
     new RedditRipper().runMessage(msg)
+    new AmazonRipper().runMessage(msg)
   })
 
   bootClientFromAllVoiceChannels(client)
