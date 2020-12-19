@@ -8,36 +8,38 @@ class DailyTracker extends EventEmitter {
     super()
 
     this.db = client.db
-
-    const time = timeValidationRegex.test(startTime)
-    if (time) {
-      const nowUtc = DateTime.utc()
-      let targetUtc = DateTime.fromISO(startTime, { zone: "Europe/London" }).toUTC()
-
-      if (nowUtc.valueOf() >= targetUtc.valueOf()) {
-        targetUtc = targetUtc.plus({ days: 1 })
-      }
-
-      this.startTime = targetUtc.diff(nowUtc, "milliseconds").milliseconds + 1000
-    }
+    this.startTime = startTime
 
     this.initResetTimer()
   }
 
   initResetTimer () {
-    const msDay = 86400000
-    let nextResetTime = this.db.getSetting("", "Daily.nextReset")
-    if (!nextResetTime) {
-      nextResetTime = this.db.setSetting("", "Daily.nextReset", Date.now() + this.startTime, "number") // 86400000
-    }
+    // no need to check if it exists because we just work out the duration anyway
+    let nextResetTime = this.db.setSetting("", "Daily.nextReset", Date.now() + this.getDuration(), "number") // 86400000
 
     setTimeout(() => {
-      nextResetTime = this.db.setSetting("", "Daily.nextReset", Date.now() + msDay, "number")
+      nextResetTime = this.db.setSetting("", "Daily.nextReset", Date.now() + this.getDuration(), "number")
 
       this.emit("reset")
-
       this.initResetTimer()
     }, nextResetTime - Date.now())
+  }
+
+  // probably could make this a global thing
+  getDuration () {
+    const time = timeValidationRegex.test(this.startTime)
+    if (time) {
+      const nowUtc = DateTime.utc()
+      let targetUtc = DateTime.fromISO(this.startTime, { zone: "Europe/London" }).toUTC()
+
+      if (nowUtc.valueOf() >= targetUtc.valueOf()) {
+        targetUtc = targetUtc.plus({ days: 1 })
+      }
+
+      return targetUtc.diff(nowUtc, "milliseconds").milliseconds + 1000
+    }
+
+    return 86400000
   }
 }
 
