@@ -2,8 +2,13 @@ const fetch = require("node-fetch")
 
 const AmazonRipper = class {
   async runMessage (msg) {
+    if (!this.isAmazonLink(msg.content)) {
+      return
+    }
+
     const reaction = msg.react("⏳")
-    const info = await this.getInfo(msg)
+    const info = await this.getInfo(msg.content)
+
     if (info) {
       msg.reply({
         embed: {
@@ -24,14 +29,13 @@ const AmazonRipper = class {
     reaction.then(r => r.remove())
   }
 
-  async getInfo (msg) {
-    try {
-      const amznMatch = /\bhttps?:\/\/(?:www\.)?amazon\.co\.uk\b/.exec(msg.content)
-      if (!amznMatch) {
-        return
-      }
+  isAmazonLink (url) {
+    return /\bhttps?:\/\/(?:www\.)?amazon\.co\.uk\b/.test(url)
+  }
 
-      const res = await fetch(amznMatch.input, { headers: { "User-Agent": "Lucille/1.0.0" } }) // PostmanRuntime/7.26.8 | Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.169 Safari/537.36
+  async getInfo (url) {
+    try {
+      const res = await fetch(url, { headers: { "User-Agent": "Lucille/1.0.0" } }) // PostmanRuntime/7.26.8 | Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.169 Safari/537.36
       const html = await res.text()
 
       const jsonMatch = /var obj = jQuery\.parseJSON\('(.+?)'\)/.exec(html)
@@ -52,11 +56,11 @@ const AmazonRipper = class {
         return
       }
 
-      const [, url] = largeMatch
+      const [, imageUrl] = largeMatch
 
       return {
         title: data.title,
-        image: url,
+        image: imageUrl,
       }
     }
     catch (err) {
