@@ -1,4 +1,5 @@
 const fetch = require("node-fetch")
+const he = require("he")
 
 const AmazonRipper = class {
   async runMessage (msg) {
@@ -13,7 +14,7 @@ const AmazonRipper = class {
       msg.reply({
         embed: {
           color: 0x0099ff,
-          title: info.title,
+          title: he.decode(info.title),
           url: msg.content,
           author: {
             name: msg.member.displayName,
