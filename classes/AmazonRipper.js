@@ -16,6 +16,28 @@ const AmazonRipper = class {
           color: 0x0099ff,
           title: he.decode(info.title),
           url: msg.content,
+          fields: [
+            ...info.price ? [
+              {
+                name: "Price",
+                value: info.price,
+                inline: true,
+              },
+            ] : null,
+            ...info.rating ? [
+              {
+                name: "Rating",
+                value: info.rating,
+                inline: true,
+              },
+            ] : null,
+            ...info.features.length ? [
+              {
+                name: "Features",
+                value: info.features.map(feat => `• ${feat}`).join("\n").substr(0, 1024),
+              },
+            ] : null,
+          ].filter(f => f),
           author: {
             name: msg.member.displayName,
             icon_url: msg.author.displayAvatarURL(),
@@ -31,7 +53,7 @@ const AmazonRipper = class {
   }
 
   isAmazonLink (url) {
-    return /\bhttps?:\/\/(?:www\.)?amazon\.co\.uk\b/.test(url)
+    return /\bhttps?:\/\/(?:www\.)?amazon.[a-zA-Z.]{1,3}\b/.test(url)
   }
 
   async getInfo (url) {
@@ -59,9 +81,22 @@ const AmazonRipper = class {
 
       const [, imageUrl] = largeMatch
 
+      const priceMatch = /<span id="priceblock_(?:ourprice|dealprice)" .+?>(.+?)<\/span>/.exec(html)
+      const [, price] = priceMatch || [null, ""]
+
+      const featuresMatch = /<div id="feature-bullets" class="a-section a-spacing-medium a-spacing-top-small">(.+?)<\/div>/s.exec(html)
+      const [, featuresMatchHtml] = featuresMatch || [null, ""]
+      const featureMatches = [...featuresMatchHtml.matchAll(/<span class="a-list-item">(.+?)<\/span>/gs)].map(([, innerText]) => innerText.trim())
+
+      const ratingMatch = /<span data-hook="rating-out-of-text" class="a-size-medium a-color-base">(.+?)<\/span>/s.exec(html)
+      const [, rating] = ratingMatch || [null, ""]
+
       return {
         title: data.title,
         image: imageUrl,
+        price,
+        features: featureMatches,
+        rating,
       }
     }
     catch (err) {
