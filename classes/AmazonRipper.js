@@ -67,7 +67,7 @@ const AmazonRipper = class {
         return
       }
 
-      const data = JSON.parse(jsonMatch[1])
+      const data = JSON.parse(jsonMatch[1].replace(/\\'/g, "'"))
 
       const imageMatch = /var data = ({\s+'colorImages':.+?});/gs.exec(html)
       if (!imageMatch) {
@@ -85,7 +85,7 @@ const AmazonRipper = class {
       const priceMatch = /<span id="priceblock_(?:ourprice|dealprice|saleprice)" .+?>(.+?)<\/span>/.exec(html)
       const [, price] = priceMatch || [null, ""]
 
-      const featuresMatch = /<div id="feature-bullets" class="a-section a-spacing-medium a-spacing-top-small">(.+?)<\/div>/s.exec(html)
+      const featuresMatch = /<div id="feature-bullets" class="a-section a-spacing-medium a-spacing-top-small">.+?<ul class="a-unordered-list .+?">(.+?)<\/ul>/s.exec(html)
       const [, featuresMatchHtml] = featuresMatch || [null, ""]
       const featureMatches = [...featuresMatchHtml.matchAll(/<span class="a-list-item">(.+?)<\/span>/gs)].map(([, innerText]) => innerText.trim())
 
