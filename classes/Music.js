@@ -18,6 +18,7 @@ const RadioAdBlock = require("./RadioAdBlock")
 const { opus: Opus, FFmpeg } = require("prism-media")
 const { PassThrough } = require("stream")
 const { chooseFormat } = require("ytdl-core")
+const { getEmoji } = require("./Helpers")
 
 const PLATFORMS_REQUIRE_YT_SEARCH = [PLATFORM_SPOTIFY, PLATFORM_TIDAL, PLATFORM_APPLE, PLATFORM_YOUTUBE, "search"]
 
@@ -30,7 +31,7 @@ module.exports = class {
       voiceConnection: null,
       queue: [],
       emojis: index.emojis.reduce((acc, cur) => {
-        acc[cur.name] = (textChannel.guild.emojis.cache.find(e => e.name === cur.name) || "").toString()
+        acc[cur.name] = getEmoji(textChannel.guild, cur.name)
         return acc
       }, {}),
       pauser: "",

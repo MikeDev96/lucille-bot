@@ -1,5 +1,6 @@
 const fetch = require("node-fetch")
 const he = require("he")
+const { getEmoji } = require("./Helpers")
 
 const AmazonRipper = class {
   async runMessage (msg) {
@@ -13,8 +14,8 @@ const AmazonRipper = class {
     if (info) {
       msg.reply({
         embed: {
-          color: 0x0099ff,
-          title: he.decode(info.title),
+          color: 0xfffffe,
+          title: `${getEmoji(msg.guild, "amazon")} ${he.decode(info.title)}`,
           url: msg.content,
           fields: [
             ...info.price ? [
@@ -23,21 +24,21 @@ const AmazonRipper = class {
                 value: info.price,
                 inline: true,
               },
-            ] : null,
+            ] : [],
             ...info.rating ? [
               {
                 name: "Rating",
                 value: info.rating,
                 inline: true,
               },
-            ] : null,
+            ] : [],
             ...info.features.length ? [
               {
                 name: "Features",
                 value: info.features.map(feat => `• ${feat}`).join("\n").substr(0, 1024),
               },
-            ] : null,
-          ].filter(f => f),
+            ] : [],
+          ],
           author: {
             name: msg.member.displayName,
             icon_url: msg.author.displayAvatarURL(),
@@ -81,7 +82,7 @@ const AmazonRipper = class {
 
       const [, imageUrl] = largeMatch
 
-      const priceMatch = /<span id="priceblock_(?:ourprice|dealprice)" .+?>(.+?)<\/span>/.exec(html)
+      const priceMatch = /<span id="priceblock_(?:ourprice|dealprice|saleprice)" .+?>(.+?)<\/span>/.exec(html)
       const [, price] = priceMatch || [null, ""]
 
       const featuresMatch = /<div id="feature-bullets" class="a-section a-spacing-medium a-spacing-top-small">(.+?)<\/div>/s.exec(html)

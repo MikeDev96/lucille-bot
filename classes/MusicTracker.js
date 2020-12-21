@@ -2,6 +2,7 @@ const config = require("../config.json")
 const TrackExtractor = require("./TrackExtractor")
 const MusicToX = require("./MusicToX")
 const { PLATFORM_SPOTIFY, PLATFORM_TIDAL, PLATFORM_APPLE } = require("./TrackExtractor")
+const { getEmoji } = require("./Helpers")
 
 module.exports = class {
   async run (msg) {
@@ -12,9 +13,9 @@ module.exports = class {
         if (filteredLinks.length) {
           const processedLinks = await Promise.all(filteredLinks.map(l => new MusicToX(l).processLink()))
 
-          const spotifyEmoji = (msg.guild.emojis.cache.find(e => e.name === "spotify") || "").toString()
-          const tidalEmoji = (msg.guild.emojis.cache.find(e => e.name === "tidal") || "").toString()
-          const appleEmoji = (msg.guild.emojis.cache.find(e => e.name === "apple") || "").toString()
+          const spotifyEmoji = getEmoji(msg.guild, "spotify")
+          const tidalEmoji = getEmoji(msg.guild, "tidal")
+          const appleEmoji = getEmoji(msg.guild, "apple")
 
           const embed = {
             embed: {

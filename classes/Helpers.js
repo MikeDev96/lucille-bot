@@ -40,4 +40,8 @@ module.exports = class Helpers {
       })
     })
   }
+
+  static getEmoji (guild, emoji) {
+    return (guild.emojis.cache.find(e => e.name === emoji) || "").toString()
+  }
 }

@@ -27,6 +27,7 @@ const emojis = [
   { name: "apple", path: "assets/emojis/applemusic.png" },
   { name: "soundcloud", path: "assets/emojis/soundcloud.png" },
   // { name: "search", path: "assets/emojis/search_white.png" },
+  { name: "amazon", path: "assets/emojis/amazon.png" },
 ]
 
 const app = express()
