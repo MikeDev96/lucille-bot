@@ -47,6 +47,10 @@ const escapeMarkdown = text => {
   return Util.escapeMarkdown(text || "")
 }
 
+const getEmoji = (guild, emoji) => {
+  return (guild.emojis.cache.find(e => e.name === emoji) || "").toString()
+}
+
 module.exports.noop = noop
 module.exports.safeJoin = safeJoin
 module.exports.shuffle = shuffle
@@ -54,3 +58,4 @@ module.exports.sleep = sleep
 module.exports.msToTimestamp = msToTimestamp
 module.exports.selectRandom = selectRandom
 module.exports.escapeMarkdown = escapeMarkdown
+module.exports.getEmoji = getEmoji
