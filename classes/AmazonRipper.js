@@ -1,6 +1,6 @@
 const fetch = require("node-fetch")
 const he = require("he")
-const { getEmoji } = require("./Helpers")
+const { getEmoji } = require("../helpers")
 
 const AmazonRipper = class {
   async runMessage (msg) {

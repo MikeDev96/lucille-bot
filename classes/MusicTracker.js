@@ -2,7 +2,7 @@ const config = require("../config.json")
 const TrackExtractor = require("./TrackExtractor")
 const MusicToX = require("./MusicToX")
 const { PLATFORM_SPOTIFY, PLATFORM_TIDAL, PLATFORM_APPLE } = require("./TrackExtractor")
-const { getEmoji } = require("./Helpers")
+const { getEmoji } = require("../helpers")
 
 module.exports = class {
   async run (msg) {
