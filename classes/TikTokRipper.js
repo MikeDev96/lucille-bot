@@ -91,7 +91,7 @@ const TikTokRipper = class {
       url = redirectRes.url
     }
 
-    const match = /\bhttps?:\/\/(?:www\.)?(?:m\.)?tiktok\.com\/(?:v\/(\d+?)|@.+?\/video\/(\d+?))\b/.exec(url)
+    const match = /\bhttps?:\/\/(?:www\.)?(?:m\.)?tiktok\.com\/(?:v|@.+?\/video)\/(\d+?)\b/.exec(url)
     if (!match) {
       return null
     }
