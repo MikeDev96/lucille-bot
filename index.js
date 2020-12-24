@@ -17,6 +17,7 @@ const dotenv = require("dotenv")
 const { default: RedditRipper, router: redditRoutes } = require("./classes/RedditRipper")
 const MessageInterceptor = require("./classes/MessageInterceptor")
 const { default: AmazonRipper } = require("./classes/AmazonRipper")
+const { default: TikTokRipper, router: tiktokRoutes } = require("./classes/TikTokRipper")
 
 dotenv.config()
 
@@ -83,6 +84,7 @@ client.once("ready", () => {
     new MusicTracker().run(msg)
     new RedditRipper().runMessage(msg)
     new AmazonRipper().runMessage(msg)
+    new TikTokRipper().runMessage(msg)
   })
 
   bootClientFromAllVoiceChannels(client)
@@ -98,6 +100,7 @@ client.on("guildCreate", createEmojis)
 client.login(config.discord.token)
 
 app.use("/", redditRoutes)
+app.use("/", tiktokRoutes)
 app.listen(process.env.PORT, () => console.log(`Lucille API listening at http://localhost:${process.env.PORT}`))
 
 exports.emojis = emojis
