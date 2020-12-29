@@ -31,7 +31,7 @@ module.exports = class extends Command {
             return
         }
 
-        var countDown = countdown(new Date(2021, 0, 30)).toString()
+        var countDown = countdown(new Date(2021, 0, 30).setHours(18)).toString()
         countDown = countDown.replace(/, /g, "\n").replace(/ and /g, "\n")
 
         const embed = {
@@ -69,7 +69,7 @@ module.exports = class extends Command {
     }
 
     static imposterReleaseCountdown(client, guild) {
-        var countDown = countdown(new Date(2021, 0, 30)).toString()
+        var countDown = countdown(new Date(2021, 0, 30).setHours(18)).toString()
         countDown = countDown.replace(/, /g, "\n").replace(/ and /g, "\n")
 
         const dailyEmbed = {
