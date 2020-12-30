@@ -1,9 +1,5 @@
-/* TODO:
-    - Convert msg to voice
-    - Play message
-*/
-
 const gTTS = require('gtts')
+const fs = require('fs')
 
 module.exports = class TextToSpeech {
 
@@ -17,8 +13,8 @@ module.exports = class TextToSpeech {
         const botID = this.client['user']['id']
 
         if (event === "move") {
-            if (!(voiceObj.fromChannel['members'].has(botID) || voiceObj.toChannel['members'].has(botID)))
-                return
+            if (!voiceObj.fromChannel['members'].has(botID) || !voiceObj.toChannel['members'].has(botID))
+                return 
         } else {
             if (!voiceState.channel['members'].has(botID))
                 return
@@ -31,10 +27,10 @@ module.exports = class TextToSpeech {
 
                 const path = "assets/tts/"
                 gtts.save(`${path}tts.mp3`, (err, result) => {
-                    if (err) { throw new Error(err) }
-                    //TODO: Bot Playback
+                    if (err) throw new Error(err)
+                    //Get the bots voice connection
+                    this.client['voice']['connections'].get(voiceState.guild.id).play(fs.createReadStream(`${path}tts.mp3`))
                 })
-
             })
     }
 
