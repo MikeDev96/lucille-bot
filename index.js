@@ -3,11 +3,13 @@ const path = require("path")
 const config = require("./config.json")
 const fs = require("fs")
 const VoiceTracker = require("./classes/VoiceTracker")
+const VoiceStateAdapter = require("./classes/VoiceStateAdapter")
 const MusicTracker = require("./classes/MusicTracker")
 const BangaTracker = require("./classes/BangaTracker")
 const AliasTracker = require("./classes/AliasTracker")
 const DailyTracker = require("./classes/DailyTracker")
 const MasterDatabase = require("./classes/MasterDatabase")
+const TextToSpeech = require("./classes/TextToSpeech")
 // const VoiceCommands = require("./classes/VoiceCommands")
 const { bootClientFromAllVoiceChannels } = require("./classes/Helpers")
 const { ppResetDaily } = require("./commands/fun/pp")
@@ -78,6 +80,7 @@ client.once("ready", () => {
   client.voiceTracker = new VoiceTracker(client)
   client.bangaTracker = new BangaTracker(client)
   client.aliasTracker = new AliasTracker(client)
+  client.voiceStateAdapter = new VoiceStateAdapter(client)
   // client.voiceCommands = new VoiceCommands(client)
 
   client.messageInterceptor = new MessageInterceptor(client)
@@ -95,6 +98,11 @@ client.once("ready", () => {
     aocResetDaily(guild)
     imposterReleaseCountdown(client, guild)
   }))
+
+  client.voiceStateAdapter.on("join", (voiceObj) => {new TextToSpeech(client).run("join", voiceObj)})
+  client.voiceStateAdapter.on("leave", (voiceObj) => {new TextToSpeech(client).run("leave", voiceObj)})
+  client.voiceStateAdapter.on("move", (voiceObj) => {new TextToSpeech(client).run("move", voiceObj)})
+
 })
 
 client.on("guildCreate", createEmojis)

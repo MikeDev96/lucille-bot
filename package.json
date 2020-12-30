@@ -25,6 +25,7 @@
     "ffmpeg-static": "^4.2.2",
     "get-audio-duration": "^2.0.3",
     "globby": "^11.0.1",
+    "gtts": "^0.2.1",
     "he": "^1.2.0",
     "humanize-duration": "^3.23.1",
     "lodash": "^4.17.19",

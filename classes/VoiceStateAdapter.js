@@ -33,6 +33,7 @@ class VoiceStateAdapter extends EventEmitter {
         toChannel: newMember.channel,
         fromAfk: oldMember.channelID === oldMember.guild.afkChannelID,
         toAfk: newMember.channelID === oldMember.guild.afkChannelID,
+        voiceState: oldMember
       })
     }
     // Wasn't a voice channel change
