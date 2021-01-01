@@ -60,3 +60,9 @@ Use `npm ci` to install the Node dependencies so that you don't end up with a di
 
 ### Good to go
 You should now be good to go, run `npm start` to get going!
+
+---
+
+## Add bot to server
+Replace the `client_id` param with your bot's client id and open the link.
+https://discordapp.com/oauth2/authorize?&client_id=000000000000000000&scope=bot&permissions=8
