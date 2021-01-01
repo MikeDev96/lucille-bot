@@ -27,6 +27,7 @@
     "globby": "^11.0.1",
     "he": "^1.2.0",
     "humanize-duration": "^3.23.1",
+    "jsdom": "^16.4.0",
     "lodash": "^4.17.19",
     "lodash.debounce": "^4.0.8",
     "lowdb": "^1.0.0",
