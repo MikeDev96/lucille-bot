@@ -12,6 +12,8 @@ const MasterDatabase = require("./classes/MasterDatabase")
 const { bootClientFromAllVoiceChannels } = require("./classes/Helpers")
 const { ppResetDaily } = require("./commands/fun/pp")
 const { aocResetDaily } = require("./commands/fun/aocleaderboard")
+const { imposterReleaseCountdown } = require("./commands/fun/imposter")
+const { bansheeResetDaily } = require("./commands/destiny/banshee")
 const express = require("express")
 const dotenv = require("dotenv")
 const { default: RedditRipper, router: redditRoutes } = require("./classes/RedditRipper")
@@ -42,6 +44,7 @@ client.registry
   .registerGroup("whitelist", "Whitelist")
   .registerGroup("misc", "Miscellaneous")
   .registerGroup("fun", "Fun")
+  .registerGroup("destiny", "Destiny")
   .registerDefaults()
   .registerCommandsIn(path.join(__dirname, "commands"))
 
@@ -92,6 +95,10 @@ client.once("ready", () => {
   client.dailyTracker.on("reset", () => client.guilds.cache.forEach(guild => {
     ppResetDaily(client, guild)
     aocResetDaily(guild)
+    imposterReleaseCountdown(client, guild)
+
+    //Destiny daily reset
+    bansheeResetDaily(guild)
   }))
 })
 
