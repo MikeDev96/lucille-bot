@@ -6,7 +6,7 @@ const config = require("../config.json")
 const TopMostMessagePump = require("./TopMostMessagePump")
 const { safeJoin, msToTimestamp, selectRandom, escapeMarkdown } = require("../helpers")
 const TrackExtractor = require("./TrackExtractor")
-const { PLATFORM_YOUTUBE, PLATFORM_RADIO, PLATFORM_SPOTIFY, PLATFORM_TIDAL, PLATFORM_APPLE } = require("./TrackExtractor")
+const { PLATFORM_YOUTUBE, PLATFORM_RADIO, PLATFORM_SPOTIFY, PLATFORM_TIDAL, PLATFORM_APPLE, PLATFORM_TTS } = require("./TrackExtractor")
 const Track = require("./Track")
 const fs = require("fs")
 const { RadioMetadata } = require("./RadioMetadata")
@@ -23,7 +23,7 @@ const { getEmoji } = require("../helpers")
 const PLATFORMS_REQUIRE_YT_SEARCH = [PLATFORM_SPOTIFY, PLATFORM_TIDAL, PLATFORM_APPLE, PLATFORM_YOUTUBE, "search"]
 
 module.exports = class {
-  constructor (textChannel) {
+  constructor(textChannel) {
     this.state = {
       joinState: 0,
       voiceChannel: null,
@@ -55,7 +55,7 @@ module.exports = class {
     })
   }
 
-  async summon (voiceChannel, userSummoned = false) {
+  async summon(voiceChannel, userSummoned = false) {
     if (userSummoned) {
       this.state.summoned = true
     }
@@ -92,7 +92,7 @@ module.exports = class {
     }
   }
 
-  async add (input, requestee, voiceChannel, index = -1) {
+  async add(input, requestee, voiceChannel, index = -1) {
     const isPlaying = !!this.state.queue.length
 
     let insertAt = index < 0 ? this.state.queue.length : index
@@ -192,10 +192,10 @@ module.exports = class {
     return true
   }
 
-  async searchAndPlay () {
+  async searchAndPlay() {
     const item = this.state.queue[0]
 
-    if (item.link) {
+    if (item.link || item.platform === 'tts') {
       await this.play()
     }
     else {
@@ -214,7 +214,7 @@ module.exports = class {
     }
   }
 
-  getYTStream (url) {
+  getYTStream(url) {
     return new Promise((resolve, reject) => {
       ytdl.getInfo(url)
         .then(info => {
@@ -260,7 +260,7 @@ module.exports = class {
     })
   }
 
-  async play (update = "before") {
+  async play(update = "before") {
     const item = this.state.queue[0]
     const fetchYTStream = PLATFORMS_REQUIRE_YT_SEARCH.includes(item.platform)
     let stream
@@ -302,6 +302,7 @@ module.exports = class {
     const dispatcher = this.state.voiceConnection.play(stream, fetchYTStream ? { type: "opus" } : undefined)
     dispatcher.setVolumeLogarithmic(this.state.volume / 100)
 
+
     if (update === "after") {
       this.updateEmbed()
     }
@@ -330,7 +331,7 @@ module.exports = class {
     })
   }
 
-  async getMediaStream (item) {
+  async getMediaStream(item) {
     if (item.platform === PLATFORM_RADIO) {
       const radio = Object.values(radios).find(r => r.url === item.link)
 
@@ -355,19 +356,20 @@ module.exports = class {
           }
         }
       }
+    } else if(item.platform === PLATFORM_TTS) {
+      return item.fileStream
     }
-
     return item.link
   }
 
-  getFFMpegArgs () {
+  getFFMpegArgs() {
     return [
       "-af",
       `equalizer=f=40:width_type=h:width=50:g=${this.state.bassBoost},atempo=${this.state.tempo}`,
     ]
   }
 
-  async processQueue () {
+  async processQueue() {
     if (this.state.repeat === "all") {
       if (this.state.queue.length > 0) {
         this.state.queue.push(this.state.queue.shift())
@@ -387,12 +389,12 @@ module.exports = class {
     }
   }
 
-  setRepeat (type) {
+  setRepeat(type) {
     this.state.repeat = type
     this.updateEmbed()
   }
 
-  setVolume (volume, isRadioAdBlock = false) {
+  setVolume(volume, isRadioAdBlock = false) {
     this.state.volume = volume
     this.dispatcherExec(d => d.setVolumeLogarithmic(volume / 100))
     this.updateEmbed()
@@ -402,7 +404,7 @@ module.exports = class {
     }
   }
 
-  connectSound () {
+  connectSound() {
     return new Promise((resolve, reject) => {
       const path = "assets/sounds/connect"
       const sounds = fs.existsSync(path) && fs.readdirSync(path)
@@ -422,7 +424,7 @@ module.exports = class {
     })
   }
 
-  disconnectSound () {
+  disconnectSound() {
     const disconnect = () => {
       if (!this.state.summoned) {
         this.state.voiceConnection.disconnect()
@@ -442,14 +444,14 @@ module.exports = class {
     }
   }
 
-  cleanProgress () {
+  cleanProgress() {
     if (this.state.progressHandle) {
       clearInterval(this.state.progressHandle)
       this.state.progressHandle = null
     }
   }
 
-  cleanUp () {
+  cleanUp() {
     this.debouncer.cancel()
     this.state.voiceConnection = null
     this.state.voiceChannel = null
@@ -457,7 +459,7 @@ module.exports = class {
     this.state.messagePump.clear()
   }
 
-  startRadioMetadata (item) {
+  startRadioMetadata(item) {
     // Any commands that just play the stream again ie. bass boost, don't fire the finish event,
     // so we need to make sure it gets cleaned up.
     this.stopRadioMetadata(item)
@@ -483,7 +485,7 @@ module.exports = class {
     }
   }
 
-  stopRadioMetadata (item) {
+  stopRadioMetadata(item) {
     if (item.radioMetadata && item.radioMetadata.instance) {
       item.radioMetadata.instance.dispose()
       item.setRadioMetadata(undefined)
@@ -491,7 +493,7 @@ module.exports = class {
     }
   }
 
-  async radioMusicToX (item) {
+  async radioMusicToX(item) {
     if (item.radioMetadata && item.radioMetadata.info.artist && item.radioMetadata.info.title) {
       const sanitise = str => str
         .replace(/(?<=\b) ft. (?=\b)/gi, " ")
@@ -525,7 +527,7 @@ module.exports = class {
     }
   }
 
-  updateEmbed (edit = false) {
+  updateEmbed(edit = false) {
     const currentlyPlaying = this.state.queue[0]
     if (currentlyPlaying) {
       const progressPerc = this.getPlaybackProgress(currentlyPlaying)
@@ -537,7 +539,7 @@ module.exports = class {
     }
   }
 
-  getPlaybackProgress (track) {
+  getPlaybackProgress(track) {
     if (track.finished) {
       return 1
     }
@@ -548,11 +550,11 @@ module.exports = class {
     return progressPerc
   }
 
-  getTrackTitle (track) {
+  getTrackTitle(track) {
     return track.platform === "search" ? track.youTubeTitle : safeJoin([track.artists, track.title], " - ")
   }
 
-  createQueueEmbed (currentlyPlaying, progressPerc) {
+  createQueueEmbed(currentlyPlaying, progressPerc) {
     const queue = this.state.queue.slice(1).map((t, i) => `\`${(i + 1).toString().padStart(2, "0")}\` ${escapeMarkdown(this.getTrackTitle(t))} <@${t.requestee.id}>`.slice(0, 1024))
     const top10Items = queue.slice(0, 10)
     const top10 = Util.splitMessage(top10Items, { maxLength: 1024 })
@@ -633,7 +635,7 @@ module.exports = class {
     }
   }
 
-  getPlatformEmoji (platform) {
+  getPlatformEmoji(platform) {
     switch (platform) {
       case PLATFORM_RADIO:
         return ":radio:"
@@ -642,7 +644,7 @@ module.exports = class {
     }
   }
 
-  getRadioMusicToXInfo (item) {
+  getRadioMusicToXInfo(item) {
     if (item.platform === PLATFORM_RADIO && item.radioMetadata && item.radioMetadata.musicToX) {
       const musicToX = item.radioMetadata.musicToX
       const splitApple = (musicToX.appleId || "").split("-")
@@ -658,11 +660,11 @@ module.exports = class {
     return ""
   }
 
-  getTextChannel () {
+  getTextChannel() {
     return this.state.textChannel
   }
 
-  dispatcherExec (callback) {
+  dispatcherExec(callback) {
     if (this.state.voiceConnection && this.state.voiceConnection.dispatcher) {
       return callback(this.state.voiceConnection.dispatcher)
     }
