@@ -97,14 +97,26 @@ client.once("ready", () => {
     aocResetDaily(guild)
     imposterReleaseCountdown(client, guild)
 
-    //Destiny daily reset
+    // Destiny daily reset
     bansheeResetDaily(guild)
   }))
 })
 
 client.on("guildCreate", createEmojis)
 
-client.login(config.discord.token)
+const connect = async () => {
+  try {
+    await client.login(config.discord.token)
+  }
+  catch (err) {
+    console.log(`Failed to connect to Discord, retrying in 5 seconds...\n${err.message}`)
+    setTimeout(async () => {
+      await connect()
+    }, 5000)
+  }
+}
+
+connect()
 
 app.use("/", redditRoutes)
 app.use("/", tiktokRoutes)
