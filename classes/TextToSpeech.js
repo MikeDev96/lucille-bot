@@ -1,5 +1,9 @@
 const gTTS = require('gtts')
-const fs = require('fs')
+const { PassThrough } = require('stream')
+const Track = require('./Track')
+const Requestee = require("./Requestee")
+const { getMusic } = require('../classes/Helpers')
+const { PLATFORM_TTS } = require('../classes/TrackExtractor')
 
 module.exports = class TextToSpeech {
 
@@ -12,9 +16,10 @@ module.exports = class TextToSpeech {
         const { voiceState } = voiceObj
         const botID = this.client['user']['id']
 
+        // Check for bot being in moved into or moved from channel
         if (event === "move") {
-            if (!voiceObj.fromChannel['members'].has(botID) || !voiceObj.toChannel['members'].has(botID))
-                return 
+            if (!(voiceObj.fromChannel['members'].has(botID) || voiceObj.toChannel['members'].has(botID)))
+                return
         } else {
             if (!voiceState.channel['members'].has(botID))
                 return
@@ -22,24 +27,52 @@ module.exports = class TextToSpeech {
 
         voiceState.guild.members.fetch(voiceState.id)
             .then(res => {
+                const gtts = new gTTS(
+                    this.getMessage(
+                        event,
+                        this.validUsername(res['displayName']) ? res['displayName'] : 'User')
+                    , 'en-au')
 
-                var gtts = new gTTS(this.getMessage(event, res['nickname'], 'en'), 'en-au')
+                const passThroughStream = new PassThrough({ highWaterMark: 1 << 25 })
+                const output = gtts.stream().pipe(passThroughStream)
+                const music = getMusic(voiceState.guild)
 
-                const path = "assets/tts/"
-                gtts.save(`${path}tts.mp3`, (err, result) => {
-                    if (err) throw new Error(err)
-                    //Get the bots voice connection
-                    this.client['voice']['connections'].get(voiceState.guild.id).play(fs.createReadStream(`${path}tts.mp3`))
-                })
+                if (music.state.queue.length == 0) {
+                    const dispatcher = this.client['voice']['connections']
+                        .get(voiceState.guild.id)
+                        .play(output)
+                    dispatcher.setVolumeLogarithmic(2)
+                } else {
+                    const track = new Track()
+                        .setTitle("Text to Speech message")
+                        .setPlatform(PLATFORM_TTS)
+                        .setFileStream(output)
+
+                    let tracksArr = []
+                    tracksArr.push(track)
+
+                    music.add(tracksArr, 
+                        new Requestee(
+                            this.client['user']['username'], 
+                            this.client['avatar'], 
+                            this.client['id']
+                        ), voiceState.channel, undefined)
+                }
             })
     }
 
-    getMessage(event, nickname) {
+    getMessage(event, user) {
         switch (event) {
-            case "join": return `${nickname} joined the channel`
-            case "leave": return `${nickname} left channel`
-            case "move": return `${nickname} moved channel`
+            case "join": return `${user} has joined`
+            case "leave": return `${user} has left`
+            case "move": return `${user} has moved`
             default: throw new Error("Invalid case passed")
         }
+    }
+
+    validUsername(username) {
+        if (username === null || username.length > 10 || !(RegExp(`^[a-zA-Z0-9]*$`).test(username)))
+            return false
+        return true
     }
 }

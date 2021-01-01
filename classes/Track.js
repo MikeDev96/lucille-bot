@@ -81,6 +81,11 @@ module.exports = class Track {
     return this
   }
 
+  setFileStream(fileStream) {
+    this.fileStream = fileStream
+    return this
+  }
+
   clone (track) {
     this.artists = track.artists
     this.title = track.title
@@ -97,6 +102,7 @@ module.exports = class Track {
     this.radioMetadata = track.radioMetadata
     this.finished = track.finished
     this.spotifyUri = track.spotifyUri
+    this.fileStream = track.fileStream
     return this
   }
 }

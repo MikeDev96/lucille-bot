@@ -14,6 +14,7 @@ const PLATFORM_TIDAL = "tidal"
 const PLATFORM_APPLE = "apple"
 const PLATFORM_YOUTUBE = "youtube"
 const PLATFORM_SOUNDCLOUD = "soundcloud"
+const PLATFORM_TTS = "tts"
 const PLATFORM_OTHER = "other"
 const PLATFORM_RADIO = "radio"
 
@@ -377,4 +378,5 @@ module.exports.PLATFORM_APPLE = "apple"
 module.exports.PLATFORM_YOUTUBE = "youtube"
 module.exports.PLATFORM_SOUNDCLOUD = "soundcloud"
 module.exports.PLATFORM_RADIO = PLATFORM_RADIO
+module.exports.PLATFORM_TTS = PLATFORM_TTS
 module.exports.PLATFORM_OTHER = PLATFORM_OTHER
