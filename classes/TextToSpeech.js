@@ -1,7 +1,11 @@
 const gTTS = require('gtts')
 const { PassThrough } = require('stream')
 const { getMusic } = require('../classes/Helpers')
-
+/*
+* TODO: 
+* Queue messages ie 2 people join at once
+* Random voice each time
+*/
 module.exports = class TextToSpeech {
 
     constructor(client) {
@@ -27,7 +31,8 @@ module.exports = class TextToSpeech {
                 const gtts = new gTTS(
                     this.getMessage(
                         event,
-                        this.validUsername(res['displayName']) ? res['displayName'] : 'User')
+                        this.validUsername(res['displayName']) ? res['displayName'] : 'User',
+                        event === "move" ? voiceObj.toChannel['name'] : voiceState.channel['name'] )
                     , 'en-au')
 
                 const passThroughStream = new PassThrough({ highWaterMark: 1 << 25 })
@@ -48,17 +53,17 @@ module.exports = class TextToSpeech {
             })
     }
 
-    getMessage(event, user) {
+    getMessage(event, user, channel) {
         switch (event) {
-            case "join": return `${user} has joined`
-            case "leave": return `${user} has left`
-            case "move": return `${user} has moved`
+            case "join": return `${user} has joined ${channel}`
+            case "leave": return `${user} has left ${channel}`
+            case "move": return `${user} has moved to ${channel}`
             default: throw new Error("Invalid case passed")
         }
     }
 
     validUsername(username) {
-        if (username === null || username.length > 15 || !(RegExp(`^[a-zA-Z0-9]*$`).test(username)))
+        if (username === null || username.length > 15 || !(RegExp(`^[a-zA-Z0-9 ]*$`).test(username)))
             return false
         return true
     }
