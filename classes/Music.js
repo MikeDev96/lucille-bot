@@ -6,7 +6,7 @@ const config = require("../config.json")
 const TopMostMessagePump = require("./TopMostMessagePump")
 const { safeJoin, msToTimestamp, selectRandom, escapeMarkdown } = require("../helpers")
 const TrackExtractor = require("./TrackExtractor")
-const { PLATFORM_YOUTUBE, PLATFORM_RADIO, PLATFORM_SPOTIFY, PLATFORM_TIDAL, PLATFORM_APPLE, PLATFORM_TTS } = require("./TrackExtractor")
+const { PLATFORM_YOUTUBE, PLATFORM_RADIO, PLATFORM_SPOTIFY, PLATFORM_TIDAL, PLATFORM_APPLE } = require("./TrackExtractor")
 const Track = require("./Track")
 const fs = require("fs")
 const { RadioMetadata } = require("./RadioMetadata")
@@ -142,11 +142,18 @@ module.exports = class {
 
     // If we're adding an item to the end of the queue & there's something in the queue already
     if (index < 0 && this.state.queue.length > 1) {
-      //Adding duplicate platform
-      if(this.state.queue[this.state.queue.length - 1].platform === PLATFORM_RADIO)
-        insertAt = this.addingDuplicatePlatform(tracks, PLATFORM_RADIO) || insertAt
-      else if(this.state.queue[this.state.queue.length - 1].platform === PLATFORM_TTS)
-        insertAt = this.addingDuplicatePlatform(tracks, PLATFORM_TTS) || insertAt
+      const isAddingRadio = !!tracks.find(t => t.platform === PLATFORM)
+      const radioIndex = this.state.queue.findIndex((t, idx) => idx > 0 && t.platform === PLATFORM)
+      // If there's a radio in the queue
+      if (radioIndex >= 0) {
+        // And we're adding a radio, delete the old radio
+        if (isAddingRadio) {
+          this.state.queue.splice(radioIndex, 1)
+        }
+
+        // Update the insert index, to put it where the old radio was
+        insertAt = radioIndex
+      }
     }
 
     this.state.queue.splice(insertAt, 0, ...tracks)
@@ -176,16 +183,6 @@ module.exports = class {
           // This also fixes the duration issue that occurred when playing the radio for a long time and then playing a song.
           // The duration is reset when the dispatcher finishes.
           this.dispatcherExec(d => d.end())
-        } else if(this.state.queue[0].platform !== PLATFORM_TTS && this.state.queue.length > 1 && this.state.queue[this.state.queue.length - 1].platform === PLATFORM_TTS) {
-
-          const [item] = this.state.queue
-          // And clone it's reference to the end of the queue as long as the second item in the queue isn't a radio
-          // This is because we only allow 1 radio in the queue at a time
-          if (this.state.queue[1].platform === PLATFORM_TTS) {
-            this.state.queue.push(item)
-          }
-
-          this.dispatcherExec(d => d.pause())
         }
         else {
           this.updateEmbed()
@@ -199,7 +196,7 @@ module.exports = class {
   async searchAndPlay() {
     const item = this.state.queue[0]
 
-    if (item.link || item.platform === 'tts') {
+    if (item.link) {
       await this.play()
     }
     else {
@@ -360,8 +357,6 @@ module.exports = class {
           }
         }
       }
-    } else if(item.platform === PLATFORM_TTS) {
-      return item.fileStream
     }
     return item.link
   }
@@ -672,21 +667,6 @@ module.exports = class {
     if (this.state.voiceConnection && this.state.voiceConnection.dispatcher) {
       return callback(this.state.voiceConnection.dispatcher)
     }
-  }
-
-  addingDuplicatePlatform(tracks, PLATFORM) {
-    const isAddingRadio = !!tracks.find(t => t.platform === PLATFORM)
-      const radioIndex = this.state.queue.findIndex((t, idx) => idx > 0 && t.platform === PLATFORM)
-      // If there's a radio in the queue
-      if (radioIndex >= 0) {
-        // And we're adding a radio, delete the old radio
-        if (isAddingRadio) {
-          this.state.queue.splice(radioIndex, 1)
-        }
-
-        // Update the insert index, to put it where the old radio was
-        return radioIndex
-      }
   }
 }
 
