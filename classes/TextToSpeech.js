@@ -44,11 +44,7 @@ module.exports = class TextToSpeech {
                 } else {
                     music.state.playTime += music.dispatcherExec(d => d.streamTime) || 0
                     await this.playGTTSStream(voiceState, output)
-
-                    //Gives a less abrupt end to the TTS message
-                    setTimeout(() => {
-                        music.play("after")
-                    }, 200);
+                    music.play("after")
                 }
             })
     }
@@ -78,6 +74,5 @@ module.exports = class TextToSpeech {
                 resolve()
             })
         })
-
     }
 }

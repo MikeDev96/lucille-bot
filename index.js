@@ -74,7 +74,7 @@ const createEmojis = guild => {
 
 const TextToSpeechHandler = (ttsLastHappend, method, voiceObj) => {
   var currentTime = new Date().getTime()
-  //Rate limit removed for the time being - ttsLastHappend + (10 * 1000)
+  //Rate limit reduced for the time being
   if (ttsLastHappend < currentTime + (5 * 1000) || ttsLastHappend === undefined) {
     new TextToSpeech(client).run(method, voiceObj)
     return currentTime
