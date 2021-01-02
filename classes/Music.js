@@ -19,7 +19,6 @@ const { opus: Opus, FFmpeg } = require("prism-media")
 const { PassThrough } = require("stream")
 const { chooseFormat } = require("ytdl-core")
 const { getEmoji } = require("../helpers")
-const { music } = require("tiktok-scraper")
 
 const PLATFORMS_REQUIRE_YT_SEARCH = [PLATFORM_SPOTIFY, PLATFORM_TIDAL, PLATFORM_APPLE, PLATFORM_YOUTUBE, "search"]
 
