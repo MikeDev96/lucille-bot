@@ -1,9 +1,6 @@
 const gTTS = require('gtts')
 const { PassThrough } = require('stream')
-const Track = require('./Track')
-const Requestee = require("./Requestee")
 const { getMusic } = require('../classes/Helpers')
-const { PLATFORM_TTS } = require('../classes/TrackExtractor')
 
 module.exports = class TextToSpeech {
 
@@ -16,10 +13,6 @@ module.exports = class TextToSpeech {
         const { voiceState } = voiceObj
         const botID = this.client['user']['id']
 
-        //Check if bot is joining
-        if(voiceState['id'] == botID)
-            return 
-        
         // Check for bot being in moved into or moved from channel
         if (event === "move") {
             if (!(voiceObj.fromChannel['members'].has(botID) || voiceObj.toChannel['members'].has(botID)))
@@ -42,20 +35,15 @@ module.exports = class TextToSpeech {
                 const music = getMusic(voiceState.guild)
 
                 if (music.state.queue.length == 0) {
-                    const dispatcher = this.client['voice']['connections']
-                        .get(voiceState.guild.id)
-                        .play(output)
-                    dispatcher.setVolumeLogarithmic(3)
+                    this.playGTTSStream(voiceState, output)
                 } else {
-
                     music.state.playTime += music.dispatcherExec(d => d.streamTime) || 0
+                    this.playGTTSStream(voiceState, output)
 
-                    const dispatcher = this.client['voice']['connections']
-                        .get(voiceState.guild.id)
-                        .play(output)
-                    dispatcher.setVolumeLogarithmic(3)
-                    
-                    music.play("after")
+                    //Gives a less abrupt end to the TTS message
+                    setTimeout(() => {
+                        music.play("after")
+                    }, 400);
                 }
             })
     }
@@ -70,8 +58,15 @@ module.exports = class TextToSpeech {
     }
 
     validUsername(username) {
-        if (username === null || username.length > 10 || !(RegExp(`^[a-zA-Z0-9]*$`).test(username)))
+        if (username === null || username.length > 15 || !(RegExp(`^[a-zA-Z0-9]*$`).test(username)))
             return false
         return true
+    }
+
+    playGTTSStream(voiceState, stream) {
+        const dispatcher = this.client['voice']['connections']
+            .get(voiceState.guild.id)
+            .play(stream)
+        dispatcher.setVolumeLogarithmic(3)
     }
 }
