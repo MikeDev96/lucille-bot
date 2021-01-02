@@ -1,4 +1,5 @@
 const gTTS = require('gtts')
+const { reject } = require('lodash')
 const { PassThrough } = require('stream')
 const { getMusic } = require('../classes/Helpers')
 /*
@@ -12,7 +13,7 @@ module.exports = class TextToSpeech {
         this.client = client
     }
 
-    async run(event, voiceObj) {
+    run(event, voiceObj) {
 
         const { voiceState } = voiceObj
         const botID = this.client['user']['id']
@@ -27,12 +28,12 @@ module.exports = class TextToSpeech {
         }
 
         voiceState.guild.members.fetch(voiceState.id)
-            .then(res => {
+            .then(async res => {
                 const gtts = new gTTS(
                     this.getMessage(
                         event,
                         this.validUsername(res['displayName']) ? res['displayName'] : 'User',
-                        event === "move" ? voiceObj.toChannel['name'] : voiceState.channel['name'] )
+                        event === "move" ? voiceObj.toChannel['name'] : voiceState.channel['name'])
                     , 'en-au')
 
                 const passThroughStream = new PassThrough({ highWaterMark: 1 << 25 })
@@ -43,12 +44,12 @@ module.exports = class TextToSpeech {
                     this.playGTTSStream(voiceState, output)
                 } else {
                     music.state.playTime += music.dispatcherExec(d => d.streamTime) || 0
-                    this.playGTTSStream(voiceState, output)
+                    await this.playGTTSStream(voiceState, output)
 
                     //Gives a less abrupt end to the TTS message
                     setTimeout(() => {
                         music.play("after")
-                    }, 400);
+                    }, 200);
                 }
             })
     }
@@ -69,9 +70,15 @@ module.exports = class TextToSpeech {
     }
 
     playGTTSStream(voiceState, stream) {
-        const dispatcher = this.client['voice']['connections']
-            .get(voiceState.guild.id)
-            .play(stream)
-        dispatcher.setVolumeLogarithmic(3)
+        return new Promise((resolve) => {
+            const dispatcher = this.client['voice']['connections']
+                .get(voiceState.guild.id)
+                .play(stream)
+            dispatcher.setVolumeLogarithmic(3)
+            dispatcher.on("finish", () => {
+                resolve()
+            })
+        })
+
     }
 }
