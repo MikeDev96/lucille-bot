@@ -16,6 +16,10 @@ module.exports = class TextToSpeech {
         const { voiceState } = voiceObj
         const botID = this.client['user']['id']
 
+        //Check if bot is joining
+        if(voiceState['id'] == botID)
+            return 
+        
         // Check for bot being in moved into or moved from channel
         if (event === "move") {
             if (!(voiceObj.fromChannel['members'].has(botID) || voiceObj.toChannel['members'].has(botID)))
@@ -41,22 +45,17 @@ module.exports = class TextToSpeech {
                     const dispatcher = this.client['voice']['connections']
                         .get(voiceState.guild.id)
                         .play(output)
-                    dispatcher.setVolumeLogarithmic(2)
+                    dispatcher.setVolumeLogarithmic(3)
                 } else {
-                    const track = new Track()
-                        .setTitle("Text to Speech message")
-                        .setPlatform(PLATFORM_TTS)
-                        .setFileStream(output)
 
-                    let tracksArr = []
-                    tracksArr.push(track)
+                    music.state.playTime += music.dispatcherExec(d => d.streamTime) || 0
 
-                    music.add(tracksArr, 
-                        new Requestee(
-                            this.client['user']['username'], 
-                            this.client['avatar'], 
-                            this.client['id']
-                        ), voiceState.channel, undefined)
+                    const dispatcher = this.client['voice']['connections']
+                        .get(voiceState.guild.id)
+                        .play(output)
+                    dispatcher.setVolumeLogarithmic(3)
+                    
+                    music.play("after")
                 }
             })
     }
