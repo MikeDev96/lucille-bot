@@ -3,11 +3,13 @@ const path = require("path")
 const config = require("./config.json")
 const fs = require("fs")
 const VoiceTracker = require("./classes/VoiceTracker")
+const VoiceStateAdapter = require("./classes/VoiceStateAdapter")
 const MusicTracker = require("./classes/MusicTracker")
 const BangaTracker = require("./classes/BangaTracker")
 const AliasTracker = require("./classes/AliasTracker")
 const DailyTracker = require("./classes/DailyTracker")
 const MasterDatabase = require("./classes/MasterDatabase")
+const TextToSpeech = require("./classes/TextToSpeech")
 // const VoiceCommands = require("./classes/VoiceCommands")
 const { bootClientFromAllVoiceChannels } = require("./classes/Helpers")
 const { ppResetDaily } = require("./commands/fun/pp")
@@ -70,6 +72,15 @@ const createEmojis = guild => {
   }
 }
 
+const TextToSpeechHandler = (ttsLastHappend, method, voiceObj) => {
+  var currentTime = new Date().getTime()
+  if (ttsLastHappend + (10 * 1000) < currentTime) {
+    new TextToSpeech(client).run(method, voiceObj)
+    return currentTime
+  }
+  return ttsLastHappend
+}
+
 client.once("ready", () => {
   console.log("Discord client ready")
 
@@ -80,6 +91,7 @@ client.once("ready", () => {
   client.voiceTracker = new VoiceTracker(client)
   client.bangaTracker = new BangaTracker(client)
   client.aliasTracker = new AliasTracker(client)
+  client.voiceStateAdapter = new VoiceStateAdapter(client)
   // client.voiceCommands = new VoiceCommands(client)
 
   client.messageInterceptor = new MessageInterceptor(client)
@@ -100,6 +112,18 @@ client.once("ready", () => {
     // Destiny daily reset
     bansheeResetDaily(guild)
   }))
+
+  let ttsLastHappend = 0
+  let methodArr = ["join", "leave", "move"]
+
+  methodArr.forEach(method => {
+    client.voiceStateAdapter.on(method, (voiceObj) => {
+      //Check if bot
+      if (voiceObj.voiceState['id'] !== client['user']['id'])
+        ttsLastHappend = TextToSpeechHandler(ttsLastHappend, method, voiceObj)
+    })
+  })
+
 })
 
 client.on("guildCreate", createEmojis)
