@@ -1,5 +1,4 @@
 const gTTS = require('gtts')
-const { reject } = require('lodash')
 const { PassThrough } = require('stream')
 const { getMusic } = require('../classes/Helpers')
 /*
