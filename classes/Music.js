@@ -668,21 +668,6 @@ module.exports = class {
       return callback(this.state.voiceConnection.dispatcher)
     }
   }
-
-  addingDuplicatePlatform(tracks, PLATFORM) {
-    const isAddingRadio = !!tracks.find(t => t.platform === PLATFORM)
-      const radioIndex = this.state.queue.findIndex((t, idx) => idx > 0 && t.platform === PLATFORM)
-      // If there's a radio in the queue
-      if (radioIndex >= 0) {
-        // And we're adding a radio, delete the old radio
-        if (isAddingRadio) {
-          this.state.queue.splice(radioIndex, 1)
-        }
-
-        // Update the insert index, to put it where the old radio was
-        return radioIndex
-      }
-  }
 }
 
 const amountToBassBoostMap = {
