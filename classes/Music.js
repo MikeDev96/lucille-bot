@@ -142,8 +142,8 @@ module.exports = class {
 
     // If we're adding an item to the end of the queue & there's something in the queue already
     if (index < 0 && this.state.queue.length > 1) {
-      const isAddingRadio = !!tracks.find(t => t.platform === PLATFORM)
-      const radioIndex = this.state.queue.findIndex((t, idx) => idx > 0 && t.platform === PLATFORM)
+      const isAddingRadio = !!tracks.find(t => t.platform === PLATFORM_RADIO)
+      const radioIndex = this.state.queue.findIndex((t, idx) => idx > 0 && t.platform === PLATFORM_RADIO)
       // If there's a radio in the queue
       if (radioIndex >= 0) {
         // And we're adding a radio, delete the old radio
