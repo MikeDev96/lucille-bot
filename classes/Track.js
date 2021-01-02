@@ -46,6 +46,11 @@ module.exports = class Track {
     return this
   }
 
+  setYouTubeLink (youTubeLink) {
+    this.youTubeLink = youTubeLink
+    return this
+  }
+
   setDuration (duration) {
     this.duration = duration
     return this
@@ -76,7 +81,7 @@ module.exports = class Track {
     return this
   }
 
-  setSpotifyUri(spotifyUri) {
+  setSpotifyUri (spotifyUri) {
     this.spotifyUri = spotifyUri
     return this
   }
@@ -90,6 +95,7 @@ module.exports = class Track {
     this.platform = track.platform
     this.query = track.query
     this.youTubeTitle = track.youTubeTitle
+    this.youTubeLink = track.youTubeLink
     this.duration = track.duration
     this.requestStream = track.requestStream
     this.radio = track.radio
