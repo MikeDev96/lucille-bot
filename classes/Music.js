@@ -142,11 +142,18 @@ module.exports = class {
 
     // If we're adding an item to the end of the queue & there's something in the queue already
     if (index < 0 && this.state.queue.length > 1) {
-      //Adding duplicate platform
-      if(this.state.queue[this.state.queue.length - 1].platform === PLATFORM_RADIO)
-        insertAt = this.addingDuplicatePlatform(tracks, PLATFORM_RADIO) || insertAt
-      else if(this.state.queue[this.state.queue.length - 1].platform === PLATFORM_TTS)
-        insertAt = this.addingDuplicatePlatform(tracks, PLATFORM_TTS) || insertAt
+      const isAddingRadio = !!tracks.find(t => t.platform === PLATFORM)
+      const radioIndex = this.state.queue.findIndex((t, idx) => idx > 0 && t.platform === PLATFORM)
+      // If there's a radio in the queue
+      if (radioIndex >= 0) {
+        // And we're adding a radio, delete the old radio
+        if (isAddingRadio) {
+          this.state.queue.splice(radioIndex, 1)
+        }
+
+        // Update the insert index, to put it where the old radio was
+        insertAt = radioIndex
+      }
     }
 
     this.state.queue.splice(insertAt, 0, ...tracks)

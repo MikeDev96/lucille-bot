@@ -72,6 +72,15 @@ const createEmojis = guild => {
   }
 }
 
+const TextToSpeechHandler = (ttsLastHappend, method, voiceObj) => {
+  var currentTime = new Date().getTime()
+  if (ttsLastHappend + (10 * 1000) < currentTime) {
+    new TextToSpeech(client).run(method, voiceObj)
+    return currentTime
+  }
+  return ttsLastHappend
+}
+
 client.once("ready", () => {
   console.log("Discord client ready")
 
@@ -104,9 +113,16 @@ client.once("ready", () => {
     bansheeResetDaily(guild)
   }))
 
-  client.voiceStateAdapter.on("join", (voiceObj) => {new TextToSpeech(client).run("join", voiceObj)})
-  client.voiceStateAdapter.on("leave", (voiceObj) => {new TextToSpeech(client).run("leave", voiceObj)})
-  client.voiceStateAdapter.on("move", (voiceObj) => {new TextToSpeech(client).run("move", voiceObj)})
+  let ttsLastHappend = 0
+  let methodArr = ["join", "leave", "move"]
+
+  methodArr.forEach(method => {
+    client.voiceStateAdapter.on(method, (voiceObj) => {
+      //Check if bot
+      if (voiceObj.voiceState['id'] !== client['user']['id'])
+        ttsLastHappend = TextToSpeechHandler(ttsLastHappend, method, voiceObj)
+    })
+  })
 
 })
 
