@@ -74,7 +74,7 @@ const createEmojis = guild => {
 
 const TextToSpeechHandler = (ttsLastHappend, method, voiceObj) => {
   var currentTime = new Date().getTime()
-  //Rate limit reduced for the time being
+  // Rate limit reduced for the time being
   if (ttsLastHappend < currentTime + (5 * 1000) || ttsLastHappend === undefined) {
     new TextToSpeech(client).run(method, voiceObj)
     return currentTime
@@ -114,17 +114,17 @@ client.once("ready", () => {
     bansheeResetDaily(guild)
   }))
 
-  let ttsLastHappend = {}
-  let methodArr = ["join", "leave", "move"]
+  const ttsLastHappend = {}
+  const methodArr = ["join", "leave", "move"]
 
   methodArr.forEach(method => {
     client.voiceStateAdapter.on(method, (voiceObj) => {
-      //Check if bot
-      if (voiceObj.voiceState['id'] !== client['user']['id'])
-        ttsLastHappend[voiceObj.voiceState['id']] = TextToSpeechHandler(ttsLastHappend[voiceObj.voiceState['id']], method, voiceObj)
+      // Check if bot
+      if (voiceObj.voiceState.id !== client.user.id) {
+        ttsLastHappend[voiceObj.voiceState.id] = TextToSpeechHandler(ttsLastHappend[voiceObj.voiceState.id], method, voiceObj)
+      }
     })
   })
-
 })
 
 client.on("guildCreate", createEmojis)
