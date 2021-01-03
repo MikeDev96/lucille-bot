@@ -2,6 +2,7 @@ const fetch = require("node-fetch")
 const he = require("he")
 const { JSDOM } = require("jsdom")
 const { getEmoji } = require("../helpers")
+const { getAmazonInfo } = require("../worker/bindings")
 
 const AmazonRipper = class {
   async runMessage (msg) {
@@ -10,7 +11,7 @@ const AmazonRipper = class {
     }
 
     const reaction = msg.react("⏳")
-    const info = await this.getInfo(msg.content)
+    const info = await getAmazonInfo(msg.content)
 
     if (info) {
       msg.reply({
@@ -58,7 +59,7 @@ const AmazonRipper = class {
     return /\bhttps?:\/\/(?:www\.)?amazon.[a-zA-Z.]{1,3}\b/.test(url)
   }
 
-  async getInfo (url) {
+  static async getInfo (url) {
     try {
       const res = await fetch(url, { headers: { "User-Agent": "Lucille/1.0.0" } }) // PostmanRuntime/7.26.8 | Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.169 Safari/537.36
       const html = await res.text()

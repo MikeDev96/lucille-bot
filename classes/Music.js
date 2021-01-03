@@ -1,4 +1,3 @@
-const scrapeYt = require("scrape-yt")
 const ytdl = require("ytdl-core")
 const { Util } = require("discord.js")
 const index = require("../index")
@@ -19,6 +18,7 @@ const { opus: Opus, FFmpeg } = require("prism-media")
 const { PassThrough } = require("stream")
 const { chooseFormat } = require("ytdl-core")
 const { getEmoji } = require("../helpers")
+const { searchYouTube } = require("../worker/bindings")
 
 const PLATFORMS_REQUIRE_YT_SEARCH = [PLATFORM_SPOTIFY, PLATFORM_TIDAL, PLATFORM_APPLE, PLATFORM_YOUTUBE, "search"]
 
@@ -112,8 +112,7 @@ module.exports = class {
           .setPlatform("search")
           .setQuery(input)
 
-        const searchResults = (await scrapeYt.search(track.query)).filter(res => res.type === "video")
-        const searchResult = searchResults[0]
+        const searchResult = await searchYouTube(track.query)
 
         // console.log(`Search YouTube for ${track.query}\nTrack object: ${JSON.stringify(track)}\nSearch object: ${JSON.stringify(searchResults)}`)
 
@@ -199,8 +198,7 @@ module.exports = class {
       await this.play()
     }
     else {
-      const searchResults = (await scrapeYt.search(item.query)).filter(res => res.type === "video")
-      const searchResult = searchResults[0]
+      const searchResult = await searchYouTube(item.query)
 
       if (searchResult) {
         item.setLink(`https://www.youtube.com/watch?v=${searchResult.id}`)
