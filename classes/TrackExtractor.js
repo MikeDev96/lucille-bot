@@ -106,12 +106,12 @@ module.exports = class {
   async getLinkTracks (link) {
     try {
       switch (link.platform) {
-        case PLATFORM_SPOTIFY: return await this.getSpotify(link.type, link.id)
-        case PLATFORM_TIDAL: return await this.getTidal(link.type, link.id)
-        case PLATFORM_APPLE: return await this.getApple(link.type, link.id)
-        case PLATFORM_YOUTUBE: return await this.getYouTube(link.type, link.id, link.startTime)
-        case PLATFORM_SOUNDCLOUD: return await this.getSoundCloud(link.type, link.id)
-        case PLATFORM_OTHER: return await this.getOther(link.id)
+      case PLATFORM_SPOTIFY: return await this.getSpotify(link.type, link.id)
+      case PLATFORM_TIDAL: return await this.getTidal(link.type, link.id)
+      case PLATFORM_APPLE: return await this.getApple(link.type, link.id)
+      case PLATFORM_YOUTUBE: return await this.getYouTube(link.type, link.id, link.startTime)
+      case PLATFORM_SOUNDCLOUD: return await this.getSoundCloud(link.type, link.id)
+      case PLATFORM_OTHER: return await this.getOther(link.id)
       }
     }
     catch (err) {

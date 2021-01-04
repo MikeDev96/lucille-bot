@@ -16,7 +16,5 @@ module.exports = class LocalTime extends Command {
     msg.react("⏲️")
 
     msg.reply(new Date().toLocaleTimeString())
-
   }
-  
 }
