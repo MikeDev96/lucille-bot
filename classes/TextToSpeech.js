@@ -1,78 +1,81 @@
-const gTTS = require('gtts')
-const { PassThrough } = require('stream')
-const { getMusic } = require('../classes/Helpers')
+const GTTS = require("gtts")
+const { PassThrough } = require("stream")
+const { getMusic } = require("../classes/Helpers")
 /*
-* TODO: 
+* TODO:
 * Queue messages ie 2 people join at once
 * Random voice each time
 */
 module.exports = class TextToSpeech {
+  constructor (client) {
+    this.client = client
+  }
 
-    constructor(client) {
-        this.client = client
+  run (event, voiceObj) {
+    const { voiceState } = voiceObj
+    const botID = this.client.user.id
+
+    // Check for bot being in moved into or moved from channel
+    if (event === "move") {
+      if (!(voiceObj.fromChannel.members.has(botID) || voiceObj.toChannel.members.has(botID))) {
+        return
+      }
+    }
+    else {
+      if (!voiceState.channel.members.has(botID)) {
+        return
+      }
     }
 
-    run(event, voiceObj) {
+    voiceState.guild.members.fetch(voiceState.id)
+      .then(async res => {
+        const gtts = new GTTS(
+          this.getMessage(
+            event,
+            this.validUsername(res.displayName) ? res.displayName : "User",
+            event === "move" ? voiceObj.toChannel.name : voiceState.channel.name)
+          , "en-au")
 
-        const { voiceState } = voiceObj
-        const botID = this.client['user']['id']
+        const passThroughStream = new PassThrough({ highWaterMark: 1 << 25 })
+        const output = gtts.stream().pipe(passThroughStream)
+        const music = getMusic(voiceState.guild)
 
-        // Check for bot being in moved into or moved from channel
-        if (event === "move") {
-            if (!(voiceObj.fromChannel['members'].has(botID) || voiceObj.toChannel['members'].has(botID)))
-                return
-        } else {
-            if (!voiceState.channel['members'].has(botID))
-                return
+        if (music.state.queue.length === 0) {
+          this.playGTTSStream(voiceState, output)
         }
-
-        voiceState.guild.members.fetch(voiceState.id)
-            .then(async res => {
-                const gtts = new gTTS(
-                    this.getMessage(
-                        event,
-                        this.validUsername(res['displayName']) ? res['displayName'] : 'User',
-                        event === "move" ? voiceObj.toChannel['name'] : voiceState.channel['name'])
-                    , 'en-au')
-
-                const passThroughStream = new PassThrough({ highWaterMark: 1 << 25 })
-                const output = gtts.stream().pipe(passThroughStream)
-                const music = getMusic(voiceState.guild)
-
-                if (music.state.queue.length == 0) {
-                    this.playGTTSStream(voiceState, output)
-                } else {
-                    music.state.playTime += music.dispatcherExec(d => d.streamTime) || 0
-                    await this.playGTTSStream(voiceState, output)
-                    music.play("after")
-                }
-            })
-    }
-
-    getMessage(event, user, channel) {
-        switch (event) {
-            case "join": return `${user} has joined ${channel}`
-            case "leave": return `${user} has left ${channel}`
-            case "move": return `${user} has moved to ${channel}`
-            default: throw new Error("Invalid case passed")
+        else {
+          music.state.playTime += music.dispatcherExec(d => d.streamTime) || 0
+          await this.playGTTSStream(voiceState, output)
+          music.play("after")
         }
-    }
+      })
+  }
 
-    validUsername(username) {
-        if (username === null || username.length > 15 || !(RegExp(`^[a-zA-Z0-9 ]*$`).test(username)))
-            return false
-        return true
+  getMessage (event, user, channel) {
+    switch (event) {
+    case "join": return `${user} has joined ${channel}`
+    case "leave": return `${user} has left ${channel}`
+    case "move": return `${user} has moved to ${channel}`
+    default: throw new Error("Invalid case passed")
     }
+  }
 
-    playGTTSStream(voiceState, stream) {
-        return new Promise((resolve) => {
-            const dispatcher = this.client['voice']['connections']
-                .get(voiceState.guild.id)
-                .play(stream)
-            dispatcher.setVolumeLogarithmic(3)
-            dispatcher.on("finish", () => {
-                resolve()
-            })
-        })
+  validUsername (username) {
+    if (username === null || username.length > 15 || !(RegExp(`^[a-zA-Z0-9 ]*$`).test(username))) {
+      return false
     }
+    return true
+  }
+
+  playGTTSStream (voiceState, stream) {
+    return new Promise((resolve) => {
+      const dispatcher = this.client.voice.connections
+        .get(voiceState.guild.id)
+        .play(stream)
+      dispatcher.setVolumeLogarithmic(3)
+      dispatcher.on("finish", () => {
+        resolve()
+      })
+    })
+  }
 }

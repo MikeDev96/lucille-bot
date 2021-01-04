@@ -2,13 +2,13 @@ const low = require("lowdb")
 const FileSync = require("lowdb/adapters/FileSync")
 
 module.exports = class {
-  constructor(client) {
+  constructor (client) {
     this.client = client
     this.monitor = {}
     this.initDB()
   }
 
-  initDB() {
+  initDB () {
     const adapter = new FileSync("banga.json")
     this.db = low(adapter)
 
@@ -16,43 +16,43 @@ module.exports = class {
       .write()
   }
 
-  writeBanga(spotifyUri, banger, user) {
+  writeBanga (spotifyUri, banger, user) {
     this.db.get("bangers")
       .push({
         song: banger,
         users: [user],
-        spotifyUri: spotifyUri ? spotifyUri : ""
+        spotifyUri: spotifyUri || "",
       })
-      .write();
+      .write()
   }
 
-  checkForBanga(banger) {
+  checkForBanga (banger) {
     return this.db.get("bangers")
       .filter({ song: banger })
       .take(1)
-      .value();
+      .value()
   }
 
-  updateUsers(banger, user) {
-    let data = this.db.get("bangers")
+  updateUsers (banger, user) {
+    const data = this.db.get("bangers")
       .filter({ song: banger })
       .take(1)
-      .value();
+      .value()
 
-    data[0].users.push(user);
+    data[0].users.push(user)
 
     this.db.get("bangers")
       .find({ song: banger })
       .assign(data[0])
-      .write();
+      .write()
   }
 
-  removeBanga(banger, user) {
-    let data = this.db.get("bangers")
+  removeBanga (banger, user) {
+    const data = this.db.get("bangers")
       .find(e => {
         return e.song.toLowerCase().includes(banger.toLowerCase()) && (e.users.indexOf(user) > -1)
       })
-      .value();
+      .value()
 
     const index = data.users.indexOf(user)
 
@@ -61,25 +61,24 @@ module.exports = class {
     this.db.get("bangers")
       .find({ song: banger })
       .assign(data)
-      .write();
+      .write()
   }
 
-  findBanga(banger, user) {
+  findBanga (banger, user) {
     let data = this.db.get("bangers")
       .find(e => {
         return e.song.toLowerCase().includes(banger.toLowerCase()) && (e.users.indexOf(user) > -1)
       })
-      .value();
-
+      .value()
 
     if (!data) data = { song: null }
 
-    return data.song;
+    return data.song
   }
 
-  listBangas(user) {
+  listBangas (user) {
     return this.db.get("bangers")
       .filter({ users: [user] })
-      .value();
+      .value()
   }
 }

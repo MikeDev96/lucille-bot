@@ -640,10 +640,10 @@ module.exports = class {
 
   getPlatformEmoji (platform) {
     switch (platform) {
-      case PLATFORM_RADIO:
-        return ":radio:"
-      default:
-        return this.state.emojis[platform]
+    case PLATFORM_RADIO:
+      return ":radio:"
+    default:
+      return this.state.emojis[platform]
     }
   }
 
@@ -685,14 +685,14 @@ const amountToBassBoostMap = {
 
 const mapRepeatTypeToEmoji = type => {
   switch (type) {
-    case "off":
-      return "⏭️"
-    case "one":
-      return "🔂"
-    case "all":
-      return "🔁"
-    default:
-      return ""
+  case "off":
+    return "⏭️"
+  case "one":
+    return "🔂"
+  case "all":
+    return "🔁"
+  default:
+    return ""
   }
 }
 

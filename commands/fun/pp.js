@@ -161,7 +161,7 @@ __**${prefix}PP command:**__
       .filter(val => val !== -1)
       .sort((val1, val2) => val2 - val1)
       .map((val1, idx) =>
-         `${medals[idx] || ""} ${groupedBySize.get(val1).map(user => "`" + (user.DisplayName !== null ? user.DisplayName : guild.users.cache.find(user => user.id === user.UserId).username) + "`").join(" & ")}
+        `${medals[idx] || ""} ${groupedBySize.get(val1).map(user => "`" + (user.DisplayName !== null ? user.DisplayName : guild.users.cache.find(user => user.id === user.UserId).username) + "`").join(" & ")}
 8=${"=".repeat(val1)}D${val1 === 15 ? " ~ ~ ~" : ""}\r\n`,
       )
 
