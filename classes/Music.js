@@ -112,17 +112,8 @@ module.exports = class {
           .setPlatform("search")
           .setQuery(input)
 
-        const searchResult = await searchYouTube(track.query)
-
-        // console.log(`Search YouTube for ${track.query}\nTrack object: ${JSON.stringify(track)}\nSearch object: ${JSON.stringify(searchResults)}`)
-
+        const searchResult = await this.search(track)
         if (searchResult) {
-          track
-            .setYouTubeTitle(searchResult.title)
-            .setThumbnail(searchResult.thumbnail)
-            .setLink(`https://www.youtube.com/watch?v=${searchResult.id}`)
-            .setDuration(searchResult.duration)
-
           tracks = [track]
         }
         else {
@@ -191,6 +182,22 @@ module.exports = class {
     return true
   }
 
+  async search (item) {
+    const searchResult = await searchYouTube(item.query)
+
+    if (searchResult) {
+      item
+        .setYouTubeTitle(searchResult.title)
+        .setThumbnail(searchResult.thumbnail)
+        .setLink(`https://www.youtube.com/watch?v=${searchResult.id}`)
+        .setDuration(searchResult.duration)
+
+      return item
+    }
+
+    return false
+  }
+
   async searchAndPlay () {
     const item = this.state.queue[0]
 
@@ -198,15 +205,12 @@ module.exports = class {
       await this.play()
     }
     else {
-      const searchResult = await searchYouTube(item.query)
-
+      const searchResult = await this.search(item)
       if (searchResult) {
-        item.setLink(`https://www.youtube.com/watch?v=${searchResult.id}`)
-          .setYouTubeTitle(searchResult.title)
-          .setDuration(searchResult.duration)
         await this.play()
       }
       else {
+        this.state.textChannel.send(`:x: Failed to find a YouTube video for \`${item.query}\``)
         console.log(`Couldn't find a video for: ${item.query}`)
       }
     }
@@ -284,7 +288,7 @@ module.exports = class {
         stream = await this.getYTStream(item)
       }
       catch (err) {
-        this.state.textChannel.send(`Failed to get a YouTube stream for\n${this.getTrackTitle(item)}\n${item.link}\n${err.message}`)
+        this.state.textChannel.send(`:x: Failed to get a YouTube stream for\n${this.getTrackTitle(item)}\n${item.link}\n${err.message}`)
         await this.processQueue()
         return
       }

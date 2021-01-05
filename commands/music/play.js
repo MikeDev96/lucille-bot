@@ -34,7 +34,7 @@ const run = (msg, args, index) => {
     msg.react("▶️")
   }
   else {
-    msg.reply(`Sorry, I couldn't find a YouTube video for ${args.input}, please try again...`)
+    msg.reply(`:x: Sorry, I couldn't find a YouTube video for \`${args.input}\`, please try again...`)
   }
 }
 
