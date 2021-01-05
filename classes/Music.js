@@ -284,7 +284,7 @@ module.exports = class {
         stream = await this.getYTStream(item)
       }
       catch (err) {
-        this.state.textChannel.send(`Failed to get a YouTube stream for\n${this.getTrackTitle(item)}\n${item.link}`)
+        this.state.textChannel.send(`Failed to get a YouTube stream for\n${this.getTrackTitle(item)}\n${item.link}\n${err.message}`)
         await this.processQueue()
         return
       }
@@ -497,7 +497,7 @@ module.exports = class {
   }
 
   async radioMusicToX (item) {
-    if (item.radioMetadata && item.radioMetadata.info.artist && item.radioMetadata.info.title) {
+    if (item.radioMetadata && item.radioMetadata.info && item.radioMetadata.info.artist && item.radioMetadata.info.title) {
       const sanitise = str => str
         .replace(/(?<=\b) ft. (?=\b)/gi, " ")
         .replace(/(?<=\b) feat. (?=\b)/gi, " ")
