@@ -84,16 +84,10 @@ const AmazonRipper = class {
 
       const [, imageUrl] = largeMatch
 
-      const priceMatch = /<span id="priceblock_(?:ourprice|dealprice|saleprice)" .+?>(.+?)<\/span>/.exec(html)
-      const [, price] = priceMatch || [null, ""]
-
-      const featuresMatch = /<div id="feature-bullets" class="a-section a-spacing-medium a-spacing-top-small">.+?<ul class="a-unordered-list .+?">(.+?)<\/ul>/s.exec(html)
-      const [, featuresMatchHtml] = featuresMatch || [null, ""]
-      const featuresDom = new JSDOM(featuresMatchHtml)
-      const features = Array.from(featuresDom.window.document.querySelectorAll("li:not(.aok-hidden) > span.a-list-item")).map(i => i.textContent.trim())
-
-      const ratingMatch = /<span data-hook="rating-out-of-text" class="a-size-medium a-color-base">(.+?)<\/span>/s.exec(html)
-      const [, rating] = ratingMatch || [null, ""]
+      const dom = new JSDOM(html)
+      const price = (dom.window.document.querySelector("span#priceblock_ourprice, span#dealprice_ourprice, span#saleprice_ourprice") || {}).textContent || ""
+      const features = Array.from(dom.window.document.querySelectorAll("#feature-bullets > ul.a-unordered-list > li:not(.aok-hidden) > span.a-list-item")).map(i => i.textContent.trim())
+      const rating = (dom.window.document.querySelector("span[data-hook='rating-out-of-text']") || {}).textContent || ""
 
       return {
         title: data.title,
