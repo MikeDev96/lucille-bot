@@ -1,8 +1,8 @@
 const fetch = require("node-fetch")
 const he = require("he")
-const { JSDOM } = require("jsdom")
 const { getEmoji } = require("../helpers")
 const { getAmazonInfo } = require("../worker/bindings")
+const cheerio = require("cheerio")
 
 const AmazonRipper = class {
   async runMessage (msg) {
@@ -84,16 +84,15 @@ const AmazonRipper = class {
 
       const [, imageUrl] = largeMatch
 
-      const priceMatch = /<span id="priceblock_(?:ourprice|dealprice|saleprice)" .+?>(.+?)<\/span>/.exec(html)
-      const [, price] = priceMatch || [null, ""]
+      const t = process.hrtime()
+      const $ = cheerio.load(html)
 
-      const featuresMatch = /<div id="feature-bullets" class="a-section a-spacing-medium a-spacing-top-small">.+?<ul class="a-unordered-list .+?">(.+?)<\/ul>/s.exec(html)
-      const [, featuresMatchHtml] = featuresMatch || [null, ""]
-      const featuresDom = new JSDOM(featuresMatchHtml)
-      const features = Array.from(featuresDom.window.document.querySelectorAll("li:not(.aok-hidden) > span.a-list-item")).map(i => i.textContent.trim())
+      const price = $("#priceblock_ourprice, #priceblock_dealprice, #priceblock_saleprice").text()
+      const features = $("#feature-bullets > ul.a-unordered-list > li:not(.aok-hidden) > span.a-list-item").map((_idx, el) => $(el).text().trim()).toArray()
+      const rating = $("span[data-hook='rating-out-of-text']").text()
 
-      const ratingMatch = /<span data-hook="rating-out-of-text" class="a-size-medium a-color-base">(.+?)<\/span>/s.exec(html)
-      const [, rating] = ratingMatch || [null, ""]
+      const elapsed = process.hrtime(t)
+      console.log(`Ripped Amazon in ${elapsed[0] + (elapsed[1] / 1e9)}s... - ${data.title}`)
 
       return {
         title: data.title,
