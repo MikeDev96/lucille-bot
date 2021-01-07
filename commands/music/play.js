@@ -23,13 +23,13 @@ module.exports = class PlayCommand extends Command {
   }
 
   async run (msg, args) {
-    run(msg, args)
+    await run(msg, args)
   }
 }
 
-const run = (msg, args, index) => {
+const run = async (msg, args, index) => {
   const music = getOrCreateMusic(msg)
-  const success = music.add(args.input, getRequestee(msg), getVoiceChannel(msg), index)
+  const success = await music.add(args.input, getRequestee(msg), getVoiceChannel(msg), index)
   if (success) {
     msg.react("▶️")
   }
