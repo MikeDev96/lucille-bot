@@ -126,7 +126,7 @@ module.exports = class {
     }
 
     if (!tracks.length) {
-      return
+      return false
     }
 
     // If we're adding an item to the end of the queue & there's something in the queue already
