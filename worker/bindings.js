@@ -21,3 +21,4 @@ const getAmazonInfo = async url => await pool.exec("getAmazonInfo", [url])
 
 module.exports.searchYouTube = searchYouTube
 module.exports.getAmazonInfo = getAmazonInfo
+module.exports.pool = pool
