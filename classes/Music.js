@@ -45,6 +45,7 @@ module.exports = class {
       repeat: "off",
       radioAdBlock: new RadioAdBlock(),
       summoned: false,
+      ffMpegInstance: null,
     }
 
     // Move the embed down every 5 minutes, it can get lost when a radio is left on for ages
@@ -267,6 +268,8 @@ module.exports = class {
         console.log(`ffmpeg error:\n${err.message}`)
         reject(err)
       })
+
+      this.state.ffMpegInstance = transcoder
     })
   }
 
@@ -282,6 +285,8 @@ module.exports = class {
     if (update === "before") {
       this.updateEmbed()
     }
+
+    this.cleanUpStreams()
 
     if (fetchYTStream) {
       try {
@@ -329,6 +334,7 @@ module.exports = class {
       console.log("Stream finished...")
 
       item.setFinished()
+      this.cleanUpStreams()
       this.updateEmbed(true)
       this.cleanProgress()
       this.stopRadioMetadata(item)
@@ -338,6 +344,13 @@ module.exports = class {
     dispatcher.on("error", err => {
       console.log(err)
     })
+  }
+
+  cleanUpStreams () {
+    if (this.state.ffMpegInstance) {
+      this.state.ffMpegInstance.destroy()
+      this.state.ffMpegInstance = null
+    }
   }
 
   async getMediaStream (item) {
