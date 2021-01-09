@@ -7,7 +7,7 @@ module.exports = class extends Command {
     super(client, {
       name: "aoc",
       aliases: [],
-      group: "fun",
+      group: "misc",
       memberName: "aoc",
       description: "Shows the AOC Leaderboard",
       guildOnly: true,
