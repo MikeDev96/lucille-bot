@@ -46,7 +46,7 @@ module.exports = class TextToSpeech {
         else {
           music.state.playTime += music.dispatcherExec(d => d.streamTime) || 0
           await this.playGTTSStream(voiceState, output)
-          music.play("after")
+          music.play("resume")
         }
       })
   }
