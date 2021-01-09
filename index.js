@@ -73,7 +73,6 @@ const createEmojis = guild => {
 const TextToSpeechHandler = (ttsLastHappend, method, voiceObj) => {
   var currentTime = new Date().getTime()
   // Rate limit reduced for the time being
-  console.log(ttsLastHappend)
   if (ttsLastHappend + (5 * 1000) < currentTime || ttsLastHappend === undefined) {
     new TextToSpeech(client).run(method, voiceObj)
     return currentTime
@@ -117,7 +116,6 @@ client.once("ready", () => {
     client.voiceStateAdapter.on(method, (voiceObj) => {
       // Check if bot
       if (voiceObj.voiceState.id !== client.user.id) {
-        console.log(ttsLastHappend)
         ttsLastHappend[voiceObj.voiceState.id] = TextToSpeechHandler(ttsLastHappend[voiceObj.voiceState.id], method, voiceObj)
       }
     })
