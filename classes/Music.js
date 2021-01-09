@@ -278,6 +278,12 @@ module.exports = class {
     const fetchYTStream = PLATFORMS_REQUIRE_YT_SEARCH.includes(item.platform)
     let stream
 
+    // Fixes a song resuming from its paused state if its bass boost status is updated
+    if (update === "after" && this.state.pauser !== "") {
+      this.updateEmbed()
+      return
+    }
+
     if (item.startTime) {
       this.state.playTime = item.startTime * 1000
     }
@@ -322,12 +328,19 @@ module.exports = class {
     }
 
     dispatcher.on("start", () => {
-      console.log("Stream starting...")
-      this.cleanProgress()
-      if (item.duration > 0) {
-        this.state.progressHandle = setInterval(() => this.updateEmbed(true), 5000)
+      // Fixes a song resuming from its paused state if a TTS message is played
+      if (update === "resume" && this.state.pauser !== "") {
+        this.dispatcherExec(d => d.pause())
+        this.updateEmbed()
       }
-      this.startRadioMetadata(item)
+      else {
+        console.log("Stream starting...")
+        this.cleanProgress()
+        if (item.duration > 0) {
+          this.state.progressHandle = setInterval(() => this.updateEmbed(true), 5000)
+        }
+        this.startRadioMetadata(item)
+      }
     })
 
     dispatcher.on("finish", async () => {

@@ -13,9 +13,8 @@ const TextToSpeech = require("./classes/TextToSpeech")
 // const VoiceCommands = require("./classes/VoiceCommands")
 const { bootClientFromAllVoiceChannels } = require("./classes/Helpers")
 const { ppResetDaily } = require("./commands/fun/pp")
-const { aocResetDaily } = require("./commands/fun/aocleaderboard")
+const { aocResetDaily } = require("./commands/misc/aocleaderboard")
 const { imposterReleaseCountdown } = require("./commands/fun/imposter")
-const { bansheeResetDaily } = require("./commands/destiny/banshee")
 const express = require("express")
 const dotenv = require("dotenv")
 const { default: RedditRipper, router: redditRoutes } = require("./classes/RedditRipper")
@@ -46,7 +45,6 @@ client.registry
   .registerGroup("whitelist", "Whitelist")
   .registerGroup("misc", "Miscellaneous")
   .registerGroup("fun", "Fun")
-  .registerGroup("destiny", "Destiny")
   .registerDefaults()
   .registerCommandsIn(path.join(__dirname, "commands"))
 
@@ -75,11 +73,11 @@ const createEmojis = guild => {
 const TextToSpeechHandler = (ttsLastHappend, method, voiceObj) => {
   var currentTime = new Date().getTime()
   // Rate limit reduced for the time being
-  if (ttsLastHappend < currentTime + (5 * 1000) || ttsLastHappend === undefined) {
+  if (ttsLastHappend + (5 * 1000) < currentTime || ttsLastHappend === undefined) {
     new TextToSpeech(client).run(method, voiceObj)
     return currentTime
   }
-  return ttsLastHappend === undefined ? currentTime : ttsLastHappend
+  return ttsLastHappend
 }
 
 client.once("ready", () => {
@@ -109,9 +107,6 @@ client.once("ready", () => {
     ppResetDaily(client, guild)
     aocResetDaily(guild)
     imposterReleaseCountdown(client, guild)
-
-    // Destiny daily reset
-    bansheeResetDaily(guild)
   }))
 
   const ttsLastHappend = {}
