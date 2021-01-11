@@ -1,4 +1,3 @@
-const ytdl = require("ytdl-core")
 const { Util } = require("discord.js")
 const index = require("../index")
 const config = require("../config.json")
@@ -14,11 +13,9 @@ const Axios = require("axios")
 const MusicToX = require("./MusicToX")
 const debounce = require("lodash.debounce")
 const RadioAdBlock = require("./RadioAdBlock")
-const { opus: Opus, FFmpeg } = require("prism-media")
-const { PassThrough } = require("stream")
-const { chooseFormat } = require("ytdl-core")
 const { getEmoji } = require("../helpers")
 const { searchYouTube } = require("../worker/bindings")
+const { getStream } = require("./YouTubeToStream")
 
 const PLATFORMS_REQUIRE_YT_SEARCH = [PLATFORM_SPOTIFY, PLATFORM_TIDAL, PLATFORM_APPLE, PLATFORM_YOUTUBE, "search"]
 
@@ -45,7 +42,6 @@ module.exports = class {
       repeat: "off",
       radioAdBlock: new RadioAdBlock(),
       summoned: false,
-      ffMpegInstance: null,
     }
 
     // Move the embed down every 5 minutes, it can get lost when a radio is left on for ages
@@ -217,62 +213,6 @@ module.exports = class {
     }
   }
 
-  async getYTStream (item) {
-    if (!item.youTubeLink) {
-      try {
-        const info = await ytdl.getInfo(item.link)
-        const format = chooseFormat(info.formats, { quality: "highestaudio" })
-
-        item.setYouTubeLink(format.url)
-      }
-      catch (err) {
-        console.log(`ytdl getInfo error:\n${err.message}`)
-        throw err
-      }
-    }
-
-    return new Promise((resolve, reject) => {
-      const FFmpegArgs = [
-        "-ss", msToTimestamp(this.state.playTime, { ms: true }),
-        "-i", item.youTubeLink,
-        ...this.getFFMpegArgs(),
-        "-analyzeduration", "0",
-        "-loglevel", "0",
-        "-f", "s16le",
-        "-ar", "48000",
-        "-ac", "2",
-      ]
-
-      const passThroughStream = new PassThrough({ highWaterMark: 1 << 25 })
-      const transcoder = new FFmpeg({ args: FFmpegArgs })
-      const opus = new Opus.Encoder({
-        rate: 48000,
-        channels: 2,
-        frameSize: 960,
-      })
-
-      const output = transcoder.pipe(passThroughStream)
-      const outputStream = output.pipe(opus)
-
-      transcoder.once("readable", () => {
-        resolve(outputStream)
-      })
-
-      outputStream.on("close", () => {
-        transcoder.destroy()
-        opus.destroy()
-      })
-
-      outputStream.on("end", () => console.log("ffmpeg end"))
-      outputStream.on("error", err => {
-        console.log(`ffmpeg error:\n${err.message}`)
-        reject(err)
-      })
-
-      this.state.ffMpegInstance = transcoder
-    })
-  }
-
   async play (update = "before") {
     const item = this.state.queue[0]
     const fetchYTStream = PLATFORMS_REQUIRE_YT_SEARCH.includes(item.platform)
@@ -290,7 +230,8 @@ module.exports = class {
 
     if (fetchYTStream) {
       try {
-        stream = await this.getYTStream(item)
+        const filters = { gain: this.state.bassBoost, tempo: this.state.tempo }
+        stream = await getStream(item.link, { startTime: this.state.playTime, filters })
       }
       catch (err) {
         this.state.textChannel.send(`:x: Failed to get a YouTube stream for\n${this.getTrackTitle(item)}\n${item.link}\n${err.message}`)
@@ -334,7 +275,6 @@ module.exports = class {
       console.log("Stream finished...")
 
       item.setFinished()
-      this.cleanUpStreams()
       this.updateEmbed(true)
       this.cleanProgress()
       this.stopRadioMetadata(item)
@@ -344,13 +284,6 @@ module.exports = class {
     dispatcher.on("error", err => {
       console.log(err)
     })
-  }
-
-  cleanUpStreams () {
-    if (this.state.ffMpegInstance) {
-      this.state.ffMpegInstance.destroy()
-      this.state.ffMpegInstance = null
-    }
   }
 
   async getMediaStream (item) {
