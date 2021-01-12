@@ -25,7 +25,7 @@ module.exports = class PlayCommand extends Command {
   }
 
   async run (msg, args) {
-    await run(msg, args, this)
+    await run(msg, args)
   }
 }
 
