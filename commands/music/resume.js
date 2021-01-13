@@ -21,3 +21,11 @@ module.exports = class extends Command {
     msg.react("▶️")
   }
 }
+
+module.exports.resume = (msg) => {
+  const music = getOrCreateMusic(msg)
+  music.state.pauser = ""
+  music.dispatcherExec(d => d.resume())
+  music.updateEmbed()
+  msg.react("▶️")
+}
