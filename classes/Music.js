@@ -216,6 +216,12 @@ module.exports = class {
   async play (update = "before") {
     const item = this.state.queue[0]
 
+    // Fixes a song resuming from its paused state if its bass boost status is updated
+    if (update === "after" && this.state.pauser !== "") {
+      this.updateEmbed()
+      return
+    }
+
     if (item.startTime) {
       this.state.playTime = item.startTime * 1000
     }
@@ -250,12 +256,19 @@ module.exports = class {
       dispatcher.setVolumeLogarithmic(this.state.volume / 100)
 
       dispatcher.on("start", () => {
-        console.log("Stream starting...")
-        this.cleanProgress()
-        if (item.duration > 0) {
-          this.state.progressHandle = setInterval(() => this.updateEmbed(true), 5000)
+      // Fixes a song resuming from its paused state if a TTS message is played
+        if (update === "resume" && this.state.pauser !== "") {
+          this.dispatcherExec(d => d.pause())
+          this.updateEmbed()
         }
-        this.startRadioMetadata(item)
+        else {
+          console.log("Stream starting...")
+          this.cleanProgress()
+          if (item.duration > 0) {
+            this.state.progressHandle = setInterval(() => this.updateEmbed(true), 5000)
+          }
+          this.startRadioMetadata(item)
+        }
       })
 
       // This only fires when a stream finishes or is forcibly ended

@@ -46,7 +46,7 @@ module.exports = class TextToSpeech {
         else {
           music.syncTime()
           await this.playGTTSStream(voiceState, output)
-          music.play("after")
+          music.play("resume")
         }
       })
   }
