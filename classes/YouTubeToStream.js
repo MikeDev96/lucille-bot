@@ -1,6 +1,7 @@
 const ytdl = require("ytdl-core")
 const prism = require("prism-media")
 const { msToTimestamp } = require("../helpers")
+const { Readable, PassThrough } = require("discord.js/src/client/voice/util/Silence")
 
 // https://github.com/amishshah/ytdl-core-discord
 
@@ -30,13 +31,11 @@ const getWebmStream = info => {
 
 const getFfmpegStream = (url, { startTime, filters = {} } = {}) => {
   console.log("Using ffmpeg")
+  const isStream = url instanceof Readable
   const transcoder = new prism.FFmpeg({
     args: [
-      "-reconnect", "1",
-      "-reconnect_streamed", "1",
-      "-reconnect_delay_max", "5",
       "-ss", msToTimestamp(startTime, { ms: true }),
-      "-i", url,
+      "-i", isStream ? "-" : url,
       "-analyzeduration", "0",
       "-loglevel", "0",
       "-f", "s16le",
@@ -45,10 +44,15 @@ const getFfmpegStream = (url, { startTime, filters = {} } = {}) => {
       "-af", `equalizer=f=40:width_type=h:width=50:g=${filters.gain || 0},atempo=${filters.tempo || 1}`,
     ],
   })
+  if (isStream) {
+    url.pipe(transcoder)
+  }
+  const passThrough = new PassThrough({ highWaterMark: 1 << 25 })
   const opus = new prism.opus.Encoder({ rate: 48000, channels: 2, frameSize: 960 })
-  const stream = transcoder.pipe(opus)
+  const stream = transcoder.pipe(passThrough).pipe(opus)
   stream.on("close", () => {
     transcoder.destroy()
+    passThrough.destroy()
     opus.destroy()
   })
   return stream
@@ -104,3 +108,5 @@ exports.getStream = async (url, options) => {
     }
   }
 }
+
+exports.getFfmpegStream = getFfmpegStream

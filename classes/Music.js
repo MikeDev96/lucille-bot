@@ -9,13 +9,13 @@ const Track = require("./Track")
 const fs = require("fs")
 const { RadioMetadata } = require("./RadioMetadata")
 const radios = require("../radios.json")
-const Axios = require("axios")
+const axios = require("axios")
 const MusicToX = require("./MusicToX")
 const debounce = require("lodash.debounce")
 const RadioAdBlock = require("./RadioAdBlock")
 const { getEmoji } = require("../helpers")
 const { searchYouTube } = require("../worker/bindings")
-const { getStream } = require("./YouTubeToStream")
+const { getStream, getFfmpegStream } = require("./YouTubeToStream")
 
 const PLATFORMS_REQUIRE_YT_SEARCH = [PLATFORM_SPOTIFY, PLATFORM_TIDAL, PLATFORM_APPLE, PLATFORM_YOUTUBE, "search"]
 
@@ -215,8 +215,6 @@ module.exports = class {
 
   async play (update = "before") {
     const item = this.state.queue[0]
-    const fetchYTStream = PLATFORMS_REQUIRE_YT_SEARCH.includes(item.platform)
-    let stream
 
     if (item.startTime) {
       this.state.playTime = item.startTime * 1000
@@ -224,23 +222,6 @@ module.exports = class {
 
     if (update === "before") {
       this.updateEmbed()
-    }
-
-    this.cleanUpStreams()
-
-    if (fetchYTStream) {
-      try {
-        const filters = { gain: this.state.bassBoost, tempo: this.state.tempo }
-        stream = await getStream(item.link, { startTime: this.state.playTime, filters })
-      }
-      catch (err) {
-        this.state.textChannel.send(`:x: Failed to get a YouTube stream for\n${this.getTrackTitle(item)}\n${item.link}\n${err.message}`)
-        await this.processQueue()
-        return
-      }
-    }
-    else {
-      stream = await this.getMediaStream(item)
     }
 
     if (this.state.playCount === 0) {
@@ -253,41 +234,69 @@ module.exports = class {
       }
     }
 
-    this.state.playCount++
+    const stream = await this.getMediaStream(item)
 
-    const dispatcher = this.state.voiceConnection.play(stream, fetchYTStream ? { type: "opus" } : undefined)
-    dispatcher.setVolumeLogarithmic(this.state.volume / 100)
+    this.state.playCount++
 
     if (update === "after") {
       this.updateEmbed()
     }
 
-    dispatcher.on("start", () => {
-      console.log("Stream starting...")
-      this.cleanProgress()
-      if (item.duration > 0) {
-        this.state.progressHandle = setInterval(() => this.updateEmbed(true), 5000)
-      }
-      this.startRadioMetadata(item)
-    })
+    // Using on readable makes the transition smoother when restarting the stream.
+    // i.e. when changing the bass boost
+    // TODO: Handle the error event
+    stream.once("readable", () => {
+      const dispatcher = this.state.voiceConnection.play(stream, { type: "opus" })
+      dispatcher.setVolumeLogarithmic(this.state.volume / 100)
 
-    dispatcher.on("finish", async () => {
-      console.log("Stream finished...")
+      dispatcher.on("start", () => {
+        console.log("Stream starting...")
+        this.cleanProgress()
+        if (item.duration > 0) {
+          this.state.progressHandle = setInterval(() => this.updateEmbed(true), 5000)
+        }
+        this.startRadioMetadata(item)
+      })
 
-      item.setFinished()
-      this.updateEmbed(true)
-      this.cleanProgress()
-      this.stopRadioMetadata(item)
-      await this.processQueue()
-    })
+      // This only fires when a stream finishes or is forcibly ended
+      // Commands like bass boost which just restart the stream will not fire this event
+      // so make sure to clean up properly!
+      dispatcher.on("finish", async () => {
+        console.log("Stream finished...")
 
-    dispatcher.on("error", err => {
-      console.log(err)
+        item.setFinished()
+        this.updateEmbed(true)
+        await this.processQueue()
+      })
+
+      // Discord.js doesn't destroy streams that have been passed in
+      // So detect when the opus encoder has been closed and destroy our stream
+      dispatcher.streams.opus.once("close", () => {
+        stream.destroy()
+        console.log("Cleaned up underlying stream")
+
+        this.cleanProgress()
+        this.stopRadioMetadata(item)
+      })
+
+      dispatcher.on("error", err => {
+        console.log(err)
+      })
     })
   }
 
   async getMediaStream (item) {
-    if (item.platform === PLATFORM_RADIO) {
+    if (PLATFORMS_REQUIRE_YT_SEARCH.includes(item.platform)) {
+      try {
+        return await getStream(item.link, { startTime: this.state.playTime, filters: this.getAudioFilters() })
+      }
+      catch (err) {
+        this.state.textChannel.send(`:x: Failed to get a YouTube stream for\n${this.getTrackTitle(item)}\n${item.link}\n${err.message}`)
+        await this.processQueue()
+        return
+      }
+    }
+    else if (item.platform === PLATFORM_RADIO) {
       const radio = Object.values(radios).find(r => r.url === item.link)
 
       if (radio) {
@@ -295,7 +304,7 @@ module.exports = class {
 
         if (radio.metadata && radio.metadata.type === "sse") {
           try {
-            const res = await Axios({
+            const res = await axios({
               method: "GET",
               url: item.link,
               responseType: "stream",
@@ -303,7 +312,7 @@ module.exports = class {
 
             item.setRequestStream(res)
 
-            return res.data
+            return getFfmpegStream(res.data, { startTime: 0, filters: this.getAudioFilters() })
           }
           catch (err) {
             console.log("Error occured when getting radio stream")
@@ -312,14 +321,20 @@ module.exports = class {
         }
       }
     }
-    return item.link
+
+    return getFfmpegStream(item.link, { startTime: 0, filters: this.getAudioFilters() })
   }
 
-  getFFMpegArgs () {
-    return [
-      "-af",
-      `equalizer=f=40:width_type=h:width=50:g=${this.state.bassBoost},atempo=${this.state.tempo}`,
-    ]
+  getTime () {
+    return this.state.playTime + ((this.dispatcherExec(d => d.streamTime) || 0))
+  }
+
+  syncTime (ms) {
+    return (this.state.playTime = Math.max(this.getTime() + (ms || 0), 0))
+  }
+
+  getAudioFilters () {
+    return { gain: this.state.bassBoost, tempo: this.state.tempo }
   }
 
   async processQueue () {
@@ -497,7 +512,7 @@ module.exports = class {
       return 1
     }
     const durationMs = track.duration * 1000
-    const elapsed = Math.min(this.state.playTime + (this.dispatcherExec(d => d.streamTime) || 0), durationMs)
+    const elapsed = Math.min(this.getTime(), durationMs)
     const progressPerc = durationMs === 0 ? 0 : elapsed / durationMs
 
     return progressPerc

@@ -36,15 +36,15 @@ module.exports = class TextToSpeech {
             event === "move" ? voiceObj.toChannel.name : voiceState.channel.name)
           , "en-au")
 
-        const passThroughStream = new PassThrough({ highWaterMark: 1 << 25 })
-        const output = gtts.stream().pipe(passThroughStream)
+        const passThrough = new PassThrough()
+        const output = gtts.stream().pipe(passThrough)
         const music = getMusic(voiceState.guild)
 
         if (music.state.queue.length === 0) {
           this.playGTTSStream(voiceState, output)
         }
         else {
-          music.state.playTime += music.dispatcherExec(d => d.streamTime) || 0
+          music.syncTime()
           await this.playGTTSStream(voiceState, output)
           music.play("after")
         }
@@ -73,9 +73,8 @@ module.exports = class TextToSpeech {
         .get(voiceState.guild.id)
         .play(stream)
       dispatcher.setVolumeLogarithmic(3)
-      dispatcher.on("finish", () => {
-        resolve()
-      })
+      dispatcher.once("close", () => stream.destroy())
+      dispatcher.once("finish", () => resolve())
     })
   }
 }

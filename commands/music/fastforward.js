@@ -42,7 +42,7 @@ module.exports = class extends Command {
       amount = parseInt(args.amount)
     }
 
-    music.state.playTime += music.dispatcherExec(d => d.streamTime) + amount * 1000
+    music.syncTime(amount * 1000)
     music.play("after")
     msg.react("⏩")
   }

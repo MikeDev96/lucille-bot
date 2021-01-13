@@ -17,7 +17,7 @@ module.exports = class extends Command {
   async run (msg, args) {
     const music = getOrCreateMusic(msg)
     music.state.queue.reverse()
-    music.searchAndPlay()
+    music.play("after")
     msg.react("◀️")
   }
 }
