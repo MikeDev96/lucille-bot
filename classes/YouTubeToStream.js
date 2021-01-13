@@ -1,7 +1,7 @@
 const ytdl = require("ytdl-core")
 const prism = require("prism-media")
 const { msToTimestamp } = require("../helpers")
-const { Readable, PassThrough } = require("discord.js/src/client/voice/util/Silence")
+const { Readable, PassThrough } = require("stream")
 
 // https://github.com/amishshah/ytdl-core-discord
 
