@@ -214,6 +214,10 @@ module.exports = class {
   }
 
   async play (update = "before") {
+    if (!this.state.queue.length) {
+      return
+    }
+
     const item = this.state.queue[0]
 
     // Fixes a song resuming from its paused state if its bass boost status is updated

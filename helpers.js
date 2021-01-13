@@ -1,4 +1,6 @@
 const { Util } = require("discord.js")
+const GTTS = require("gtts")
+const { PassThrough } = require("stream")
 
 const noop = () => { }
 
@@ -51,6 +53,20 @@ const getEmoji = (guild, emoji) => {
   return (guild.emojis.cache.find(e => e.name === emoji) || "").toString()
 }
 
+const textToStream = text => {
+  return new Promise((resolve, reject) => {
+    const gtts = new GTTS(text, "en-uk")
+    const passThrough = new PassThrough()
+    const stream = gtts.stream()
+    const output = stream.pipe(passThrough)
+
+    stream.on("close", () => passThrough.destroy())
+    stream.on("error", err => reject(err))
+
+    return resolve(output)
+  })
+}
+
 module.exports.noop = noop
 module.exports.safeJoin = safeJoin
 module.exports.shuffle = shuffle
@@ -59,3 +75,4 @@ module.exports.msToTimestamp = msToTimestamp
 module.exports.selectRandom = selectRandom
 module.exports.escapeMarkdown = escapeMarkdown
 module.exports.getEmoji = getEmoji
+module.exports.textToStream = textToStream
