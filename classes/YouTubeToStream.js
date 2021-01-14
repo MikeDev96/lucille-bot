@@ -7,11 +7,11 @@ const { Readable, PassThrough } = require("stream")
 
 const urlCache = new Map()
 
-const filter = format => {
-  return format.codecs === "opus" &&
-    format.container === "webm" &&
-    format.audioSampleRate === "48000"
-}
+// const filter = format => {
+//   return format.codecs === "opus" &&
+//     format.container === "webm" &&
+//     format.audioSampleRate === "48000"
+// }
 
 const nextBestFormat = (formats, isLive) => {
   let filter = format => format.audioBitrate
@@ -23,11 +23,11 @@ const nextBestFormat = (formats, isLive) => {
   return formats.find(format => !format.bitrate) || formats[0]
 }
 
-const getWebmStream = info => {
-  console.log("Using webm")
-  const demuxer = new prism.opus.WebmDemuxer()
-  return ytdl.downloadFromInfo(info, { filter }).pipe(demuxer).on("end", () => demuxer.destroy())
-}
+// const getWebmStream = info => {
+//   console.log("Using webm")
+//   const demuxer = new prism.opus.WebmDemuxer()
+//   return ytdl.downloadFromInfo(info, { filter }).pipe(demuxer).on("end", () => demuxer.destroy())
+// }
 
 const getFfmpegStream = (url, { startTime, filters = {} } = {}) => {
   console.log("Using ffmpeg")
@@ -41,7 +41,7 @@ const getFfmpegStream = (url, { startTime, filters = {} } = {}) => {
       "-f", "s16le",
       "-ar", "48000",
       "-ac", "2",
-      "-af", `equalizer=f=40:width_type=h:width=50:g=${filters.gain || 0},atempo=${filters.tempo || 1}`,
+      "-af", `bass=g=${filters.gain || 0},atempo=${filters.tempo || 1},loudnorm,volume=7`,
     ],
   })
   if (isStream) {
@@ -58,7 +58,7 @@ const getFfmpegStream = (url, { startTime, filters = {} } = {}) => {
   return stream
 }
 
-const requiresFfmpeg = options => options && (options.startTime || (options.filters && (options.filters.gain > 0 || options.filters.tempo !== 1)))
+// const requiresFfmpeg = options => options && (options.startTime || (options.filters && (options.filters.gain > 0 || options.filters.tempo !== 1)))
 
 const getEpoch = () => Date.now() / 1000
 
@@ -97,15 +97,15 @@ exports.getStream = async (url, options) => {
 
     cacheUrl(bestFormat.url, url)
 
-    const format = info.formats.find(filter)
-    const canDemux = format && info.videoDetails.lengthSeconds !== "0"
+    // const format = info.formats.find(filter)
+    // const canDemux = format && info.videoDetails.lengthSeconds !== "0"
 
-    if (canDemux && !requiresFfmpeg(options)) {
-      return getWebmStream(info)
-    }
-    else {
-      return getFfmpegStream(bestFormat.url, options)
-    }
+    // if (canDemux && !requiresFfmpeg(options)) {
+    //   return getWebmStream(info)
+    // }
+    // else {
+    return getFfmpegStream(bestFormat.url, options)
+    // }
   }
 }
 
