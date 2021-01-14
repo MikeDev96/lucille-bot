@@ -4,6 +4,7 @@ const { getRequestee, getVoiceChannel, getOrCreateMusic } = require("../../class
 const Track = require("../../classes/Track")
 const { MessageAttachment, Util } = require("discord.js")
 const AWS = require("aws-sdk")
+const { shuffle } = require("../../helpers")
 
 AWS.config.update({
   credentials: {
@@ -82,6 +83,7 @@ module.exports = class extends Command {
         .setPlatform("search")
         .setQuery(dbSong.song)
         .setYouTubeTitle(dbSong.song))
+      shuffle(trackedMusic)
       music.add(trackedMusic, getRequestee(msg), getVoiceChannel(msg))
       return
     }

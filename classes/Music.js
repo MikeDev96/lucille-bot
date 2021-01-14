@@ -180,7 +180,9 @@ module.exports = class {
   }
 
   async search (item) {
+    console.log(`Started search for ${item.query}`)
     const searchResult = await searchYouTube(item.query)
+    console.log(`Finished search for ${item.query} - ${searchResult && searchResult.id}`)
 
     if (searchResult) {
       item
@@ -200,16 +202,27 @@ module.exports = class {
 
     if (item.link) {
       await this.play()
+      await this.presearchNextItem()
     }
     else {
       const searchResult = await this.search(item)
       if (searchResult) {
         await this.play()
+        await this.presearchNextItem()
       }
       else {
         this.state.textChannel.send(`:x: Failed to find a YouTube video for \`${item.query}\``)
         console.log(`Couldn't find a video for: ${item.query}`)
       }
+    }
+  }
+
+  async presearchNextItem () {
+    const nextItem = this.state.queue[1]
+    if (nextItem && !nextItem.link) {
+      console.log(`Started presearch`)
+      await this.search(nextItem)
+      console.log("Finished presearch")
     }
   }
 
