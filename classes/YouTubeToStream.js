@@ -41,7 +41,7 @@ const getFfmpegStream = (url, { startTime, filters = {} } = {}) => {
       "-f", "s16le",
       "-ar", "48000",
       "-ac", "2",
-      "-af", `bass=g=${filters.gain || 0},atempo=${filters.tempo || 1},loudnorm,volume=7`,
+      "-af", `bass=g=${filters.gain || 0},atempo=${filters.tempo || 1},loudnorm`, //, volume=7`,
     ],
   })
   if (isStream) {
