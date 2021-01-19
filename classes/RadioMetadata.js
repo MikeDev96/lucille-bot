@@ -1,16 +1,17 @@
-const events = require("events")
+const { EventEmitter } = require("events")
 const WebSocket = require("ws")
 const debounce = require("lodash.debounce")
-const { default: Axios } = require("axios")
+const axios = require("axios")
 const EventSource = require("eventsource")
 
-const RadioMetadata = class {
+const RadioMetadata = class extends EventEmitter {
   constructor (type, url, summon) {
+    super()
+
     this.state = {
       type,
       url,
       summon,
-      event: new events.EventEmitter(),
       disposed: false,
       startTime: null,
       initiated: false,
@@ -40,7 +41,7 @@ const RadioMetadata = class {
     })
 
     const emitInfo = debounce(info => {
-      this.state.event.emit("info", info)
+      this.emit("data", info)
     }, 500)
 
     ws.on("message", (json) => {
@@ -110,7 +111,7 @@ const RadioMetadata = class {
 
             if (title && url) {
               try {
-                const res = await Axios(url)
+                const res = await axios(url)
                 if (res.status === 200 && res.data) {
                   out.artist = res.data.eventSongArtist
                   out.title = res.data.eventSongTitle
@@ -124,7 +125,7 @@ const RadioMetadata = class {
 
             const delay = this.state.startTime + parseInt(item.start) - Date.now()
             setTimeout(() => {
-              this.state.event.emit("info", out)
+              this.emit("data", out)
             }, delay)
           }
         }
@@ -142,17 +143,17 @@ const RadioMetadata = class {
   poll () {
     const fire = async () => {
       try {
-        const res = await Axios(this.state.url)
+        const res = await axios(this.state.url)
         if (res.status === 200 && res.data) {
           const nowPlaying = res.data.data.find(item => item.type === "segment_item" && item.offset.now_playing)
           if (nowPlaying) {
-            this.state.event.emit("info", {
+            this.emit("data", {
               artist: nowPlaying.titles.primary,
               title: nowPlaying.titles.secondary,
             })
           }
           else {
-            this.state.event.emit("info", {
+            this.emit("data", {
               artist: "",
               title: "",
             })
@@ -169,16 +170,7 @@ const RadioMetadata = class {
     fire()
   }
 
-  subscribe (callback) {
-    this.state.event.on("info", callback)
-    return callback
-  }
-
-  unsubscribe (callback) {
-    this.state.event.off("info", callback)
-  }
-
-  dispose () {
+  destroy () {
     this.state.disposed = true
 
     if (this.state.type === "ws") {

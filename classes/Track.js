@@ -86,6 +86,16 @@ module.exports = class Track {
     return this
   }
 
+  setRadioInstance (radioInstance) {
+    this.radioInstance = radioInstance
+    return this
+  }
+
+  setRadioMusicToX (radioMusicToX) {
+    this.radioMusicToX = radioMusicToX
+    return this
+  }
+
   clone (track) {
     this.artists = track.artists
     this.title = track.title
@@ -103,6 +113,8 @@ module.exports = class Track {
     this.radioMetadata = track.radioMetadata
     this.finished = track.finished
     this.spotifyUri = track.spotifyUri
+    this.radioInstance = track.radioInstance
+    this.radioMusicToX = track.radioMusicToX
     return this
   }
 }

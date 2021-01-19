@@ -8,7 +8,6 @@ const { PLATFORM_YOUTUBE, PLATFORM_RADIO, PLATFORM_SPOTIFY, PLATFORM_TIDAL, PLAT
 const Track = require("./Track")
 const fs = require("fs")
 const { RadioMetadata } = require("./RadioMetadata")
-const radios = require("../radios.json")
 const axios = require("axios")
 const MusicToX = require("./MusicToX")
 const debounce = require("lodash.debounce")
@@ -327,27 +326,21 @@ module.exports = class {
       }
     }
     else if (item.platform === PLATFORM_RADIO) {
-      const radio = Object.values(radios).find(r => r.url === item.link)
+      if (item.radio.metadata && item.radio.metadata.type === "sse") {
+        try {
+          const res = await axios({
+            method: "GET",
+            url: item.link,
+            responseType: "stream",
+          })
 
-      if (radio) {
-        item.setRadio(radio)
+          item.setRequestStream(res)
 
-        if (radio.metadata && radio.metadata.type === "sse") {
-          try {
-            const res = await axios({
-              method: "GET",
-              url: item.link,
-              responseType: "stream",
-            })
-
-            item.setRequestStream(res)
-
-            return getFfmpegStream(res.data, { startTime: 0, filters: this.getAudioFilters() })
-          }
-          catch (err) {
-            console.log("Error occured when getting radio stream")
-            console.log(err)
-          }
+          return getFfmpegStream(res.data, { startTime: 0, filters: this.getAudioFilters() })
+        }
+        catch (err) {
+          console.log("Error occured when getting radio stream")
+          console.log(err)
         }
       }
     }
@@ -463,53 +456,51 @@ module.exports = class {
     this.stopRadioMetadata(item)
 
     if (item.radio && item.radio.metadata) {
-      const radioMetadata = new RadioMetadata(item.radio.metadata.type, item.radio.metadata.url, item.radio.metadata.type === "sse" ? item.requestStream : item.radio.metadata.summon)
-      const metadata = {
-        instance: radioMetadata,
-      }
+      const instance = new RadioMetadata(item.radio.metadata.type, item.radio.metadata.url, item.radio.metadata.type === "sse" ? item.requestStream : item.radio.metadata.summon)
+      item.setRadioInstance(instance)
 
-      item.setRadioMetadata(metadata)
-
-      radioMetadata.subscribe(async info => {
-        metadata.info = info
+      instance.on("data", async info => {
+        item.setRadioMetadata(info)
+        this.state.radioAdBlock.toggle(!info.artist && !info.title)
 
         this.updateEmbed(true)
         await this.radioMusicToX(item)
-      })
-
-      radioMetadata.subscribe(info => {
-        this.state.radioAdBlock.toggle(!info.artist && !info.title)
       })
     }
   }
 
   stopRadioMetadata (item) {
-    if (item.radioMetadata && item.radioMetadata.instance) {
-      item.radioMetadata.instance.dispose()
-      item.setRadioMetadata(undefined)
+    if (item.radioInstance) {
+      item.radioInstance.destroy()
+      item.setRadioInstance(null)
+      item.setRadioMetadata(null)
+      item.setRadioMusicToX(null)
       this.state.radioAdBlock.toggle(false)
     }
   }
 
   async radioMusicToX (item) {
-    if (item.radioMetadata && item.radioMetadata.info && item.radioMetadata.info.artist && item.radioMetadata.info.title) {
+    if (item.radioMetadata && item.radioMetadata.artist && item.radioMetadata.title) {
       const sanitise = str => str
-        .replace(/(?<=\b) ft. (?=\b)/gi, " ")
-        .replace(/(?<=\b) feat. (?=\b)/gi, " ")
-        .replace(/(?<=\b) and (?=\b)/gi, " ")
-        .replace(/(?<=\b) & (?=\b)/g, " ")
+        .replace(/(?<=\b| ) ft. (?=\b| )/gi, " ")
+        .replace(/(?<=\b| ) ft (?=\b| )/gi, " ")
+        .replace(/(?<=\b| ) feat. (?=\b| )/gi, " ")
+        .replace(/(?<=\b| ) and (?=\b| )/gi, " ")
+        .replace(/(?<=\b| ) & (?=\b| )/g, " ")
+        .replace(/(?<=\b| ) x (?=\b| )/gi, " ") // Remove the ' x ' to find on Spotify - a: Joel Corry x MNEK, t: Head & Heart
+        .replace(/[()[\]]/g, " ") // Remove the brackets to find on Spotify - a: The Plug, t: Fashion (feat. M24 Fivio Foreign)
 
       const m2x = new MusicToX({
         platform: PLATFORM_RADIO,
         type: "track",
-        artists: sanitise(item.radioMetadata.info.artist),
-        title: sanitise(item.radioMetadata.info.title),
+        artists: sanitise(item.radioMetadata.artist),
+        title: sanitise(item.radioMetadata.title),
       })
 
       try {
         const res = await m2x.processLink()
         if (res && item.radioMetadata) {
-          item.radioMetadata.musicToX = res
+          item.setRadioMusicToX(res)
           this.updateEmbed(true)
         }
       }
@@ -518,10 +509,9 @@ module.exports = class {
         console.log(err)
       }
     }
-    else {
-      if (item.radioMetadata) {
-        item.radioMetadata.musicToX = undefined
-      }
+    else if (item.radioMusicToX) {
+      item.setRadioMusicToX(null)
+      this.updateEmbed(true)
     }
   }
 
@@ -563,7 +553,7 @@ module.exports = class {
     const nowPlayingYouTube = PLATFORMS_REQUIRE_YT_SEARCH.includes(currentlyPlaying.platform) ? `${this.state.emojis.youtube} [${escapeMarkdown(currentlyPlaying.youTubeTitle)}](${currentlyPlaying.link})` : ""
 
     const radioMusicToX = this.getRadioMusicToXInfo(currentlyPlaying)
-    const radioNowPlaying = currentlyPlaying.platform === PLATFORM_RADIO && currentlyPlaying.radioMetadata && currentlyPlaying.radioMetadata.info ? escapeMarkdown([currentlyPlaying.radioMetadata.info.artist || "", currentlyPlaying.radioMetadata.info.title || ""].filter(s => s.trim()).join(" - ") + (radioMusicToX ? " " + radioMusicToX : "")) : ""
+    const radioNowPlaying = currentlyPlaying.platform === PLATFORM_RADIO && currentlyPlaying.radioMetadata ? escapeMarkdown([currentlyPlaying.radioMetadata.artist || "", currentlyPlaying.radioMetadata.title || ""].filter(s => s.trim()).join(" - ") + (radioMusicToX ? " " + radioMusicToX : "")) : ""
 
     const nowPlaying = [nowPlayingSource, nowPlayingYouTube, radioNowPlaying].filter(s => s.trim()).join("\n")
     const blocks = Math.round(20 * progressPerc)
@@ -643,8 +633,8 @@ module.exports = class {
   }
 
   getRadioMusicToXInfo (item) {
-    if (item.platform === PLATFORM_RADIO && item.radioMetadata && item.radioMetadata.musicToX) {
-      const musicToX = item.radioMetadata.musicToX
+    if (item.platform === PLATFORM_RADIO && item.radioMusicToX) {
+      const musicToX = item.radioMusicToX
       const splitApple = (musicToX.appleId || "").split("-")
       const radioMusicToX = [
         musicToX.spotifyId && `[${this.state.emojis.spotify}](https://open.spotify.com/track/${musicToX.spotifyId})`,

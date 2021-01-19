@@ -4,7 +4,6 @@ const axios = require("axios")
 const ytdl = require("ytdl-core")
 const Track = require("./Track")
 const queryString = require("query-string")
-const radios = require("../radios.json")
 const parseDuration = require("parse-duration")
 const ytpl = require("ytpl")
 const parseTime = require("m3u8stream/dist/parse-time")
@@ -333,33 +332,19 @@ module.exports = class {
 
   async getOther (id) {
     try {
-      const radio = Object.values(radios).find(r => r.url === id)
-      if (radio) {
-        const track = new Track("", radio.name, "")
-          .setPlatform(PLATFORM_RADIO)
-          .setLink(radio.url)
+      const res = await axios({
+        method: "GET",
+        url: id,
+        responseType: "stream",
+      })
+      const contentType = res.headers["content-type"]
+      if (contentType.startsWith("audio/")) {
+        const track = new Track("Custom Link", id, "")
+          .setPlatform(PLATFORM_OTHER)
+          .setLink(id)
           .setDuration(0)
 
         return [track]
-      }
-      else {
-        const res = await axios({
-          method: "GET",
-          url: id,
-          responseType: "stream",
-        })
-        const contentType = res.headers["content-type"]
-        if (contentType.startsWith("audio/")) {
-          const track = new Track(
-            "Custom Link",
-            id,
-            "",
-          ).setPlatform(PLATFORM_OTHER)
-            .setLink(id)
-            .setDuration(0)
-
-          return [track]
-        }
       }
     }
     catch (err) {

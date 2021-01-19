@@ -1,6 +1,8 @@
 const { Command } = require("discord.js-commando")
 const radios = require("../../radios.json")
 const { getRequestee, getVoiceChannel, getOrCreateMusic } = require("../../classes/Helpers")
+const { PLATFORM_RADIO } = require("../../classes/TrackExtractor")
+const Track = require("../../classes/Track")
 
 module.exports = class extends Command {
   constructor (client) {
@@ -23,8 +25,19 @@ module.exports = class extends Command {
   }
 
   async run (msg, args) {
+    const radio = radios[args.station]
+    if (!radio) {
+      return
+    }
+
+    const track = new Track("", radio.name, "")
+      .setPlatform(PLATFORM_RADIO)
+      .setLink(radio.url)
+      .setDuration(0)
+      .setRadio(radio)
+
     const music = getOrCreateMusic(msg)
-    const success = music.add(radios[args.station].url, getRequestee(msg), getVoiceChannel(msg), undefined)
+    const success = music.add([track], getRequestee(msg), getVoiceChannel(msg), undefined)
     if (success) {
       msg.react("📻")
     }
