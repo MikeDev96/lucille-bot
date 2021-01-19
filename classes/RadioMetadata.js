@@ -172,6 +172,7 @@ const RadioMetadata = class extends EventEmitter {
 
   destroy () {
     this.state.disposed = true
+    this.removeAllListeners("data")
 
     if (this.state.type === "ws") {
       if (this.ws.readyState === this.ws.OPEN) {

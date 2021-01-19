@@ -461,6 +461,7 @@ module.exports = class {
 
       instance.on("data", async info => {
         item.setRadioMetadata(info)
+        item.setRadioMusicToX(null)
         this.state.radioAdBlock.toggle(!info.artist && !info.title)
 
         this.updateEmbed(true)
@@ -481,6 +482,9 @@ module.exports = class {
 
   async radioMusicToX (item) {
     if (item.radioMetadata && item.radioMetadata.artist && item.radioMetadata.title) {
+      const artist = item.radioMetadata.artist
+      const title = item.radioMetadata.title
+
       const sanitise = str => str
         .replace(/(?<=\b| )ft\.(?=\b| )/gi, " ") // a: Eve ft.Gwen Stefani, t: Let Me Blow Ya Mind
         .replace(/(?<=\b| ) ft (?=\b| )/gi, " ")
@@ -493,13 +497,13 @@ module.exports = class {
       const m2x = new MusicToX({
         platform: PLATFORM_RADIO,
         type: "track",
-        artists: sanitise(item.radioMetadata.artist),
-        title: sanitise(item.radioMetadata.title),
+        artists: sanitise(artist),
+        title: sanitise(title),
       })
 
       try {
         const res = await m2x.processLink()
-        if (res && item.radioMetadata) {
+        if (res && item.radioMetadata && item.radioMetadata.artist === artist && item.radioMetadata.title === title) {
           item.setRadioMusicToX(res)
           this.updateEmbed(true)
         }
