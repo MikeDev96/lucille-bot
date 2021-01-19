@@ -492,7 +492,8 @@ module.exports = class {
         .replace(/(?<=\b| ) and (?=\b| )/gi, " ")
         .replace(/(?<=\b| ) & (?=\b| )/g, " ")
         .replace(/(?<=\b| ) x (?=\b| )/gi, " ") // a: Joel Corry x MNEK, t: Head & Heart
-        .replace(/[()[\]']/g, "") // [()[]] = a: The Plug, t: Fashion (feat. M24 Fivio Foreign) | ['] = a: Anne Marie KSI Digital Farm Animals, t: Don't Play
+        .replace(/[()[\]]/g, " ") // a: The Plug, t: Fashion (feat. M24 Fivio Foreign)
+        .replace(/'/g, "") // a: Anne Marie KSI Digital Farm Animals, t: Don't Play
 
       const m2x = new MusicToX({
         platform: PLATFORM_RADIO,
