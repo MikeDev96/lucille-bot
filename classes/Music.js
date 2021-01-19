@@ -482,13 +482,13 @@ module.exports = class {
   async radioMusicToX (item) {
     if (item.radioMetadata && item.radioMetadata.artist && item.radioMetadata.title) {
       const sanitise = str => str
-        .replace(/(?<=\b| ) ft. (?=\b| )/gi, " ")
+        .replace(/(?<=\b| )ft\.(?=\b| )/gi, " ") // a: Eve ft.Gwen Stefani, t: Let Me Blow Ya Mind
         .replace(/(?<=\b| ) ft (?=\b| )/gi, " ")
-        .replace(/(?<=\b| ) feat. (?=\b| )/gi, " ")
+        .replace(/(?<=\b| ) feat\. (?=\b| )/gi, " ")
         .replace(/(?<=\b| ) and (?=\b| )/gi, " ")
         .replace(/(?<=\b| ) & (?=\b| )/g, " ")
-        .replace(/(?<=\b| ) x (?=\b| )/gi, " ") // Remove the ' x ' to find on Spotify - a: Joel Corry x MNEK, t: Head & Heart
-        .replace(/[()[\]]/g, " ") // Remove the brackets to find on Spotify - a: The Plug, t: Fashion (feat. M24 Fivio Foreign)
+        .replace(/(?<=\b| ) x (?=\b| )/gi, " ") // a: Joel Corry x MNEK, t: Head & Heart
+        .replace(/[()[\]]/g, " ") // a: The Plug, t: Fashion (feat. M24 Fivio Foreign)
 
       const m2x = new MusicToX({
         platform: PLATFORM_RADIO,
