@@ -90,7 +90,7 @@ module.exports = class {
       }
 
       if (this.music.type === "track") {
-        const res = await spotifyApi.getTrack(this.music.id)
+        const res = await spotifyApi.getTrack(this.music.id, { market: "GB" })
         return {
           artists: res.body.artists.map(a => a.name).join(", "),
           title: res.body.name,
@@ -98,7 +98,7 @@ module.exports = class {
         }
       }
       else if (this.music.type === "album") {
-        const res = await spotifyApi.getAlbum(this.music.id)
+        const res = await spotifyApi.getAlbum(this.music.id, { market: "GB" })
         return {
           artists: res.body.artists.map(a => a.name).join(", "),
           title: res.body.name,
@@ -107,7 +107,7 @@ module.exports = class {
         }
       }
       else if (this.music.type === "artist") {
-        const res = await spotifyApi.getArtist(this.music.id)
+        const res = await spotifyApi.getArtist(this.music.id, { market: "GB" })
         return {
           artists: res.body.name,
           title: "",
@@ -115,13 +115,13 @@ module.exports = class {
         }
       }
       else if (this.isPlaylist) {
-        const playlistRes = await spotifyApi.getPlaylist(this.music.id)
+        const playlistRes = await spotifyApi.getPlaylist(this.music.id, { market: "GB" })
         const tracks = playlistRes.body.tracks.items
 
         const calls = Math.floor(playlistRes.body.tracks.total / 100)
         const playlistTracksRequests = []
         for (let i = 0; i < calls; i++) {
-          playlistTracksRequests.push(spotifyApi.getPlaylistTracks(this.music.id, { offset: 100 + i * 100 }))
+          playlistTracksRequests.push(spotifyApi.getPlaylistTracks(this.music.id, { offset: 100 + i * 100, market: "GB" }))
         }
 
         const fulfilledPlaylistTracksRequests = await Promise.all(playlistTracksRequests)
@@ -159,7 +159,7 @@ module.exports = class {
         return null
       }
 
-      const res = await spotifyApi.search(query, [this.music.type], { limit: 1 })
+      const res = await spotifyApi.search(query, [this.music.type], { limit: 1, market: "GB" })
       if (res.statusCode === 200) {
         if (this.music.type === "track") {
           const track = res.body.tracks.items[0]
