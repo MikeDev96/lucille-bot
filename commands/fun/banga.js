@@ -180,7 +180,7 @@ module.exports = class extends Command {
     const queueItem = music.state.queue[0]
 
     if (queueItem) currTrack = queueItem.youTubeTitle
-    if (queueItem && queueItem.radioMetadata && queueItem.radioMetadata.info && queueItem.radioMetadata.info.title && queueItem.radioMetadata.info.artist) currTrack = queueItem.radioMetadata.info.artist + " - " + queueItem.radioMetadata.info.title
+    if (queueItem && queueItem.radioMetadata && queueItem.radioMetadata.title && queueItem.radioMetadata.artist) currTrack = queueItem.radioMetadata.artist + " - " + queueItem.radioMetadata.title
     if (queueItem && queueItem.platform === "soundcloud") currTrack = queueItem.title
 
     if (!currTrack) {

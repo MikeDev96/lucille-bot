@@ -3,11 +3,16 @@ const WebSocket = require("ws")
 const debounce = require("lodash.debounce")
 const axios = require("axios")
 const EventSource = require("eventsource")
+const io = require("socket.io-client")
+const fetch = require("node-fetch")
 
 const RadioMetadata = class extends EventEmitter {
-  constructor (type, url, summon) {
+  constructor ({ type, url, summon, provider, payload }, stream) {
     super()
 
+    this.stream = stream
+    this.provider = provider
+    this.payload = payload
     this.state = {
       type,
       url,
@@ -25,6 +30,11 @@ const RadioMetadata = class extends EventEmitter {
     }
     else if (this.state.type === "poll") {
       this.poll()
+    }
+    else if (this.state.type === "socket.io") {
+      if (provider === "aiir") {
+        this.aiir(payload)
+      }
     }
   }
 
@@ -77,7 +87,7 @@ const RadioMetadata = class extends EventEmitter {
   }
 
   sse () {
-    const [setCookie] = this.state.summon.headers["set-cookie"]
+    const [setCookie] = this.stream.headers["set-cookie"]
     const [sessionId] = /(?<=AISSessionId=).+?(?=;)/.exec(setCookie)
 
     const es = new EventSource(this.state.url, {
@@ -170,8 +180,36 @@ const RadioMetadata = class extends EventEmitter {
     fire()
   }
 
+  aiir ({ service, initUrl }) {
+    const handleData = e => {
+      if (e && (!e.type || e.type === "new-item") && e.feed && e.feed.items && e.feed.items[0]) {
+        const item = e.feed.items[0]
+        this.emit("data", {
+          artist: item.title,
+          title: item.desc,
+        })
+      }
+      else {
+        this.emit("data", {
+          artist: "",
+          title: "",
+        })
+      }
+    }
+
+    const sock = io(this.state.url)
+      .on("connect", () => {
+        sock.emit("subscribe", service)
+        fetch(initUrl).then(res => res.json()).then(handleData)
+      })
+      .on("message", handleData)
+
+    this.socket = sock
+  }
+
   destroy () {
     this.state.disposed = true
+    this.stream = null
     this.removeAllListeners("data")
 
     if (this.state.type === "ws") {
@@ -186,6 +224,12 @@ const RadioMetadata = class extends EventEmitter {
     }
     else if (this.state.type === "poll") {
       clearInterval(this.poll)
+    }
+    else if (this.state.type === "socket.io") {
+      if (this.socket) {
+        this.socket.close()
+        this.socket = null
+      }
     }
   }
 }

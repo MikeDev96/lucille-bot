@@ -456,7 +456,7 @@ module.exports = class {
     this.stopRadioMetadata(item)
 
     if (item.radio && item.radio.metadata) {
-      const instance = new RadioMetadata(item.radio.metadata.type, item.radio.metadata.url, item.radio.metadata.type === "sse" ? item.requestStream : item.radio.metadata.summon)
+      const instance = new RadioMetadata(item.radio.metadata, item.requestStream)
       item.setRadioInstance(instance)
 
       instance.on("data", async info => {
