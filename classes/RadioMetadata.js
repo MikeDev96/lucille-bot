@@ -184,10 +184,18 @@ const RadioMetadata = class extends EventEmitter {
     const handleData = e => {
       if (e && (!e.type || e.type === "new-item") && e.feed && e.feed.items && e.feed.items[0]) {
         const item = e.feed.items[0]
-        this.emit("data", {
-          artist: item.title,
-          title: item.desc,
-        })
+        if (item.type === "song") {
+          this.emit("data", {
+            artist: item.title,
+            title: item.desc,
+          })
+        }
+        else if (item.type === "onair") {
+          this.emit("data", {
+            artist: "",
+            title: `${item.name} ${item.caption}`,
+          })
+        }
       }
       else {
         this.emit("data", {
