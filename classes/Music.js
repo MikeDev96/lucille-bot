@@ -492,8 +492,10 @@ module.exports = class {
         .replace(/(?<=\b| ) and (?=\b| )/gi, " ")
         .replace(/(?<=\b| ) & (?=\b| )/g, " ")
         .replace(/(?<=\b| ) x (?=\b| )/gi, " ") // a: Joel Corry x MNEK, t: Head & Heart
-        .replace(/[()[\]]/g, " ") // a: The Plug, t: Fashion (feat. M24 Fivio Foreign)
+        .replace(/(?<=\b| ) vs (?=\b| )/gi, " ") // a: Alan Fitzpatrick Vs Patrice Rushen, t: Havent You Heard  Fitzys Half Charged Mix
+        // .replace(/[()[\]]/g, " ") // a: The Plug, t: Fashion (feat. M24 Fivio Foreign)
         .replace(/'/g, "") // a: Anne Marie KSI Digital Farm Animals, t: Don't Play
+        .replace(/[^A-Za-zÀ-ÖØ-öø-ÿ0-9]/g, " ")
 
       const m2x = new MusicToX({
         platform: PLATFORM_RADIO,
@@ -644,7 +646,7 @@ module.exports = class {
       const radioMusicToX = [
         musicToX.spotifyId && `[${this.state.emojis.spotify}](https://open.spotify.com/track/${musicToX.spotifyId})`,
         musicToX.tidalId && `[${this.state.emojis.tidal}](https://tidal.com/browse/track/${musicToX.tidalId})`,
-        musicToX.appleId && `[${this.state.emojis.apple}](https://music.apple.com/gb/track/${splitApple[0]}?i=${splitApple[1]})`,
+        musicToX.appleId && `[${this.state.emojis.apple}](https://music.apple.com/gb/album/${splitApple[0]}?i=${splitApple[1]})`,
       ].filter(s => s).join(" ")
 
       return radioMusicToX
