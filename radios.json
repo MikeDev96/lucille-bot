@@ -152,5 +152,9 @@
         ]
       }
     }
+  },
+  "unity": {
+    "name": "Unity",
+    "url": "http://stream.audiospace.co/unityradio"
   }
 }
