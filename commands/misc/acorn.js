@@ -25,6 +25,7 @@ module.exports = class extends Command {
     if (msg.member.id === "164177838214348801") {
       if (args.command.toLowerCase().substring(0, 6) === "update" || args.command.toLowerCase().substring(0, 9) === "configure") {
         msg.reply("Lucille is not permitted to execute these commands.\nUse the acorn-transfer-cli tool in a terminal")
+        return
       } else {
         exec(`acorn ${args.command}`, (err, res) => {
           if (err) {
