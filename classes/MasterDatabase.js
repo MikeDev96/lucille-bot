@@ -1,4 +1,4 @@
-const SQLite = require("better-sqlite3-with-prebuilds")
+const SQLite = require("better-sqlite3")
 
 module.exports = class {
   constructor () {
