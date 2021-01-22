@@ -1,16 +1,22 @@
-const events = require("events")
+const { EventEmitter } = require("events")
 const WebSocket = require("ws")
 const debounce = require("lodash.debounce")
-const { default: Axios } = require("axios")
+const axios = require("axios")
 const EventSource = require("eventsource")
+const io = require("socket.io-client")
+const fetch = require("node-fetch")
 
-const RadioMetadata = class {
-  constructor (type, url, summon) {
+const RadioMetadata = class extends EventEmitter {
+  constructor ({ type, url, summon, provider, payload }, stream) {
+    super()
+
+    this.stream = stream
+    this.provider = provider
+    this.payload = payload
     this.state = {
       type,
       url,
       summon,
-      event: new events.EventEmitter(),
       disposed: false,
       startTime: null,
       initiated: false,
@@ -24,6 +30,11 @@ const RadioMetadata = class {
     }
     else if (this.state.type === "poll") {
       this.poll()
+    }
+    else if (this.state.type === "socket.io") {
+      if (provider === "aiir") {
+        this.aiir(payload)
+      }
     }
   }
 
@@ -40,7 +51,7 @@ const RadioMetadata = class {
     })
 
     const emitInfo = debounce(info => {
-      this.state.event.emit("info", info)
+      this.emit("data", info)
     }, 500)
 
     ws.on("message", (json) => {
@@ -76,7 +87,7 @@ const RadioMetadata = class {
   }
 
   sse () {
-    const [setCookie] = this.state.summon.headers["set-cookie"]
+    const [setCookie] = this.stream.headers["set-cookie"]
     const [sessionId] = /(?<=AISSessionId=).+?(?=;)/.exec(setCookie)
 
     const es = new EventSource(this.state.url, {
@@ -110,7 +121,7 @@ const RadioMetadata = class {
 
             if (title && url) {
               try {
-                const res = await Axios(url)
+                const res = await axios(url)
                 if (res.status === 200 && res.data) {
                   out.artist = res.data.eventSongArtist
                   out.title = res.data.eventSongTitle
@@ -124,7 +135,7 @@ const RadioMetadata = class {
 
             const delay = this.state.startTime + parseInt(item.start) - Date.now()
             setTimeout(() => {
-              this.state.event.emit("info", out)
+              this.emit("data", out)
             }, delay)
           }
         }
@@ -142,17 +153,17 @@ const RadioMetadata = class {
   poll () {
     const fire = async () => {
       try {
-        const res = await Axios(this.state.url)
+        const res = await axios(this.state.url)
         if (res.status === 200 && res.data) {
           const nowPlaying = res.data.data.find(item => item.type === "segment_item" && item.offset.now_playing)
           if (nowPlaying) {
-            this.state.event.emit("info", {
+            this.emit("data", {
               artist: nowPlaying.titles.primary,
               title: nowPlaying.titles.secondary,
             })
           }
           else {
-            this.state.event.emit("info", {
+            this.emit("data", {
               artist: "",
               title: "",
             })
@@ -169,17 +180,45 @@ const RadioMetadata = class {
     fire()
   }
 
-  subscribe (callback) {
-    this.state.event.on("info", callback)
-    return callback
+  aiir ({ service, initUrl }) {
+    const handleData = e => {
+      if (e && (!e.type || e.type === "new-item") && e.feed && e.feed.items && e.feed.items[0]) {
+        const item = e.feed.items[0]
+        if (item.type === "song") {
+          this.emit("data", {
+            artist: item.title,
+            title: item.desc,
+          })
+        }
+        else if (item.type === "onair") {
+          this.emit("data", {
+            artist: "",
+            title: `${item.name} ${item.caption}`,
+          })
+        }
+      }
+      else {
+        this.emit("data", {
+          artist: "",
+          title: "",
+        })
+      }
+    }
+
+    const sock = io(this.state.url)
+      .on("connect", () => {
+        sock.emit("subscribe", service)
+        fetch(initUrl).then(res => res.json()).then(handleData)
+      })
+      .on("message", handleData)
+
+    this.socket = sock
   }
 
-  unsubscribe (callback) {
-    this.state.event.off("info", callback)
-  }
-
-  dispose () {
+  destroy () {
     this.state.disposed = true
+    this.stream = null
+    this.removeAllListeners("data")
 
     if (this.state.type === "ws") {
       if (this.ws.readyState === this.ws.OPEN) {
@@ -193,6 +232,12 @@ const RadioMetadata = class {
     }
     else if (this.state.type === "poll") {
       clearInterval(this.poll)
+    }
+    else if (this.state.type === "socket.io") {
+      if (this.socket) {
+        this.socket.close()
+        this.socket = null
+      }
     }
   }
 }

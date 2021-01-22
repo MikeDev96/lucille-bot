@@ -38,6 +38,7 @@
     "query-string": "^6.13.1",
     "sanitize-filename": "^1.6.3",
     "scrape-yt": "^1.4.7",
+    "socket.io-client": "^2.3.1",
     "spotify-web-api-node": "^4.0.0",
     "tenorjs": "^1.0.7",
     "tiktok-scraper": "^1.4.9",

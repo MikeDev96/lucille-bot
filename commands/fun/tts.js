@@ -36,6 +36,7 @@ class TtsCommand extends Command {
         }
         else {
           const music = getMusic(msg.guild)
+          music.syncTime()
           music.play()
         }
       }

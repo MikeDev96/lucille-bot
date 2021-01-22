@@ -108,7 +108,16 @@
   },
   "gaydionw": {
     "name": "Gaydio North West",
-    "url": "https://listen-gaydio.sharp-stream.com/gaydionw.mp3"
+    "url": "https://listen-gaydio.sharp-stream.com/gaydionw.mp3",
+    "metadata": {
+      "type": "socket.io",
+      "provider": "aiir",
+      "url": "https://push.aiir.net/rf",
+      "payload": {
+        "service": "33",
+        "initUrl": "https://www.gaydio.co.uk/radiofeed_request/?a=init&version=1.4.9&service_id=33"
+      }
+    }
   },
   "bbcr1": {
     "name": "BBC Radio 1",
