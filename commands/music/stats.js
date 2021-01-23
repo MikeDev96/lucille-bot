@@ -1,5 +1,4 @@
 const { Command } = require("discord.js-commando")
-const { getOrCreateMusic } = require("../../classes/Helpers")
 const { escapeMarkdown } = require("../../helpers")
 const config = require("../../config.json")
 
@@ -25,8 +24,7 @@ module.exports = class extends Command {
   }
 
   async run (msg, args) {
-    const music = getOrCreateMusic(msg)
-
+    const music = msg.guild.music
     const item = music.state.queue[0]
 
     if (args.subject === "current" && (!item || !item.youTubeId)) {
@@ -48,7 +46,7 @@ module.exports = class extends Command {
           fields: [
             {
               name: "Showing Stats For",
-              value: music.state.emojis.youtube + " " + escapeMarkdown(videoDetails.videoTitle),
+              value: msg.guild.customEmojis.youtube + " " + escapeMarkdown(videoDetails.videoTitle),
             },
             {
               name: "Times Played",

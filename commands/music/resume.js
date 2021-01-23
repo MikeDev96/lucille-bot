@@ -1,5 +1,4 @@
 const { Command } = require("discord.js-commando")
-const { getOrCreateMusic } = require("../../classes/Helpers")
 
 module.exports = class extends Command {
   constructor (client) {
@@ -14,7 +13,7 @@ module.exports = class extends Command {
   }
 
   async run (msg) {
-    const music = getOrCreateMusic(msg)
+    const music = msg.guild.music
     music.state.pauser = ""
     music.dispatcherExec(d => d.resume())
     music.updateEmbed()
@@ -23,7 +22,7 @@ module.exports = class extends Command {
 }
 
 module.exports.resume = (msg) => {
-  const music = getOrCreateMusic(msg)
+  const music = msg.guild.music
   music.state.pauser = ""
   music.dispatcherExec(d => d.resume())
   music.updateEmbed()

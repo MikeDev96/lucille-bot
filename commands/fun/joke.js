@@ -1,6 +1,5 @@
 const { Command } = require("discord.js-commando")
 const fetch = require("node-fetch")
-const { getMusic } = require("../../classes/Helpers")
 const { sleep } = require("../../helpers")
 const TtsCommand = require("./tts")
 
@@ -51,7 +50,7 @@ module.exports = class extends Command {
           msg.member.voice.channel.leave()
         }
         else {
-          const music = getMusic(msg.guild)
+          const music = msg.guild.music
           music.play()
         }
       }

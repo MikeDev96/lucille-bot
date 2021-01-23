@@ -1,5 +1,4 @@
 const { Util } = require("discord.js")
-const index = require("../index")
 const config = require("../config.json")
 const TopMostMessagePump = require("./TopMostMessagePump")
 const { safeJoin, msToTimestamp, selectRandom, escapeMarkdown } = require("../helpers")
@@ -12,28 +11,24 @@ const axios = require("axios")
 const MusicToX = require("./MusicToX")
 const debounce = require("lodash.debounce")
 const RadioAdBlock = require("./RadioAdBlock")
-const { getEmoji } = require("../helpers")
 const { searchYouTube } = require("../worker/bindings")
 const { getStream, getFfmpegStream } = require("./YouTubeToStream")
 
 const PLATFORMS_REQUIRE_YT_SEARCH = [PLATFORM_SPOTIFY, PLATFORM_TIDAL, PLATFORM_APPLE, PLATFORM_YOUTUBE, "search"]
 
-module.exports = class {
-  constructor (textChannel) {
-    this.client = textChannel.client
+module.exports = class Music {
+  constructor (guild) {
+    this.guild = guild
+    this.client = guild.client
 
     this.state = {
       joinState: 0,
       voiceChannel: null,
-      textChannel: textChannel,
+      textChannel: guild.systemChannel,
       voiceConnection: null,
       queue: [],
-      emojis: index.emojis.reduce((acc, cur) => {
-        acc[cur.name] = getEmoji(textChannel.guild, cur.name)
-        return acc
-      }, {}),
       pauser: "",
-      messagePump: new TopMostMessagePump(textChannel),
+      messagePump: new TopMostMessagePump(),
       playTime: 0,
       bassBoost: 0,
       tempo: 1,
@@ -90,7 +85,7 @@ module.exports = class {
     }
   }
 
-  async add (input, requestee, voiceChannel, index = -1) {
+  async add (input, requestee, voiceChannel, index = -1, textChannel) {
     const isPlaying = !!this.state.queue.length
 
     let insertAt = index < 0 ? this.state.queue.length : index
@@ -141,6 +136,10 @@ module.exports = class {
         // Update the insert index, to put it where the old radio was
         insertAt = radioIndex
       }
+    }
+
+    if (!this.state.queue.length) {
+      this.state.messagePump.setChannel(textChannel)
     }
 
     this.state.queue.splice(insertAt, 0, ...tracks)
@@ -261,6 +260,7 @@ module.exports = class {
 
     const stream = await this.getMediaStream(item)
 
+    this.stream = stream
     this.state.playCount++
 
     if (update === "after") {
@@ -272,7 +272,7 @@ module.exports = class {
     // TODO: Handle the error event
     stream.once("readable", () => {
       this.client.db.saveYouTubeVideo(item.youTubeId, item.youTubeTitle)
-      this.client.db.insertYouTubeHistory(item.youTubeId, item.requestee.id, this.state.textChannel.guild.id)
+      this.client.db.insertYouTubeHistory(item.youTubeId, item.requestee.id, this.guild.id)
 
       const dispatcher = this.state.voiceConnection.play(stream, { type: "opus" })
       dispatcher.setVolumeLogarithmic(this.state.volume / 100)
@@ -563,7 +563,7 @@ module.exports = class {
 
     const platformEmoji = this.getPlatformEmoji(currentlyPlaying.platform)
     const nowPlayingSource = ![PLATFORM_YOUTUBE, "search"].includes(currentlyPlaying.platform) ? `${platformEmoji ? `${platformEmoji} ` : ""}${escapeMarkdown(safeJoin([currentlyPlaying.artists, currentlyPlaying.title], " - "))}` : ""
-    const nowPlayingYouTube = PLATFORMS_REQUIRE_YT_SEARCH.includes(currentlyPlaying.platform) ? `${this.state.emojis.youtube} [${escapeMarkdown(currentlyPlaying.youTubeTitle)}](${currentlyPlaying.link})` : ""
+    const nowPlayingYouTube = PLATFORMS_REQUIRE_YT_SEARCH.includes(currentlyPlaying.platform) ? `${this.guild.customEmojis.youtube} [${escapeMarkdown(currentlyPlaying.youTubeTitle)}](${currentlyPlaying.link})` : ""
 
     const radioMusicToX = this.getRadioMusicToXInfo(currentlyPlaying)
     const radioNowPlaying = currentlyPlaying.platform === PLATFORM_RADIO && currentlyPlaying.radioMetadata ? escapeMarkdown([currentlyPlaying.radioMetadata.artist || "", currentlyPlaying.radioMetadata.title || ""].filter(s => s.trim()).join(" - ") + (radioMusicToX ? " " + radioMusicToX : "")) : ""
@@ -641,7 +641,7 @@ module.exports = class {
     case PLATFORM_RADIO:
       return ":radio:"
     default:
-      return this.state.emojis[platform]
+      return this.guild.customEmojis[platform]
     }
   }
 
@@ -650,9 +650,9 @@ module.exports = class {
       const musicToX = item.radioMusicToX
       const splitApple = (musicToX.appleId || "").split("-")
       const radioMusicToX = [
-        musicToX.spotifyId && `[${this.state.emojis.spotify}](https://open.spotify.com/track/${musicToX.spotifyId})`,
-        musicToX.tidalId && `[${this.state.emojis.tidal}](https://tidal.com/browse/track/${musicToX.tidalId})`,
-        musicToX.appleId && `[${this.state.emojis.apple}](https://music.apple.com/gb/album/${splitApple[0]}?i=${splitApple[1]})`,
+        musicToX.spotifyId && `[${this.guild.customEmojis.spotify}](https://open.spotify.com/track/${musicToX.spotifyId})`,
+        musicToX.tidalId && `[${this.guild.customEmojis.tidal}](https://tidal.com/browse/track/${musicToX.tidalId})`,
+        musicToX.appleId && `[${this.guild.customEmojis.apple}](https://music.apple.com/gb/album/${splitApple[0]}?i=${splitApple[1]})`,
       ].filter(s => s).join(" ")
 
       return radioMusicToX

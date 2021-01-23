@@ -1,5 +1,4 @@
 const { Command } = require("discord.js-commando")
-const { getOrCreateMusic } = require("../../classes/Helpers")
 const { mapRepeatTypeToEmoji } = require("../../classes/Music")
 
 module.exports = class PlayCommand extends Command {
@@ -24,7 +23,7 @@ module.exports = class PlayCommand extends Command {
   }
 
   async run (msg, args) {
-    const music = getOrCreateMusic(msg)
+    const music = msg.guild.music
     music.setRepeat(args.type)
 
     const emoji = mapRepeatTypeToEmoji(args.type)

@@ -3,7 +3,7 @@ const axios = require("axios")
 const fs = require("fs")
 const { getAudioDurationInSeconds } = require("get-audio-duration")
 const config = require("../../config.json")
-const { getOrCreateMusic, getRequestee, getVoiceChannel } = require("../../classes/Helpers")
+const { getRequestee, getVoiceChannel } = require("../../helpers")
 const Track = require("../../classes/Track")
 const { PLATFORM_OTHER } = require("../../classes/TrackExtractor")
 const { Util } = require("discord.js")
@@ -71,8 +71,8 @@ module.exports = class extends Command {
 
           stream.on("finish", async () => {
             const duration = await getAudioDurationInSeconds(filename)
-            if (duration > 5) {
-              msg.reply("File must be no longer than 5 seconds")
+            if (duration > 7) {
+              msg.reply("File must be no longer than 7 seconds")
               fs.unlink(filename, err => {
                 if (err) {
                   console.log(err)
@@ -102,7 +102,7 @@ module.exports = class extends Command {
       if (key) {
         fs.readdir(`./assets/sounds/${key}`, (err, files) => {
           if (!err) {
-            const music = getOrCreateMusic(msg)
+            const music = msg.guild.music
             const tracks = files.map(f =>
               new Track("", f, "")
                 .setPlatform(PLATFORM_OTHER)
@@ -110,7 +110,7 @@ module.exports = class extends Command {
                 .setDuration(0),
             )
 
-            music.add(tracks, getRequestee(msg), getVoiceChannel(msg), -1)
+            music.add(tracks, getRequestee(msg), getVoiceChannel(msg), -1, msg.channel)
           }
           else {
             console.log(err)

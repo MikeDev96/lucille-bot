@@ -1,5 +1,4 @@
 const { Command } = require("discord.js-commando")
-const { getMusic } = require("../../classes/Helpers")
 const { textToStream } = require("../../helpers")
 
 class TtsCommand extends Command {
@@ -35,7 +34,7 @@ class TtsCommand extends Command {
           msg.member.voice.channel.leave()
         }
         else {
-          const music = getMusic(msg.guild)
+          const music = msg.guild.music
           music.syncTime()
           music.play()
         }

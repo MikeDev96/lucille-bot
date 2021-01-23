@@ -1,5 +1,4 @@
 const { Command } = require("discord.js-commando")
-const { getOrCreateMusic } = require("../../classes/Helpers")
 
 module.exports = class extends Command {
   constructor (client) {
@@ -19,7 +18,7 @@ module.exports = class extends Command {
       return
     }
 
-    const music = getOrCreateMusic(msg)
+    const music = msg.guild.music
     music.summon(msg.member.voice.channel, true)
 
     msg.react("🧞")

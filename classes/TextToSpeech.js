@@ -1,6 +1,5 @@
 const GTTS = require("gtts")
 const { PassThrough } = require("stream")
-const { getMusic } = require("../classes/Helpers")
 /*
 * TODO:
 * Queue messages ie 2 people join at once
@@ -38,7 +37,7 @@ module.exports = class TextToSpeech {
 
         const passThrough = new PassThrough()
         const output = gtts.stream().pipe(passThrough)
-        const music = getMusic(voiceState.guild)
+        const music = voiceState.guild.music
 
         if (music.state.queue.length === 0) {
           this.playGTTSStream(voiceState, output)

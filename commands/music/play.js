@@ -1,5 +1,5 @@
 const { Command } = require("discord.js-commando")
-const { getRequestee, getVoiceChannel, getOrCreateMusic } = require("../../classes/Helpers")
+const { getRequestee, getVoiceChannel } = require("../../helpers")
 const { resume } = require("./resume")
 
 const commandConfig = {
@@ -30,7 +30,7 @@ module.exports = class PlayCommand extends Command {
 }
 
 const run = async (msg, args, index) => {
-  const music = getOrCreateMusic(msg)
+  const music = msg.guild.music
 
   if (music.state.pauser !== "" && args.input === "") {
     resume(msg)
@@ -38,7 +38,7 @@ const run = async (msg, args, index) => {
   }
 
   if (args.input !== "") {
-    const success = await music.add(args.input, getRequestee(msg), getVoiceChannel(msg), index)
+    const success = await music.add(args.input, getRequestee(msg), getVoiceChannel(msg), index, msg.channel)
     if (success) {
       msg.react("▶️")
     }

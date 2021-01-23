@@ -1,6 +1,6 @@
 const { Command } = require("discord.js-commando")
 const radios = require("../../radios.json")
-const { getRequestee, getVoiceChannel, getOrCreateMusic } = require("../../classes/Helpers")
+const { getRequestee, getVoiceChannel } = require("../../helpers")
 const { PLATFORM_RADIO } = require("../../classes/TrackExtractor")
 const Track = require("../../classes/Track")
 
@@ -36,8 +36,8 @@ module.exports = class extends Command {
       .setDuration(0)
       .setRadio(radio)
 
-    const music = getOrCreateMusic(msg)
-    const success = music.add([track], getRequestee(msg), getVoiceChannel(msg), undefined)
+    const music = msg.guild.music
+    const success = music.add([track], getRequestee(msg), getVoiceChannel(msg), -1, msg.channel)
     if (success) {
       msg.react("📻")
     }

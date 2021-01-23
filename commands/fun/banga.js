@@ -1,10 +1,9 @@
 const { Command } = require("discord.js-commando")
 const config = require("../../config.json")
-const { getRequestee, getVoiceChannel, getOrCreateMusic } = require("../../classes/Helpers")
+const { getRequestee, getVoiceChannel, shuffle } = require("../../helpers")
 const Track = require("../../classes/Track")
 const { MessageAttachment, Util } = require("discord.js")
 const AWS = require("aws-sdk")
-const { shuffle } = require("../../helpers")
 
 AWS.config.update({
   credentials: {
@@ -43,7 +42,7 @@ module.exports = class extends Command {
   }
 
   async run (msg, args) {
-    const music = getOrCreateMusic(msg)
+    const music = msg.guild.music
 
     if (args.arg1.toLowerCase() === "list") {
       const listId = this.findUserId(msg, args.arg2)
@@ -84,7 +83,7 @@ module.exports = class extends Command {
         .setQuery(dbSong.song)
         .setYouTubeTitle(dbSong.song))
       shuffle(trackedMusic)
-      music.add(trackedMusic, getRequestee(msg), getVoiceChannel(msg))
+      music.add(trackedMusic, getRequestee(msg), getVoiceChannel(msg), -1, msg.channel)
       return
     }
 

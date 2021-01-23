@@ -6,7 +6,6 @@ const VoiceStateAdapter = require("./VoiceStateAdapter")
 const { PassThrough } = require("stream")
 const { proxyCommand } = require("./DiscordJSHelpers")
 const { GuildMember } = require("discord.js")
-const { getMusic } = require("./Helpers")
 
 class VoiceCommands {
   constructor (client) {
@@ -152,7 +151,7 @@ class VoiceCommands {
       throw Error("Member param must be instance of GuildMember")
     }
 
-    const music = getMusic(member.guild)
+    const music = member.guild.music
     if (music) {
       const textChannel = music.getTextChannel()
       if (textChannel) {

@@ -7,6 +7,10 @@ module.exports = class {
     this.shouldClear = false
   }
 
+  setChannel (textChannel) {
+    this.textChannel = textChannel
+  }
+
   async set (message, edit) {
     this.messageContents = { message, edit }
     await this.tryProcess()
