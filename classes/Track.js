@@ -101,6 +101,11 @@ module.exports = class Track {
     return this
   }
 
+  setTracked (tracked) {
+    this.tracked = tracked
+    return this
+  }
+
   clone (track) {
     this.artists = track.artists
     this.title = track.title
@@ -121,6 +126,7 @@ module.exports = class Track {
     this.radioInstance = track.radioInstance
     this.radioMusicToX = track.radioMusicToX
     this.youTubeId = track.youTubeId
+    this.tracked = track.tracked
     return this
   }
 }

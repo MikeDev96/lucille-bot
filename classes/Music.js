@@ -271,8 +271,11 @@ module.exports = class Music {
     // i.e. when changing the bass boost
     // TODO: Handle the error event
     stream.once("readable", () => {
-      this.client.db.saveYouTubeVideo(item.youTubeId, item.youTubeTitle)
-      this.client.db.insertYouTubeHistory(item.youTubeId, item.requestee.id, this.guild.id)
+      if (!item.tracked) {
+        item.setTracked(true)
+        this.client.db.saveYouTubeVideo(item.youTubeId, item.youTubeTitle)
+        this.client.db.insertYouTubeHistory(item.youTubeId, item.requestee.id, this.guild.id)
+      }
 
       const dispatcher = this.state.voiceConnection.play(stream, { type: "opus" })
       dispatcher.setVolumeLogarithmic(this.state.volume / 100)
