@@ -20,6 +20,8 @@ const PLATFORMS_REQUIRE_YT_SEARCH = [PLATFORM_SPOTIFY, PLATFORM_TIDAL, PLATFORM_
 
 module.exports = class {
   constructor (textChannel) {
+    this.client = textChannel.client
+
     this.state = {
       joinState: 0,
       voiceChannel: null,
@@ -188,6 +190,7 @@ module.exports = class {
         .setYouTubeTitle(searchResult.title)
         .setThumbnail(searchResult.thumbnail)
         .setLink(`https://www.youtube.com/watch?v=${searchResult.id}`)
+        .setYouTubeId(searchResult.id)
         .setDuration(searchResult.duration)
 
       return item
@@ -268,6 +271,9 @@ module.exports = class {
     // i.e. when changing the bass boost
     // TODO: Handle the error event
     stream.once("readable", () => {
+      this.client.db.saveYouTubeVideo(item.youTubeId, item.youTubeTitle)
+      this.client.db.insertYouTubeHistory(item.youTubeId, item.requestee.id, this.state.textChannel.guild.id)
+
       const dispatcher = this.state.voiceConnection.play(stream, { type: "opus" })
       dispatcher.setVolumeLogarithmic(this.state.volume / 100)
 

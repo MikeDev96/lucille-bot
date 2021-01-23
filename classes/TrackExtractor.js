@@ -262,6 +262,7 @@ module.exports = class {
             info.videoDetails.thumbnails[info.videoDetails.thumbnails.length - 1].url,
           ).setPlatform(PLATFORM_YOUTUBE)
             .setLink(info.videoDetails.video_url)
+            .setYouTubeId(info.videoDetails.videoId)
             .setYouTubeTitle(info.videoDetails.title)
             .setDuration(parseInt(info.videoDetails.lengthSeconds))
             .setStartTime(startTime),
@@ -273,6 +274,7 @@ module.exports = class {
           new Track(item.author.name, item.title, item.thumbnail)
             .setPlatform(PLATFORM_YOUTUBE)
             .setLink(item.url_simple)
+            .setYouTubeId(item.videoId)
             .setYouTubeTitle(item.title)
             .setDuration(Math.floor(parseTime.humanStr(item.duration) / 1000)),
         )

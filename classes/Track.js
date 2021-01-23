@@ -96,6 +96,11 @@ module.exports = class Track {
     return this
   }
 
+  setYouTubeId (youTubeId) {
+    this.youTubeId = youTubeId
+    return this
+  }
+
   clone (track) {
     this.artists = track.artists
     this.title = track.title
@@ -115,6 +120,7 @@ module.exports = class Track {
     this.spotifyUri = track.spotifyUri
     this.radioInstance = track.radioInstance
     this.radioMusicToX = track.radioMusicToX
+    this.youTubeId = track.youTubeId
     return this
   }
 }

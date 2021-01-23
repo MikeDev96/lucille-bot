@@ -60,6 +60,22 @@ module.exports = class {
         )
       `)
 
+      .exec(`
+       CREATE TABLE IF NOT EXISTS YouTubeVideos (
+          VideoId     TEXT PRIMARY KEY,
+          VideoTitle  TEXT
+        )
+      `)
+
+      .exec(`
+       CREATE TABLE IF NOT EXISTS YouTubeHistory (
+          VideoId     TEXT,
+          UserId      TEXT,
+          ServerId    TEXT,
+          Timestamp   DATETIME DEFAULT CURRENT_TIMESTAMP
+        )
+      `)
+
     // probably should use some sort of versioning? maybe user_version
     if (!this.columnExists("PenisSize", "DailyPP")) {
       this.db.exec("ALTER TABLE PenisSize ADD COLUMN DailyPP INTEGER DEFAULT -1")
@@ -225,5 +241,34 @@ WHERE [ServerId] = @server
     }
 
     return value
+  }
+
+  saveYouTubeVideo (videoId, videoTitle) {
+    if (this.runScalarQuery("SELECT [VideoId] FROM YouTubeVideos WHERE [VideoId] = ?", videoId)) {
+      this.run("UPDATE YouTubeVideos SET [VideoTitle] = ? WHERE [VideoId] = ?", videoTitle, videoId)
+    }
+    else {
+      this.run("INSERT INTO YouTubeVideos (VideoId, VideoTitle) VALUES (?, ?)", videoId, videoTitle)
+    }
+  }
+
+  insertYouTubeHistory (videoId, userId, serverId) {
+    this.run("INSERT INTO YouTubeHistory ([VideoId], [UserId], [ServerId]) VALUES (?, ?, ?)", videoId, userId, serverId)
+  }
+
+  getYouTubeStatsForVideo (serverId, videoId) {
+    return this.runScalarQuery(`
+      SELECT
+        yv.VideoTitle AS videoTitle,
+        COUNT(yv.VideoId) AS count,
+        MIN(Timestamp) AS firstPlayed,
+        MAX(Timestamp) AS lastPlayed
+      FROM YouTubeVideos yv
+      JOIN YouTubeHistory ys
+      ON ys.ServerId = ?
+        AND ys.VideoId = yv.VideoId
+      WHERE yv.VideoId = ?
+      GROUP BY yv.VideoId
+    `, serverId, videoId)
   }
 }
