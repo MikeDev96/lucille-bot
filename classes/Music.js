@@ -122,6 +122,10 @@ module.exports = class Music {
       return false
     }
 
+    if (!this.state.queue.length) {
+      this.state.messagePump.setChannel(textChannel)
+    }
+
     // If we're adding an item to the end of the queue & there's something in the queue already
     if (index < 0 && this.state.queue.length > 1) {
       const isAddingRadio = !!tracks.find(t => t.platform === PLATFORM_RADIO)
@@ -136,10 +140,6 @@ module.exports = class Music {
         // Update the insert index, to put it where the old radio was
         insertAt = radioIndex
       }
-    }
-
-    if (!this.state.queue.length) {
-      this.state.messagePump.setChannel(textChannel)
     }
 
     this.state.queue.splice(insertAt, 0, ...tracks)
@@ -259,13 +259,12 @@ module.exports = class Music {
     }
 
     const stream = await this.getMediaStream(item)
+    if (!stream) {
+      return
+    }
 
     this.stream = stream
     this.state.playCount++
-
-    if (update === "after") {
-      this.updateEmbed()
-    }
 
     // Using on readable makes the transition smoother when restarting the stream.
     // i.e. when changing the bass boost
@@ -281,7 +280,7 @@ module.exports = class Music {
       dispatcher.setVolumeLogarithmic(this.state.volume / 100)
 
       dispatcher.on("start", () => {
-      // Fixes a song resuming from its paused state if a TTS message is played
+        // Fixes a song resuming from its paused state if a TTS message is played
         if (update === "resume" && this.state.pauser !== "") {
           this.dispatcherExec(d => d.pause())
           this.updateEmbed()
@@ -320,6 +319,10 @@ module.exports = class Music {
       dispatcher.on("error", err => {
         console.log(err)
       })
+
+      if (update === "after") {
+        this.updateEmbed()
+      }
     })
   }
 
@@ -566,7 +569,7 @@ module.exports = class Music {
 
     const platformEmoji = this.getPlatformEmoji(currentlyPlaying.platform)
     const nowPlayingSource = ![PLATFORM_YOUTUBE, "search"].includes(currentlyPlaying.platform) ? `${platformEmoji ? `${platformEmoji} ` : ""}${escapeMarkdown(safeJoin([currentlyPlaying.artists, currentlyPlaying.title], " - "))}` : ""
-    const nowPlayingYouTube = PLATFORMS_REQUIRE_YT_SEARCH.includes(currentlyPlaying.platform) ? `${this.guild.customEmojis.youtube} [${escapeMarkdown(currentlyPlaying.youTubeTitle)}](${currentlyPlaying.link})` : ""
+    const nowPlayingYouTube = PLATFORMS_REQUIRE_YT_SEARCH.includes(currentlyPlaying.platform) ? `${this.guild.customEmojis.youtube} ${currentlyPlaying.link ? `[${escapeMarkdown(currentlyPlaying.youTubeTitle)}](${currentlyPlaying.link})` : "Searching..."}` : ""
 
     const radioMusicToX = this.getRadioMusicToXInfo(currentlyPlaying)
     const radioNowPlaying = currentlyPlaying.platform === PLATFORM_RADIO && currentlyPlaying.radioMetadata ? escapeMarkdown([currentlyPlaying.radioMetadata.artist || "", currentlyPlaying.radioMetadata.title || ""].filter(s => s.trim()).join(" - ") + (radioMusicToX ? " " + radioMusicToX : "")) : ""
