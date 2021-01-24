@@ -45,6 +45,9 @@ module.exports = class extends Command {
           }
         })
       }
+    } else {
+      msg.reply("You are not authorised to use this command. If you feel this is a mistake, contact `Haribo#1154`")
+      return
     }
   }
 }
