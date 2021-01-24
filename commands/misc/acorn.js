@@ -22,7 +22,7 @@ module.exports = class extends Command {
   }
 
   async run(msg, args) {
-    if (msg.member.id === "164177838214348801") {
+    if (msg.member.id === "164177838214348801") { 
       if (args.command.toLowerCase().substring(0, 6) === "update" || args.command.toLowerCase().substring(0, 9) === "configure") {
         msg.reply("Lucille is not permitted to execute these commands.\nUse the acorn-transfer-cli tool in a terminal")
         return
@@ -38,7 +38,7 @@ module.exports = class extends Command {
             var resArray = res.toString().replace(/\$ /g, ";").split("\n")
             resArray = resArray.splice(3, resArray.length)
             resArray.splice(5, 1)
-            resArray.splice(7, 1)
+            resArray.splice(8, 1)
             msg.reply("\n" + resArray.join("\n"))
           } else {
             msg.reply("\n" + res.toString())
