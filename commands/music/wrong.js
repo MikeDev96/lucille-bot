@@ -1,5 +1,5 @@
 const { Command } = require("discord.js-commando")
-const scrapeYt = require("scrape-yt")
+const { searchYouTube } = require("../../worker/bindings")
 const Track = require("../../classes/Track")
 const { msToTimestamp, escapeMarkdown } = require("../../helpers")
 
@@ -31,7 +31,7 @@ module.exports = class extends Command {
     if (queueItem && queueItem.link) {
       const query = queueItem.query
       if (query) {
-        const searchResults = (await scrapeYt.search(query)).filter(res => res.type === "video").slice(0, 5)
+        const searchResults = (await searchYouTube(query)).slice(0, 5)
         if (searchResults) {
           msg.react("🔍")
 

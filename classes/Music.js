@@ -181,7 +181,7 @@ module.exports = class Music {
 
   async search (item) {
     console.log(`Started search for ${item.query}`)
-    const searchResult = await searchYouTube(item.query)
+    const searchResult = (await searchYouTube(item.query))[0]
     console.log(`Finished search for ${item.query} - ${searchResult && searchResult.id}`)
 
     if (searchResult) {
