@@ -39,9 +39,10 @@ module.exports = class extends Command {
             resArray = resArray.splice(3, resArray.length)
             resArray.splice(5, 1)
             resArray.splice(8, 1)
-            msg.reply("\n`" + resArray.join("\n") + "`")
+            resArray.pop()
+            msg.reply("\n```" + resArray.join("\n") + "```")
           } else {
-            msg.reply("\n`" + res.toString() + "`")
+            msg.reply("\n```" + res.toString() + "```")
           }
         })
       }
