@@ -37,7 +37,7 @@ module.exports = class Track {
   }
 
   setQuery (query) {
-    this.query = encodeURIComponent(query)
+    this.query = query
     return this
   }
 
