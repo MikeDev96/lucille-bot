@@ -54,10 +54,12 @@ module.exports = class extends Command {
 
             if (queueIndex === 0) {
               music.state.queue.splice(queueIndex + 1, 0, track)
+              music.setState({ queue: music.state.queue })
               music.dispatcherExec(d => d.end())
             }
             else {
               music.state.queue.splice(queueIndex, 1, track)
+              music.setState({ queue: music.state.queue })
               music.updateEmbed()
             }
           }

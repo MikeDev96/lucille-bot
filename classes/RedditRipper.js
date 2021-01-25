@@ -177,5 +177,5 @@ const RedditRipper = class {
   }
 }
 
-module.exports.default = RedditRipper
+module.exports = RedditRipper
 module.exports.router = router

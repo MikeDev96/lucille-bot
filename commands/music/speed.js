@@ -23,7 +23,7 @@ module.exports = class extends Command {
   async run (msg, args) {
     const music = msg.guild.music
     music.syncTime()
-    music.state.tempo = args.speed
+    music.setState({ tempo: args.speed })
     music.play("after")
     msg.react(args.speed === 1 ? "🔄" : args.speed > 1 ? "💨" : "🐌")
   }

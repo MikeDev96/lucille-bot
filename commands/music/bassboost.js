@@ -23,7 +23,7 @@ module.exports = class extends Command {
   async run (msg, args) {
     const music = msg.guild.music
     music.syncTime()
-    music.state.bassBoost = bassBoostToAmountMap[args.amount.toLowerCase()]
+    music.setState({ bassBoost: bassBoostToAmountMap[args.amount.toLowerCase()] })
     music.play("after")
     msg.react("🎸")
   }

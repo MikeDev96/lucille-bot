@@ -42,6 +42,7 @@ module.exports = class extends Command {
     }
 
     music.state.queue.splice(range[0], (range[1] - range[0]) + 1)
+    music.setState({ queue: music.state.queue })
     music.updateEmbed()
 
     msg.react("❌")

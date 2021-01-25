@@ -16,6 +16,7 @@ module.exports = class extends Command {
   async run (msg, args) {
     const music = msg.guild.music
     music.state.queue.reverse()
+    music.setState({ queue: music.state.queue })
     music.play("after")
     msg.react("◀️")
   }

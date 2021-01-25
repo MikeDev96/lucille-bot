@@ -110,4 +110,4 @@ const AmazonRipper = class {
   }
 }
 
-module.exports.default = AmazonRipper
+module.exports = AmazonRipper

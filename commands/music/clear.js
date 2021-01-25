@@ -24,6 +24,7 @@ module.exports = class extends Command {
         if (/y/i.test(firstMsg.content)) {
           firstMsg.react("🗑️")
           music.state.queue.splice(1)
+          music.setState({ queue: music.state.queue })
           music.updateEmbed()
         }
       }

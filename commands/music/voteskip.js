@@ -46,6 +46,7 @@ module.exports = class PlayCommand extends Command {
             msg.react("⏭️")
 
             music.state.queue.splice(1)
+            music.setState({ queue: music.state.queue })
             music.dispatcherExec(d => d.end())
           }
           else {

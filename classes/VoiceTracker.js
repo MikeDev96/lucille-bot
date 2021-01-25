@@ -21,8 +21,6 @@ module.exports = class {
 
   initClient () {
     this.client.once("ready", () => {
-      console.log("Discord client ready")
-
       setInterval(() => {
         const d = new Date()
         if (d.getHours() === 19 && d.getMinutes() === 0) {
@@ -30,12 +28,14 @@ module.exports = class {
 
           servers.forEach(serverId => {
             const server = this.client.guilds.cache.find(guild => guild.id === serverId)
-            const leaderboard = this.getLeaderboard(serverId)
+            if (server && server.systemChannel) {
+              const leaderboard = this.getLeaderboard(serverId)
 
-            if (leaderboard) {
-              server.systemChannel.send({
-                embed: leaderboard,
-              }).then(msg => msg.react("🔄"))
+              if (leaderboard) {
+                server.systemChannel.send({
+                  embed: leaderboard,
+                }).then(msg => msg.react("🔄"))
+              }
             }
           })
         }

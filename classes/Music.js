@@ -13,22 +13,20 @@ const debounce = require("lodash.debounce")
 const RadioAdBlock = require("./RadioAdBlock")
 const { searchYouTube } = require("../worker/bindings")
 const { getStream, getFfmpegStream } = require("./YouTubeToStream")
+const MusicState = require("./MusicState")
 
 const PLATFORMS_REQUIRE_YT_SEARCH = [PLATFORM_SPOTIFY, PLATFORM_TIDAL, PLATFORM_APPLE, PLATFORM_YOUTUBE, "search"]
 
-module.exports = class Music {
+module.exports = class Music extends MusicState {
   constructor (guild) {
-    this.guild = guild
-    this.client = guild.client
-
-    this.state = {
+    super(guild, {
       joinState: 0,
       voiceChannel: null,
       textChannel: guild.systemChannel,
       voiceConnection: null,
       queue: [],
       pauser: "",
-      messagePump: new TopMostMessagePump(),
+      messagePump: new TopMostMessagePump().on("create", msg => this.setState({ embedId: msg.id })),
       playTime: 0,
       bassBoost: 0,
       tempo: 1,
@@ -38,7 +36,11 @@ module.exports = class Music {
       repeat: "off",
       radioAdBlock: new RadioAdBlock(),
       summoned: false,
-    }
+      embedId: "",
+    })
+
+    this.guild = guild
+    this.client = guild.client
 
     // Move the embed down every 5 minutes, it can get lost when a radio is left on for ages
     this.debouncer = debounce(this.updateEmbed, 5 * 60 * 1000)
@@ -46,41 +48,76 @@ module.exports = class Music {
     this.state.radioAdBlock.on("volume", volume => {
       this.setVolume(volume, true)
     })
+
+    guild.client.once("ready", async () => {
+      // If an embed exists from the previous instance, delete it
+      if (this.state.embedId && this.state.textChannel) {
+        try {
+          const msg = await this.state.textChannel.messages.fetch(this.state.embedId)
+          if (msg) {
+            msg.delete()
+          }
+        }
+        catch (err) {
+          console.log(err.message)
+        }
+      }
+
+      // Useful for testing, boots the bot out of the channel on start up
+      if (guild.voice) {
+        await guild.voice.setChannel(null)
+      }
+
+      if (this.state.summoned || this.state.queue.length) {
+        await this.summon(this.state.voiceChannel)
+
+        if (this.state.queue.length) {
+          await this.play()
+        }
+      }
+    })
   }
 
   async summon (voiceChannel, userSummoned = false) {
     if (userSummoned) {
-      this.state.summoned = true
+      this.setState({ summoned: true })
     }
 
     // Join the voice channel if not already joining/joined
     if (this.state.joinState === 0) {
-      this.state.joinState = 1
+      this.setState({ joinState: 1 })
 
       try {
         const connection = await voiceChannel.join()
         connection.play("./assets/sounds/silence.mp3")
 
-        this.state.joinState = 2
-        this.state.voiceChannel = voiceChannel
-        this.state.voiceConnection = connection
-        this.state.playCount = 0
+        this.setState({
+          joinState: 2,
+          voiceChannel: voiceChannel,
+          voiceConnection: connection,
+          playCount: 0,
+        })
 
         this.state.voiceConnection.once("disconnect", () => {
-          this.state.queue.splice(0, this.state.queue.length)
-          this.state.summoned = false
+          this.setState({
+            queue: this.state.queue.splice(0, this.state.queue.length),
+            summoned: false,
+            voiceConnection: null,
+            voiceChannel: null,
+            joinState: 0,
+          })
           this.cleanUp()
         })
       }
       catch (err) {
-        this.state.joinState = 0
+        this.setState({ joinState: 0 })
         console.log(err)
       }
     }
     else if (this.state.joinState === 2) {
       if (this.state.voiceConnection && this.state.voiceConnection.voice) {
         await this.state.voiceConnection.voice.setChannel(voiceChannel)
-        this.state.voiceChannel = voiceChannel
+        this.setState({ voiceChannel })
       }
     }
   }
@@ -135,6 +172,7 @@ module.exports = class Music {
         // And we're adding a radio, delete the old radio
         if (isAddingRadio) {
           this.state.queue.splice(radioIndex, 1)
+          this.setState({ queue: this.state.queue })
         }
 
         // Update the insert index, to put it where the old radio was
@@ -143,6 +181,7 @@ module.exports = class Music {
     }
 
     this.state.queue.splice(insertAt, 0, ...tracks)
+    this.setState({ queue: this.state.queue })
 
     if (this.state.queue.length > 0) {
       // Join the voice channel if not already joining/joined
@@ -163,6 +202,7 @@ module.exports = class Music {
           // This is because we only allow 1 radio in the queue at a time
           if (this.state.queue[1].platform !== PLATFORM_RADIO) {
             this.state.queue.push(radio)
+            this.setState({ queue: this.state.queue })
           }
 
           // End so the finish event is fired, which also removes the first item in the queue essentially skipping.
@@ -241,7 +281,7 @@ module.exports = class Music {
     }
 
     if (item.startTime) {
-      this.state.playTime = item.startTime * 1000
+      this.setState({ playTime: item.startTime * 1000 })
     }
 
     if (update === "before") {
@@ -264,7 +304,7 @@ module.exports = class Music {
     }
 
     this.stream = stream
-    this.state.playCount++
+    this.setState({ playCount: this.state.playCount + 1 })
 
     // Using on readable makes the transition smoother when restarting the stream.
     // i.e. when changing the bass boost
@@ -289,7 +329,13 @@ module.exports = class Music {
           console.log("Stream starting...")
           this.cleanProgress()
           if (item.duration > 0) {
-            this.state.progressHandle = setInterval(() => this.updateEmbed(true), 5000)
+            this.setState({
+              progressHandle: setInterval(() => {
+                item.setStartTime(this.getTime())
+                this.setState({ queue: this.state.queue })
+                this.updateEmbed(true)
+              }, 5000),
+            })
           }
           this.startRadioMetadata(item)
         }
@@ -365,7 +411,8 @@ module.exports = class Music {
   }
 
   syncTime (ms) {
-    return (this.state.playTime = Math.max(this.getTime() + (ms || 0), 0))
+    this.setState({ playTime: Math.max(this.getTime() + (ms || 0), 0) })
+    return this.state.playTime
   }
 
   getAudioFilters () {
@@ -376,13 +423,15 @@ module.exports = class Music {
     if (this.state.repeat === "all") {
       if (this.state.queue.length > 0) {
         this.state.queue.push(this.state.queue.shift())
+        this.setState({ queue: this.state.queue })
       }
     }
     else if (this.state.repeat === "off") {
       this.state.queue.shift()
+      this.setState({ queue: this.state.queue })
     }
 
-    this.state.playTime = 0
+    this.setState({ playTime: 0 })
 
     if (this.state.queue.length < 1) {
       this.disconnectSound()
@@ -393,12 +442,12 @@ module.exports = class Music {
   }
 
   setRepeat (type) {
-    this.state.repeat = type
+    this.setState({ repeat: type })
     this.updateEmbed()
   }
 
   setVolume (volume, isRadioAdBlock = false) {
-    this.state.volume = volume
+    this.setState({ volume })
     this.dispatcherExec(d => d.setVolumeLogarithmic(volume / 100))
     this.updateEmbed()
 
@@ -450,15 +499,12 @@ module.exports = class Music {
   cleanProgress () {
     if (this.state.progressHandle) {
       clearInterval(this.state.progressHandle)
-      this.state.progressHandle = null
+      this.setState({ progressHandle: null })
     }
   }
 
   cleanUp () {
     this.debouncer.cancel()
-    this.state.voiceConnection = null
-    this.state.voiceChannel = null
-    this.state.joinState = 0
     this.state.messagePump.clear()
   }
 
@@ -577,13 +623,15 @@ module.exports = class Music {
     const nowPlaying = [nowPlayingSource, nowPlayingYouTube, radioNowPlaying].filter(s => s.trim()).join("\n")
     const blocks = Math.round(20 * progressPerc)
 
+    const requesteeMember = this.guild.members.cache.get(currentlyPlaying.requestee.id)
+
     return {
       embed: {
         color: 0x0099ff,
         title: "Lucille :musical_note:",
         author: {
-          name: currentlyPlaying.requestee.displayName,
-          icon_url: currentlyPlaying.requestee.avatar,
+          name: (requesteeMember || { displayName: currentlyPlaying.requestee.id }).displayName,
+          icon_url: requesteeMember ? requesteeMember.user.displayAvatarURL() : null,
         },
         fields: [
           {

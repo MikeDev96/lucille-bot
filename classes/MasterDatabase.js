@@ -76,6 +76,13 @@ module.exports = class {
         )
       `)
 
+      .exec(`
+       CREATE TABLE IF NOT EXISTS MusicState (
+          ServerId    TEXT PRIMARY KEY,
+          State       TEXT
+        )
+      `)
+
     // probably should use some sort of versioning? maybe user_version
     if (!this.columnExists("PenisSize", "DailyPP")) {
       this.db.exec("ALTER TABLE PenisSize ADD COLUMN DailyPP INTEGER DEFAULT -1")
@@ -270,5 +277,18 @@ WHERE [ServerId] = @server
       WHERE yv.VideoId = ?
       GROUP BY yv.VideoId
     `, serverId, videoId)
+  }
+
+  saveMusicState (serverId, state) {
+    if (this.runScalarQuery("SELECT ServerId FROM MusicState WHERE ServerId = ?", serverId)) {
+      this.run("UPDATE MusicState SET State = ? WHERE ServerId = ?", state, serverId)
+    }
+    else {
+      this.run("INSERT INTO MusicState (ServerId, State) VALUES (?, ?)", serverId, state)
+    }
+  }
+
+  getMusicState (serverId) {
+    return this.runScalarQuery("SELECT State AS state FROM MusicState WHERE ServerId = ?", serverId)
   }
 }

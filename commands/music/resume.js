@@ -13,18 +13,16 @@ module.exports = class extends Command {
   }
 
   async run (msg) {
-    const music = msg.guild.music
-    music.state.pauser = ""
-    music.dispatcherExec(d => d.resume())
-    music.updateEmbed()
-    msg.react("▶️")
+    resume(msg)
   }
 }
 
-module.exports.resume = (msg) => {
+const resume = msg => {
   const music = msg.guild.music
-  music.state.pauser = ""
+  music.setState({ pauser: "" })
   music.dispatcherExec(d => d.resume())
   music.updateEmbed()
   msg.react("▶️")
 }
+
+module.exports.resume = resume

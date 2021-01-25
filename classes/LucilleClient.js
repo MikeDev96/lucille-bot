@@ -27,13 +27,11 @@ module.exports = class LucilleClient extends CommandoClient {
     this.voiceStateAdapter = new VoiceStateAdapter(this)
     // client.voiceCommands = new VoiceCommands(client)
 
+    this.createMessageInterceptor()
     this.createDailyTracker()
     this.createTTS()
 
     this.on("guildCreate", guild => guild.createEmojis())
-    this.once("ready", () => {
-      this.boot()
-    })
   }
 
   createMessageInterceptor () {
@@ -74,20 +72,6 @@ module.exports = class LucilleClient extends CommandoClient {
         // Check if bot
         if (voiceObj.voiceState.id !== this.user.id) {
           ttsLastHappend[voiceObj.voiceState.id] = TextToSpeechHandler(ttsLastHappend[voiceObj.voiceState.id], method, voiceObj)
-        }
-      })
-    })
-  }
-
-  boot () {
-    this.guilds.cache.forEach(guild => {
-      guild.channels.cache.forEach(channel => {
-        if (channel.type === "voice") {
-          channel.members.forEach(member => {
-            if (member.user === this.user) {
-              member.voice.setChannel(null)
-            }
-          })
         }
       })
     })

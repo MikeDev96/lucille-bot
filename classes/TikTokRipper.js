@@ -153,5 +153,5 @@ const TikTokRipper = class {
   }
 }
 
-module.exports.default = TikTokRipper
+module.exports = TikTokRipper
 module.exports.router = router

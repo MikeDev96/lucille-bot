@@ -41,7 +41,7 @@ module.exports = class extends Command {
       position = parseInt(args.position)
     }
 
-    music.state.playTime = position * 1000
+    music.setState({ playTime: position * 1000 })
     music.play("after")
     msg.react("⏩")
   }

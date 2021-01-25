@@ -19,6 +19,7 @@ module.exports = class extends Command {
     const shuffledTracks = music.state.queue.splice(1)
     shuffle(shuffledTracks)
     music.state.queue.push(...shuffledTracks)
+    music.setState({ queue: music.state.queue })
     music.updateEmbed()
     msg.react("🔀")
   }
