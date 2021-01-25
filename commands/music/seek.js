@@ -32,6 +32,10 @@ module.exports = class extends Command {
 
   async run (msg, args) {
     const music = msg.guild.music
+    if (!music.state.queue.length) {
+      return
+    }
+
     let position = 0
     const match = args.position.match(/^(\d{1,2}):(\d{1,2})$/)
     if (match) {
@@ -41,7 +45,8 @@ module.exports = class extends Command {
       position = parseInt(args.position)
     }
 
-    music.setState({ playTime: position * 1000 })
+    music.state.queue[0].setStartTime(position)
+    music.setState({ queue: music.state.queue })
     music.play("after")
     msg.react("⏩")
   }
