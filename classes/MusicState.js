@@ -89,7 +89,7 @@ module.exports = class MusicState {
         .setDuration(item.duration)
         // Change to store id of radio instead
         .setRadio(Object.values(radios).find(r => r.name === item.radio))
-        .setStartTime(item.time)
+        .setStartTime(item.time * 1000)
         .setYouTubeId(item.youTubeId)
         .setTracked(item.isTracked),
       ),

@@ -45,7 +45,7 @@ module.exports = class extends Command {
       position = parseInt(args.position)
     }
 
-    music.state.queue[0].setStartTime(position)
+    music.state.queue[0].setStartTime(position * 1000)
     music.setState({ queue: music.state.queue })
     music.play("after")
     msg.react("⏩")

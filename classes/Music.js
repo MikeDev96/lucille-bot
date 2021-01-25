@@ -281,7 +281,7 @@ module.exports = class Music extends MusicState {
     }
 
     if (item.startTime) {
-      this.setState({ playTime: item.startTime * 1000 })
+      this.setState({ playTime: item.startTime })
     }
 
     if (update === "before") {
@@ -411,7 +411,11 @@ module.exports = class Music extends MusicState {
   }
 
   syncTime (ms) {
-    this.setState({ playTime: Math.max(this.getTime() + (ms || 0), 0) })
+    const time = Math.max(this.getTime() + (ms || 0), 0)
+    if (this.state.queue[0]) {
+      this.state.queue[0].setStartTime(time)
+    }
+    this.setState({ playTime: time })
     return this.state.playTime
   }
 
