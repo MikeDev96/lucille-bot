@@ -68,20 +68,18 @@ module.exports = class Music extends MusicState {
         await guild.voice.setChannel(null)
       }
 
-      if (this.state.summoned || this.state.queue.length) {
+      if (this.state.summoned && this.state.voiceChannel) {
         await this.summon(this.state.voiceChannel)
 
-        if (this.state.queue.length) {
+        if (this.state.joinState === 2) {
           await this.play()
         }
       }
     })
   }
 
-  async summon (voiceChannel, userSummoned = false) {
-    if (userSummoned) {
-      this.setState({ summoned: true })
-    }
+  async summon (voiceChannel) {
+    this.setState({ summoned: true })
 
     // Join the voice channel if not already joining/joined
     if (this.state.joinState === 0) {
@@ -89,7 +87,6 @@ module.exports = class Music extends MusicState {
 
       try {
         const connection = await voiceChannel.join()
-        connection.play("./assets/sounds/silence.mp3")
 
         this.setState({
           joinState: 2,
@@ -111,7 +108,7 @@ module.exports = class Music extends MusicState {
       }
       catch (err) {
         this.setState({ joinState: 0 })
-        console.log(err)
+        console.log(err.message)
       }
     }
     else if (this.state.joinState === 2) {

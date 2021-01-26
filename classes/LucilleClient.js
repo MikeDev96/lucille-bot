@@ -32,6 +32,11 @@ module.exports = class LucilleClient extends CommandoClient {
     this.createTTS()
 
     this.on("guildCreate", guild => guild.createEmojis())
+    this.on("voiceStateUpdate", (_oldVoice, newVoice) => {
+      if (newVoice.id === this.user.id && newVoice.channelID) {
+        newVoice.guild.music.setState({ voiceChannel: newVoice.channel })
+      }
+    })
   }
 
   createMessageInterceptor () {
