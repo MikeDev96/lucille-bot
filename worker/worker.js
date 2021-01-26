@@ -1,6 +1,6 @@
 const workerpool = require("workerpool")
 const scrapeYt = require("scrape-yt")
-const { default: AmazonRipper } = require("../classes/AmazonRipper")
+const AmazonRipper = require("../classes/AmazonRipper")
 
 const searchYouTube = async query => {
   const searchResults = (await scrapeYt.search(query)).filter(res => res.type === "video")
