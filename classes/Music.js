@@ -616,7 +616,7 @@ module.exports = class Music extends MusicState {
 
     const platformEmoji = this.getPlatformEmoji(currentlyPlaying.platform)
     const nowPlayingSource = ![PLATFORM_YOUTUBE, "search"].includes(currentlyPlaying.platform) ? `${platformEmoji ? `${platformEmoji} ` : ""}${escapeMarkdown(safeJoin([currentlyPlaying.artists, currentlyPlaying.title], " - "))}` : ""
-    const nowPlayingYouTube = PLATFORMS_REQUIRE_YT_SEARCH.includes(currentlyPlaying.platform) ? `${this.guild.customEmojis.youtube} ${currentlyPlaying.link ? `[${escapeMarkdown(currentlyPlaying.youTubeTitle)}](${currentlyPlaying.link})` : "Searching..."}` : ""
+    const nowPlayingYouTube = PLATFORMS_REQUIRE_YT_SEARCH.includes(currentlyPlaying.platform) ? `${this.guild.customEmojis.youtube} ${currentlyPlaying.link ? `[${escapeMarkdown(currentlyPlaying.youTubeTitle)}](${currentlyPlaying.link}) \`▶️ ${this.client.db.getYouTubeVideoPlayCount(currentlyPlaying.youTubeId).count}\`` : "Searching..."}` : ""
 
     const radioMusicToX = this.getRadioMusicToXInfo(currentlyPlaying)
     const radioNowPlaying = currentlyPlaying.platform === PLATFORM_RADIO && currentlyPlaying.radioMetadata ? escapeMarkdown([currentlyPlaying.radioMetadata.artist || "", currentlyPlaying.radioMetadata.title || ""].filter(s => s.trim()).join(" - ") + (radioMusicToX ? " " + radioMusicToX : "")) : ""
@@ -629,7 +629,7 @@ module.exports = class Music extends MusicState {
     return {
       embed: {
         color: 0x0099ff,
-        title: "Lucille :musical_note:",
+        title: "Lucille 🎵",
         author: {
           name: (requesteeMember || { displayName: currentlyPlaying.requestee.id }).displayName,
           icon_url: requesteeMember ? requesteeMember.user.displayAvatarURL() : null,
@@ -647,13 +647,7 @@ module.exports = class Music extends MusicState {
           ...remainingCount > 0 ? [{
             name: "Up Next",
             value: `${remainingCount} more song(s)...`,
-            inline: true,
           }] : [],
-          {
-            name: "Play Count",
-            value: `${this.client.db.getYouTubeVideoPlayCount(currentlyPlaying.youTubeId).count}`,
-            inline: true,
-          },
           ...this.state.voiceConnection && this.state.voiceConnection.dispatcher && this.state.voiceConnection.dispatcher.paused ? [{
             name: "Paused By",
             value: `<@${this.state.pauser}>`,
