@@ -647,7 +647,13 @@ module.exports = class Music extends MusicState {
           ...remainingCount > 0 ? [{
             name: "Up Next",
             value: `${remainingCount} more song(s)...`,
+            inline: true,
           }] : [],
+          {
+            name: "Play Count",
+            value: `${this.client.db.getYouTubeVideoPlayCount(currentlyPlaying.youTubeId).count}`,
+            inline: true,
+          },
           ...this.state.voiceConnection && this.state.voiceConnection.dispatcher && this.state.voiceConnection.dispatcher.paused ? [{
             name: "Paused By",
             value: `<@${this.state.pauser}>`,

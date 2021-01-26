@@ -291,4 +291,8 @@ WHERE [ServerId] = @server
   getMusicState (serverId) {
     return this.runScalarQuery("SELECT State AS state FROM MusicState WHERE ServerId = ?", serverId)
   }
+
+  getYouTubeVideoPlayCount (videoId) {
+    return this.runScalarQuery("SELECT COUNT(VideoId) AS count FROM YouTubeHistory WHERE VideoId = ?", videoId)
+  }
 }
