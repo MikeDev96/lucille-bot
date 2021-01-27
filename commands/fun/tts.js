@@ -25,17 +25,20 @@ class TtsCommand extends Command {
       if (msg.member.voice.channel) {
         msg.react("🎙️")
 
-        const isBotInSameChannel = msg.member.voice.channel.members.has(this.client.user.id)
+        const music = msg.guild.music
+        music.syncTime()
 
-        await msg.member.voice.channel.join()
+        const notInVoice = !msg.guild.voice || !msg.guild.voice.channel
+        if (notInVoice) {
+          await msg.member.voice.channel.join()
+        }
+
         await TtsCommand.speak(msg, args.text)
 
-        if (!isBotInSameChannel) {
+        if (notInVoice) {
           msg.member.voice.channel.leave()
         }
         else {
-          const music = msg.guild.music
-          music.syncTime()
           music.play()
         }
       }

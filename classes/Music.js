@@ -120,8 +120,6 @@ module.exports = class Music extends MusicState {
   }
 
   async add (input, requestee, voiceChannel, jump, textChannel) {
-    const isPlaying = !!this.state.queue.length
-
     let tracks = []
 
     if (typeof input === "string") {
@@ -177,12 +175,13 @@ module.exports = class Music extends MusicState {
 
     if (this.state.queue.length > 0) {
       // Join the voice channel if not already joining/joined
-      if (this.state.joinState === 0) {
+      const needsToJoin = this.state.joinState === 0
+      if (needsToJoin) {
         await this.summon(voiceChannel)
       }
 
       // If there's nothing playing, get the ball rolling
-      if (!isPlaying || wasRadio) {
+      if (needsToJoin || wasRadio) {
         await this.searchAndPlay()
       }
       else {
