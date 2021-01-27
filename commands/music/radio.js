@@ -37,7 +37,7 @@ module.exports = class extends Command {
       .setRadio(radio)
 
     const music = msg.guild.music
-    const success = music.add([track], getRequestee(msg), getVoiceChannel(msg), -1, msg.channel)
+    const success = music.add([track], getRequestee(msg), getVoiceChannel(msg), false, msg.channel)
     if (success) {
       msg.react("📻")
     }

@@ -83,7 +83,7 @@ module.exports = class extends Command {
         .setQuery(dbSong.song)
         .setYouTubeTitle(dbSong.song))
       shuffle(trackedMusic)
-      music.add(trackedMusic, getRequestee(msg), getVoiceChannel(msg), -1, msg.channel)
+      music.add(trackedMusic, getRequestee(msg), getVoiceChannel(msg), false, msg.channel)
       return
     }
 

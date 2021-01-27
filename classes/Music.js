@@ -119,10 +119,9 @@ module.exports = class Music extends MusicState {
     }
   }
 
-  async add (input, requestee, voiceChannel, index = -1, textChannel) {
+  async add (input, requestee, voiceChannel, jump, textChannel) {
     const isPlaying = !!this.state.queue.length
 
-    let insertAt = index < 0 ? this.state.queue.length : index
     let tracks = []
 
     if (typeof input === "string") {
@@ -160,25 +159,21 @@ module.exports = class Music extends MusicState {
       this.state.messagePump.setChannel(textChannel)
     }
 
-    // If we're adding an item to the end of the queue & there's something in the queue already
-    if (index < 0 && this.state.queue.length > 1) {
-      const isAddingRadio = !!tracks.find(t => t.platform === PLATFORM_RADIO)
-      const radioIndex = this.state.queue.findIndex((t, idx) => idx > 0 && t.platform === PLATFORM_RADIO)
-      // If there's a radio in the queue
-      if (radioIndex >= 0) {
-        // And we're adding a radio, delete the old radio
-        if (isAddingRadio) {
-          this.state.queue.splice(radioIndex, 1)
-          this.setState({ queue: this.state.queue })
-        }
+    const wasRadio = this.state.queue[0].platform === PLATFORM_RADIO
+    const queueTracks = this.state.queue.filter(t => t.platform !== PLATFORM_RADIO)
+    const queueRadios = this.state.queue.filter(t => t.platform === PLATFORM_RADIO)
+    const newTracks = tracks.filter(t => t.platform !== PLATFORM_RADIO)
+    const newRadios = tracks.filter(t => t.platform === PLATFORM_RADIO)
 
-        // Update the insert index, to put it where the old radio was
-        insertAt = radioIndex
-      }
+    // If the queue is empty, i.e. only a radio playing then happily handles inserting at 1 in an empty array.
+    queueTracks.splice(jump ? 1 : queueTracks.length, 0, ...newTracks)
+
+    const radios = newRadios.concat(queueRadios)
+    if (radios.length) {
+      queueTracks.push(radios[0])
     }
 
-    this.state.queue.splice(insertAt, 0, ...tracks)
-    this.setState({ queue: this.state.queue })
+    this.setState({ queue: queueTracks })
 
     if (this.state.queue.length > 0) {
       // Join the voice channel if not already joining/joined
@@ -187,29 +182,11 @@ module.exports = class Music extends MusicState {
       }
 
       // If there's nothing playing, get the ball rolling
-      if (!isPlaying) {
+      if (!isPlaying || wasRadio) {
         await this.searchAndPlay()
       }
       else {
-        // If there's a radio currently playing & there's something else in the queue (because we've just added it above)
-        if (this.state.queue[0].platform === PLATFORM_RADIO && this.state.queue.length > 1) {
-          // Then capture the radio
-          const [radio] = this.state.queue
-          // And clone it's reference to the end of the queue as long as the second item in the queue isn't a radio
-          // This is because we only allow 1 radio in the queue at a time
-          if (this.state.queue[1].platform !== PLATFORM_RADIO) {
-            this.state.queue.push(radio)
-            this.setState({ queue: this.state.queue })
-          }
-
-          // End so the finish event is fired, which also removes the first item in the queue essentially skipping.
-          // This also fixes the duration issue that occurred when playing the radio for a long time and then playing a song.
-          // The duration is reset when the dispatcher finishes.
-          this.dispatcherExec(d => d.end())
-        }
-        else {
-          this.updateEmbed()
-        }
+        this.updateEmbed()
       }
     }
 

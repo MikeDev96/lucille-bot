@@ -25,11 +25,11 @@ module.exports = class PlayCommand extends Command {
   }
 
   async run (msg, args) {
-    await run(msg, args)
+    await run(msg, args, false)
   }
 }
 
-const run = async (msg, args, index) => {
+const run = async (msg, args, jump) => {
   const music = msg.guild.music
 
   if (music.state.pauser !== "" && args.input === "") {
@@ -40,7 +40,7 @@ const run = async (msg, args, index) => {
   const searchReaction = msg.react("🔍")
 
   if (args.input !== "") {
-    const success = await music.add(args.input, getRequestee(msg), getVoiceChannel(msg), index, msg.channel)
+    const success = await music.add(args.input, getRequestee(msg), getVoiceChannel(msg), jump, msg.channel)
     searchReaction.then(r => r.remove())
     await (await searchReaction).remove()
     if (success) {

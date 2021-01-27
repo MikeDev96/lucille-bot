@@ -13,6 +13,6 @@ module.exports = class PlayCommand extends Command {
   }
 
   async run (msg, args) {
-    await run(msg, args, 1)
+    await run(msg, args, true)
   }
 }

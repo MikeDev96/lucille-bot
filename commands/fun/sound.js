@@ -110,7 +110,7 @@ module.exports = class extends Command {
                 .setDuration(0),
             )
 
-            music.add(tracks, getRequestee(msg), getVoiceChannel(msg), -1, msg.channel)
+            music.add(tracks, getRequestee(msg), getVoiceChannel(msg), false, msg.channel)
           }
           else {
             console.log(err)
