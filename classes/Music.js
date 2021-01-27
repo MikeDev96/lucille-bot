@@ -175,13 +175,13 @@ module.exports = class Music extends MusicState {
 
     if (this.state.queue.length > 0) {
       // Join the voice channel if not already joining/joined
-      const needsToJoin = this.state.joinState === 0
-      if (needsToJoin) {
+      if (this.state.joinState === 0) {
         await this.summon(voiceChannel)
       }
 
       // If there's nothing playing, get the ball rolling
-      if (needsToJoin || wasRadio) {
+      const notStreaming = this.guild.voice && this.guild.voice.connection && !this.guild.voice.connection.dispatcher
+      if (notStreaming || wasRadio) {
         await this.searchAndPlay()
       }
       else {
