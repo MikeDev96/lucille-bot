@@ -15,7 +15,7 @@ module.exports = class MusicState {
       const t2 = process.hrtime(t)
 
       if (count++ % 100 === 0) {
-        console.log(`Serialising & saving state took ${t2[0] + (t2[1] / 1e9)}s`)
+        console.log(`Serialising & saving state took ${(t2[0] + (t2[1] / 1e6)).toFixed(2)}ms...`)
       }
     }, 5000, { leading: false })
 

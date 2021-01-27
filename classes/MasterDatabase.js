@@ -77,6 +77,14 @@ module.exports = class {
       `)
 
       .exec(`
+       CREATE TABLE IF NOT EXISTS YouTubeLinks (
+          VideoId1    TEXT,
+          VideoId2    TEXT,
+          PRIMARY KEY (VideoId1, VideoId2)
+        )
+      `)
+
+      .exec(`
        CREATE TABLE IF NOT EXISTS MusicState (
           ServerId    TEXT PRIMARY KEY,
           State       TEXT
@@ -88,6 +96,9 @@ module.exports = class {
       this.db.exec("ALTER TABLE PenisSize ADD COLUMN DailyPP INTEGER DEFAULT -1")
       console.log("Added DailyPP to PenisSize.")
     }
+
+    this.db.exec("DELETE FROM YouTubeVideos WHERE VideoId IS NULL")
+    this.db.exec("DELETE FROM YouTubeHistory WHERE VideoId IS NULL")
 
     console.log("Master database initialised")
   }
@@ -279,6 +290,12 @@ WHERE [ServerId] = @server
     `, serverId, videoId)
   }
 
+  insertYouTubeLink (videoId1, videoId2) {
+    if (!this.runScalarQuery("SELECT [VideoId1] FROM YouTubeLinks WHERE ([VideoId1] = ? AND [VideoId2] = ?) OR ([VideoId2] = ? AND [VideoId1] = ?)", videoId1, videoId2, videoId1, videoId2)) {
+      this.run("INSERT INTO YouTubeLinks ([VideoId1], [VideoId2]) VALUES (?, ?)", videoId1, videoId2)
+    }
+  }
+
   saveMusicState (serverId, state) {
     if (this.runScalarQuery("SELECT ServerId FROM MusicState WHERE ServerId = ?", serverId)) {
       this.run("UPDATE MusicState SET State = ? WHERE ServerId = ?", state, serverId)
@@ -293,6 +310,21 @@ WHERE [ServerId] = @server
   }
 
   getYouTubeVideoPlayCount (videoId) {
-    return this.runScalarQuery("SELECT COUNT(VideoId) AS count FROM YouTubeHistory WHERE VideoId = ?", videoId)
+    return this.runScalarQuery(`
+      SELECT COUNT(VideoId) AS count
+      FROM YouTubeHistory
+      WHERE VideoId IN
+      (
+        SELECT VideoId2 FROM YouTubeLinks WHERE VideoId1 = ?
+        UNION
+        SELECT VideoId1 FROM YouTubeLinks WHERE VideoId2 = ?
+        UNION
+        SELECT ?
+      )
+`, videoId, videoId, videoId)
+  }
+
+  getYouTubeVideos (ignoreVideoId) {
+    return this.runQuery("SELECT VideoId AS videoId, VideoTitle AS videoTitle FROM YouTubeVideos WHERE VideoId != ?", ignoreVideoId)
   }
 }

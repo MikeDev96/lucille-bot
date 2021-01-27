@@ -14,6 +14,7 @@ const RadioAdBlock = require("./RadioAdBlock")
 const { searchYouTube } = require("../worker/bindings")
 const { getStream, getFfmpegStream } = require("./YouTubeToStream")
 const MusicState = require("./MusicState")
+const stringSimilarity = require("string-similarity")
 
 const PLATFORMS_REQUIRE_YT_SEARCH = [PLATFORM_SPOTIFY, PLATFORM_TIDAL, PLATFORM_APPLE, PLATFORM_YOUTUBE, "search"]
 
@@ -403,12 +404,35 @@ module.exports = class Music extends MusicState {
       this.listenTimeHandle = setTimeout(() => {
         console.log(`[LISTEN TRACKING] Tracked: ${item.youTubeTitle}`)
         item.setTracked(true)
+
         this.client.db.saveYouTubeVideo(item.youTubeId, item.youTubeTitle)
         this.client.db.insertYouTubeHistory(item.youTubeId, item.requestee.id, this.guild.id)
+
+        this.linkTracks(item)
       }, listenTimeRemaining)
 
       console.log(`[LISTEN TRACKING] Started tracking for: ${item.youTubeTitle} - ${(listenTimeRemaining / 1000).toFixed(2)}s remaining...`)
     }
+  }
+
+  linkTracks (item) {
+    if (!item.youTubeTitle) {
+      return
+    }
+
+    const t = process.hrtime()
+    const videos = this.client.db.getYouTubeVideos(item.youTubeId)
+    const similarVideos = stringSimilarity.findBestMatch(item.youTubeTitle, videos.map(v => v.videoTitle))
+
+    similarVideos.ratings.forEach((r, idx) => {
+      if (r.rating >= 0.4 && item.youTubeId !== videos[idx].videoId) {
+        this.client.db.insertYouTubeLink(item.youTubeId, videos[idx].videoId)
+        console.log(`[LISTEN TRACKING] Linked: ${item.youTubeTitle} to ${videos[idx].videoTitle} - ${(r.rating * 100).toFixed(2)}%`)
+      }
+    })
+
+    const t2 = process.hrtime(t)
+    console.log(`[LISTEN TRACKING] Finished linking in ${(t2[0] + (t2[1] / 1e6)).toFixed(2)}ms...`)
   }
 
   endListenTracking (item) {
