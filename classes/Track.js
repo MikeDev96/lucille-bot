@@ -4,6 +4,8 @@ module.exports = class Track {
     this.title = title || ""
     this.thumbnail = thumbnail || ""
     this.finished = false
+    this.startTime = 0
+    this.listenTime = 0
   }
 
   setArtists (artists) {
@@ -106,6 +108,11 @@ module.exports = class Track {
     return this
   }
 
+  setListenTime (listenTime) {
+    this.listenTime = listenTime
+    return this
+  }
+
   clone (track) {
     this.artists = track.artists
     this.title = track.title
@@ -127,6 +134,7 @@ module.exports = class Track {
     this.radioMusicToX = track.radioMusicToX
     this.youTubeId = track.youTubeId
     this.tracked = track.tracked
+    this.listenTime = track.listenTime
     return this
   }
 }

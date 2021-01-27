@@ -51,6 +51,7 @@ module.exports = class MusicState {
         time: Math.floor(item.startTime / 1000),
         youTubeId: item.youTubeId,
         isTracked: item.tracked,
+        listenTime: Math.ceil(item.listenTime / 1000),
       })),
       pauserId: pauser,
       bassGain: bassBoost,
@@ -91,7 +92,8 @@ module.exports = class MusicState {
         .setRadio(Object.values(radios).find(r => r.name === item.radio))
         .setStartTime(item.time * 1000)
         .setYouTubeId(item.youTubeId)
-        .setTracked(item.isTracked),
+        .setTracked(item.isTracked)
+        .setListenTime((item.listenTime || 0) * 1000),
       ),
       pauser: state.pauserId,
       bassBoost: state.bassGain,

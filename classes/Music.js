@@ -27,7 +27,6 @@ module.exports = class Music extends MusicState {
       queue: [],
       pauser: "",
       messagePump: new TopMostMessagePump().on("create", msg => this.setState({ embedId: msg.id })),
-      playTime: 0,
       bassBoost: 0,
       tempo: 1,
       volume: 100,
@@ -41,6 +40,9 @@ module.exports = class Music extends MusicState {
 
     this.guild = guild
     this.client = guild.client
+
+    this.listenTimeHandle = null
+    this.streamTimeCache = 0
 
     // Move the embed down every 5 minutes, it can get lost when a radio is left on for ages
     this.debouncer = debounce(this.updateEmbed, 5 * 60 * 1000)
@@ -253,10 +255,6 @@ module.exports = class Music extends MusicState {
       return
     }
 
-    if (item.startTime) {
-      this.setState({ playTime: item.startTime })
-    }
-
     if (update === "before") {
       this.updateEmbed()
     }
@@ -283,12 +281,6 @@ module.exports = class Music extends MusicState {
     // i.e. when changing the bass boost
     // TODO: Handle the error event
     stream.once("readable", () => {
-      if (!item.tracked) {
-        item.setTracked(true)
-        this.client.db.saveYouTubeVideo(item.youTubeId, item.youTubeTitle)
-        this.client.db.insertYouTubeHistory(item.youTubeId, item.requestee.id, this.guild.id)
-      }
-
       const dispatcher = this.state.voiceConnection.play(stream, { type: "opus" })
       dispatcher.setVolumeLogarithmic(this.state.volume / 100)
 
@@ -301,16 +293,20 @@ module.exports = class Music extends MusicState {
         else {
           console.log("Stream starting...")
           this.cleanProgress()
+
           if (item.duration > 0) {
+            this.streamTimeCache = 0
             this.setState({
               progressHandle: setInterval(() => {
-                item.setStartTime(this.getTime())
+                this.syncTime()
                 this.setState({ queue: this.state.queue })
                 this.updateEmbed(true)
               }, 5000),
             })
           }
+
           this.startRadioMetadata(item)
+          this.startListenTracking(item)
         }
       })
 
@@ -332,7 +328,8 @@ module.exports = class Music extends MusicState {
         console.log("Cleaned up underlying stream")
 
         this.cleanProgress()
-        this.stopRadioMetadata(item)
+        this.endRadioMetadata(item)
+        this.endListenTracking(item)
       })
 
       dispatcher.on("error", err => {
@@ -348,7 +345,7 @@ module.exports = class Music extends MusicState {
   async getMediaStream (item) {
     if (PLATFORMS_REQUIRE_YT_SEARCH.includes(item.platform)) {
       try {
-        return await getStream(item.link, { startTime: this.state.playTime, filters: this.getAudioFilters() })
+        return await getStream(item.link, { startTime: item.startTime, filters: this.getAudioFilters() })
       }
       catch (err) {
         this.state.textChannel.send(`:x: Failed to get a YouTube stream for\n${this.getTrackTitle(item)}\n${item.link}\n${err.message}`)
@@ -379,17 +376,48 @@ module.exports = class Music extends MusicState {
     return getFfmpegStream(item.link, { startTime: 0, filters: this.getAudioFilters() })
   }
 
-  getTime () {
-    return this.state.playTime + ((this.dispatcherExec(d => d.streamTime) || 0))
+  syncTime (ms = 0) {
+    const deltaTime = (this.dispatcherExec(d => d.streamTime) || 0) - this.streamTimeCache
+    const item = this.state.queue[0]
+    if (item) {
+      const newStartTime = item.startTime + deltaTime + ms
+      const newListenTime = item.listenTime + deltaTime
+
+      item.setStartTime(newStartTime)
+        .setListenTime(newListenTime)
+
+      // console.log(`Set time to ${newStartTime}, set listen time to ${newListenTime}, delta: ${deltaTime}`)
+    }
+
+    this.streamTimeCache += deltaTime
   }
 
-  syncTime (ms) {
-    const time = Math.max(this.getTime() + (ms || 0), 0)
-    if (this.state.queue[0]) {
-      this.state.queue[0].setStartTime(time)
+  startListenTracking (item) {
+    this.endListenTracking(item)
+
+    this.streamTimeCache = 0
+
+    if (item.duration > 0 && item.youTubeId && item.youTubeTitle) {
+      const listenTimeRemaining = (item.duration * 1000 * 0.9) - item.listenTime
+
+      this.listenTimeHandle = setTimeout(() => {
+        console.log(`[LISTEN TRACKING] Tracked: ${item.youTubeTitle}`)
+        item.setTracked(true)
+        this.client.db.saveYouTubeVideo(item.youTubeId, item.youTubeTitle)
+        this.client.db.insertYouTubeHistory(item.youTubeId, item.requestee.id, this.guild.id)
+      }, listenTimeRemaining)
+
+      console.log(`[LISTEN TRACKING] Started tracking for: ${item.youTubeTitle} - ${(listenTimeRemaining / 1000).toFixed(2)}s remaining...`)
     }
-    this.setState({ playTime: time })
-    return this.state.playTime
+  }
+
+  endListenTracking (item) {
+    if (this.listenTimeHandle) {
+      clearTimeout(this.listenTimeHandle)
+      this.listenTimeHandle = null
+      this.streamTimeCache = 0
+      console.log(`[LISTEN TRACKING] Ended tracking for: ${item.youTubeTitle}`)
+    }
   }
 
   getAudioFilters () {
@@ -407,8 +435,6 @@ module.exports = class Music extends MusicState {
       this.state.queue.shift()
       this.setState({ queue: this.state.queue })
     }
-
-    this.setState({ playTime: 0 })
 
     if (this.state.queue.length < 1) {
       this.disconnectSound()
@@ -488,7 +514,7 @@ module.exports = class Music extends MusicState {
   startRadioMetadata (item) {
     // Any commands that just play the stream again ie. bass boost, don't fire the finish event,
     // so we need to make sure it gets cleaned up.
-    this.stopRadioMetadata(item)
+    this.endRadioMetadata(item)
 
     if (item.radio && item.radio.metadata) {
       const instance = new RadioMetadata(item.radio.metadata, item.requestStream)
@@ -505,7 +531,7 @@ module.exports = class Music extends MusicState {
     }
   }
 
-  stopRadioMetadata (item) {
+  endRadioMetadata (item) {
     if (item.radioInstance) {
       item.radioInstance.destroy()
       item.setRadioInstance(null)
@@ -574,8 +600,7 @@ module.exports = class Music extends MusicState {
       return 1
     }
     const durationMs = track.duration * 1000
-    const elapsed = Math.min(this.getTime(), durationMs)
-    const progressPerc = durationMs === 0 ? 0 : elapsed / durationMs
+    const progressPerc = durationMs === 0 ? 0 : track.startTime / durationMs
 
     return progressPerc
   }
