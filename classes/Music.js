@@ -157,7 +157,7 @@ module.exports = class Music extends MusicState {
       this.state.messagePump.setChannel(textChannel)
     }
 
-    const wasRadio = this.state.queue[0].platform === PLATFORM_RADIO
+    const wasRadio = this.state.queue[0] && this.state.queue[0].platform === PLATFORM_RADIO
     const queueTracks = this.state.queue.filter(t => t.platform !== PLATFORM_RADIO)
     const queueRadios = this.state.queue.filter(t => t.platform === PLATFORM_RADIO)
     const newTracks = tracks.filter(t => t.platform !== PLATFORM_RADIO)
