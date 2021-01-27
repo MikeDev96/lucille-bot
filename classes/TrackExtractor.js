@@ -49,13 +49,13 @@ module.exports = class {
     let youtubeMatch
     while ((youtubeMatch = youtubePattern.exec(this.input))) {
       const [, id] = youtubeMatch
-      const link = { platform: "youtube", type: "track", id }
+      const link = { platform: "youtube", type: "track", id, startTime: 0 }
       const queryParams = queryString.parseUrl(this.input).query
       if (queryParams.t) {
         const startTime = !/[a-zA-Z]/.test(queryParams.t) ? queryParams.t + "s" : queryParams.t
         const duration = parseDuration(startTime, "s")
         if (duration) {
-          link.startTime = duration
+          link.startTime = duration * 1000
         }
       }
       this.links.push(link)
