@@ -434,14 +434,15 @@ module.exports = class Music extends MusicState {
 
     const t = process.hrtime()
     const videos = this.client.db.getYouTubeVideos(item.youTubeId)
-    const similarVideos = stringSimilarity.findBestMatch(item.youTubeTitle, videos.map(v => v.videoTitle))
-
-    similarVideos.ratings.forEach((r, idx) => {
-      if (r.rating >= 0.4 && item.youTubeId !== videos[idx].videoId) {
-        this.client.db.insertYouTubeLink(item.youTubeId, videos[idx].videoId)
-        console.log(`[LISTEN TRACKING] Linked: ${item.youTubeTitle} to ${videos[idx].videoTitle} - ${(r.rating * 100).toFixed(2)}%`)
-      }
-    })
+    if (videos.length > 0) {
+      const similarVideos = stringSimilarity.findBestMatch(item.youTubeTitle, videos.map(v => v.videoTitle))
+      similarVideos.ratings.forEach((r, idx) => {
+        if (r.rating >= 0.4 && item.youTubeId !== videos[idx].videoId) {
+          this.client.db.insertYouTubeLink(item.youTubeId, videos[idx].videoId)
+          console.log(`[LISTEN TRACKING] Linked: ${item.youTubeTitle} to ${videos[idx].videoTitle} - ${(r.rating * 100).toFixed(2)}%`)
+        }
+      })
+    }
 
     const t2 = process.hrtime(t)
     console.log(`[LISTEN TRACKING] Finished linking in ${(t2[0] + (t2[1] / 1e6)).toFixed(2)}ms...`)
