@@ -63,7 +63,7 @@ async function getLeaderboard () {
   const leaderboard = {
     embed: {
       color: 0x0099ff,
-      title: `:christmas_tree: Advent of Code ${new Date().getFullYear()} leaderboard  :christmas_tree:`,
+      title: `🎄 Advent of Code ${new Date().getFullYear()} leaderboard  🎄`,
       description: `If you wish to join, [join here](https://adventofcode.com/${new Date().getFullYear()}/leaderboard/private) with this code **${config.aoc.leaderboard}**`,
       fields: [
         // Get data filter by local score and then map through

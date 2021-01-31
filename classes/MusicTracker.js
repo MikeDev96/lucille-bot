@@ -20,7 +20,7 @@ module.exports = class {
           const embed = {
             embed: {
               color: 0x0099ff,
-              title: "Lucille :musical_note:",
+              title: "Lucille 🎵",
               author: {
                 name: msg.member.displayName,
                 icon_url: msg.author.displayAvatarURL(),
