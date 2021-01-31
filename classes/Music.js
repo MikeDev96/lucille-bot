@@ -9,7 +9,6 @@ const fs = require("fs")
 const { RadioMetadata } = require("./RadioMetadata")
 const axios = require("axios")
 const MusicToX = require("./MusicToX")
-const debounce = require("lodash.debounce")
 const RadioAdBlock = require("./RadioAdBlock")
 const { searchYouTube } = require("../worker/bindings")
 const { getStream, getFfmpegStream } = require("./YouTubeToStream")
@@ -27,7 +26,9 @@ module.exports = class Music extends MusicState {
       voiceConnection: null,
       queue: [],
       pauser: "",
-      messagePump: new TopMostMessagePump().on("create", msg => this.setState({ embedId: msg.id })),
+      // Move the embed down every 5 minutes, it can get lost when a radio is left on for ages
+      // TMMP now handles this internally...
+      messagePump: new TopMostMessagePump(3e5).on("create", msg => this.setState({ embedId: msg.id })),
       bassBoost: 0,
       tempo: 1,
       volume: 100,
@@ -44,9 +45,6 @@ module.exports = class Music extends MusicState {
 
     this.listenTimeHandle = null
     this.streamTimeCache = 0
-
-    // Move the embed down every 5 minutes, it can get lost when a radio is left on for ages
-    this.debouncer = debounce(this.updateEmbed, 5 * 60 * 1000)
 
     this.state.radioAdBlock.on("volume", volume => {
       this.setVolume(volume, true)
@@ -531,7 +529,6 @@ module.exports = class Music extends MusicState {
   }
 
   cleanUp () {
-    this.debouncer.cancel()
     this.state.messagePump.clear()
   }
 
@@ -612,10 +609,6 @@ module.exports = class Music extends MusicState {
     if (currentlyPlaying) {
       const progressPerc = this.getPlaybackProgress(currentlyPlaying)
       this.state.messagePump.set(this.createQueueEmbed(currentlyPlaying, progressPerc), edit)
-
-      if (!edit) {
-        this.debouncer()
-      }
     }
   }
 

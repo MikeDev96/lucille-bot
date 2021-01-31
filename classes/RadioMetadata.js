@@ -1,6 +1,6 @@
 const { EventEmitter } = require("events")
 const WebSocket = require("ws")
-const debounce = require("lodash.debounce")
+const { debounce } = require("lodash")
 const axios = require("axios")
 const EventSource = require("eventsource")
 const io = require("socket.io-client")
