@@ -14,10 +14,11 @@ const urlCache = new Map()
 // }
 
 const nextBestFormat = (formats, isLive) => {
-  let filter = format => format.audioBitrate
-  if (isLive) {
-    filter = format => format.audioBitrate && format.isHLS
-  }
+  const filter = format => format.audioBitrate
+  // Commented this out as it's only used for the demux stuff
+  // if (isLive) {
+  //   filter = format => format.audioBitrate && format.isHLS
+  // }
 
   formats = formats.filter(filter).sort((a, b) => b.audioBitrate - a.audioBitrate)
   return formats.find(format => !format.bitrate) || formats[0]
