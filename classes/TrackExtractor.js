@@ -25,34 +25,41 @@ module.exports = class {
 
   parseLinks () {
     this.links = []
+    let input = this.input
 
     const spotPattern = /(?:open\.)?spotify(?:.com)?[/:](track|album|artist|playlist)[/:](\w+)/g
     let spotMatch
-    while ((spotMatch = spotPattern.exec(this.input))) {
+    while ((spotMatch = spotPattern.exec(input))) {
       const [, type, id] = spotMatch
       this.links.push({ platform: "spotify", type, id })
     }
 
+    input = input.replace(spotPattern, "")
+
     const tidalPattern = /tidal(?:.com)?(?:\/browse)?:?\/\/?(track|album|artist|playlist)[/:]([\w-]+)/g
     let tidalMatch
-    while ((tidalMatch = tidalPattern.exec(this.input))) {
+    while ((tidalMatch = tidalPattern.exec(input))) {
       const [, type, id] = tidalMatch
       this.links.push({ platform: "tidal", type, id })
     }
 
+    input = input.replace(tidalPattern, "")
+
     const applePattern = /music.apple.com\/[a-z]{2}\/(album|artist|playlist)\/(?:.+?\/)?(?:(\d+)(?:\?i=(\d+))?|(pl.\w+))/g
     let appleMatch
-    while ((appleMatch = applePattern.exec(this.input))) {
+    while ((appleMatch = applePattern.exec(input))) {
       const [, type, id, songId, playlistId] = appleMatch
       this.links.push({ platform: "apple", type: type === "album" ? songId ? "track" : type : type, id: playlistId || songId || id })
     }
 
+    input = input.replace(applePattern, "")
+
     const youtubePattern = /(?:https?:\/\/www.)?youtu(?:be.com\/watch\?v=|.be\/)([\w-]+)/g
     let youtubeMatch
-    while ((youtubeMatch = youtubePattern.exec(this.input))) {
+    while ((youtubeMatch = youtubePattern.exec(input))) {
       const [, id] = youtubeMatch
       const link = { platform: "youtube", type: "track", id, startTime: 0 }
-      const queryParams = queryString.parseUrl(this.input).query
+      const queryParams = queryString.parseUrl(input).query
       if (queryParams.t) {
         const startTime = !/[a-zA-Z]/.test(queryParams.t) ? queryParams.t + "s" : queryParams.t
         const duration = parseDuration(startTime, "s")
@@ -63,9 +70,11 @@ module.exports = class {
       this.links.push(link)
     }
 
+    input = input.replace(youtubePattern, "")
+
     const youtubePlaylistPattern = /(?:https?:\/\/www.)?youtube.com\/playlist\?list=([\w-]+)/g
     let youtubePlaylistMatch
-    while ((youtubePlaylistMatch = youtubePlaylistPattern.exec(this.input))) {
+    while ((youtubePlaylistMatch = youtubePlaylistPattern.exec(input))) {
       const [, id] = youtubePlaylistMatch
       if (ytpl.validateID(id)) {
         const link = { platform: "youtube", type: "playlist", id }
@@ -73,19 +82,25 @@ module.exports = class {
       }
     }
 
+    input = input.replace(youtubePlaylistPattern, "")
+
     const soundCloudPattern = /soundcloud.com\/((?:[\w-]+?)\/(?:sets\/)?(?:[\w-]+)(?:\/\b[\w-]+)?)\b/g
     let soundCloudMatch
-    while ((soundCloudMatch = soundCloudPattern.exec(this.input))) {
+    while ((soundCloudMatch = soundCloudPattern.exec(input))) {
       const [, id] = soundCloudMatch
       this.links.push({ platform: "soundcloud", type: "track", id })
     }
 
+    input = input.replace(soundCloudPattern, "")
+
     const otherPattern = /https?:\/\/(?:www.)?\w+.\w+(?:.\w+).+/g
     let otherMatch
-    while ((otherMatch = otherPattern.exec(this.input))) {
+    while ((otherMatch = otherPattern.exec(input))) {
       const [id] = otherMatch
       this.links.push({ platform: PLATFORM_OTHER, type: "track", id })
     }
+
+    input = input.replace(otherPattern, "")
 
     return this.links.length > 0
   }
@@ -336,12 +351,20 @@ module.exports = class {
 
   async getOther (id) {
     try {
-      const track = new Track("Custom Link", id, "")
-        .setPlatform(PLATFORM_OTHER)
-        .setLink(id)
-        .setDuration(0)
+      const res = await axios({
+        method: "GET",
+        url: id,
+        responseType: "stream",
+      })
+      const contentType = res.headers["content-type"]
+      if (contentType.startsWith("audio/") || contentType.startsWith("video/")) {
+        const track = new Track("Custom Link", id, "")
+          .setPlatform(PLATFORM_OTHER)
+          .setLink(id)
+          .setDuration(0)
 
-      return [track]
+        return [track]
+      }
     }
     catch (err) {
       console.log("Get other failed")
