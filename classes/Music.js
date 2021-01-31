@@ -33,7 +33,7 @@ module.exports = class Music extends MusicState {
       tempo: 1,
       volume: 100,
       progressHandle: null,
-      playCount: 0,
+      playedConnectSound: false,
       repeat: "off",
       radioAdBlock: new RadioAdBlock(),
       summoned: false,
@@ -93,7 +93,7 @@ module.exports = class Music extends MusicState {
           joinState: 2,
           voiceChannel: voiceChannel,
           voiceConnection: connection,
-          playCount: 0,
+          playedConnectSound: false,
         })
 
         this.state.voiceConnection.once("disconnect", () => {
@@ -258,7 +258,9 @@ module.exports = class Music extends MusicState {
       this.updateEmbed()
     }
 
-    if (this.state.playCount === 0) {
+    if (!this.state.playedConnectSound) {
+      this.setState({ playedConnectSound: true })
+
       try {
         await this.connectSound()
       }
@@ -274,7 +276,6 @@ module.exports = class Music extends MusicState {
     }
 
     this.stream = stream
-    this.setState({ playCount: this.state.playCount + 1 })
 
     // Using on readable makes the transition smoother when restarting the stream.
     // i.e. when changing the bass boost
@@ -536,6 +537,7 @@ module.exports = class Music extends MusicState {
 
   cleanUp () {
     this.state.messagePump.clear()
+    this.setState({ playedConnectSound: false })
   }
 
   startRadioMetadata (item) {
