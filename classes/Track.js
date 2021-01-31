@@ -78,8 +78,8 @@ module.exports = class Track {
     return this
   }
 
-  setFinished () {
-    this.finished = true
+  setFinished (finished = true) {
+    this.finished = finished
     return this
   }
 
@@ -136,5 +136,13 @@ module.exports = class Track {
     this.tracked = track.tracked
     this.listenTime = track.listenTime
     return this
+  }
+
+  reset () {
+    return this
+      .setStartTime(0)
+      .setListenTime(0)
+      .setTracked(false)
+      .setFinished(false)
   }
 }

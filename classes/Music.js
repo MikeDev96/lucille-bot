@@ -449,7 +449,13 @@ module.exports = class Music extends MusicState {
   async processQueue () {
     if (this.state.repeat === "all") {
       if (this.state.queue.length > 0) {
-        this.state.queue.push(this.state.queue.shift())
+        this.state.queue.push(this.state.queue.shift().reset())
+        this.setState({ queue: this.state.queue })
+      }
+    }
+    else if (this.state.repeat === "one") {
+      if (this.state.queue.length > 0) {
+        this.state.queue[0].reset()
         this.setState({ queue: this.state.queue })
       }
     }
