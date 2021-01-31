@@ -89,8 +89,7 @@ module.exports = class extends Command {
               return
             }
 
-            const embed = await this.getFilesEmbed(msg, `./assets/sounds/${key}`, key, file.name)
-            msg.reply(embed)
+            msg.react("⬆️")
           })
 
           res.data.pipe(stream)
