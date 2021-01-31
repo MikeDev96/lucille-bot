@@ -22,6 +22,10 @@ module.exports = class PlayCommand extends Command {
 
   async run (msg, args) {
     const music = msg.guild.music
+    if (!(msg.guild.voice && msg.guild.voice.channelID === msg.member.voice.channelID)) {
+      msg.react("🖕")
+      return
+    }
     music.state.queue.splice(1, args.amount - 1)
     music.setState({ queue: music.state.queue })
     music.dispatcherExec(d => d.end())

@@ -30,6 +30,11 @@ module.exports = class extends Command {
       return
     }
 
+    if (!(msg.guild.voice && msg.guild.voice.channelID === msg.member.voice.channelID)) {
+      msg.react("🖕")
+      return
+    }
+
     const track = new Track("", radio.name, "")
       .setPlatform(PLATFORM_RADIO)
       .setLink(radio.url)

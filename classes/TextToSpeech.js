@@ -31,7 +31,7 @@ module.exports = class TextToSpeech {
         const gtts = new GTTS(
           this.getMessage(
             event,
-            this.validUsername(res.displayName) ? res.displayName : "User",
+            this.validUsername(res.displayName) ? res.displayName : "Karen",
             event === "move" ? voiceObj.toChannel.name : voiceState.channel.name)
           , "en-au")
 
@@ -51,6 +51,7 @@ module.exports = class TextToSpeech {
   }
 
   getMessage (event, user, channel) {
+    user = user.toLowerCase()
     switch (event) {
     case "join": return `${user} has joined ${channel}`
     case "leave": return `${user} has left ${channel}`
@@ -60,7 +61,7 @@ module.exports = class TextToSpeech {
   }
 
   validUsername (username) {
-    if (username === null || username.length > 15 || !(RegExp(`^[a-zA-Z0-9 ]*$`).test(username))) {
+    if (username === null || username.length > 32 || !(RegExp(`^[a-zA-Z0-9 .]*$`).test(username)) || username.toLowerCase().includes("jane") || username.toLowerCase().includes("jayne") || username.toLowerCase().includes("jain")) {
       return false
     }
     return true
