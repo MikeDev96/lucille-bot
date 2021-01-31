@@ -70,7 +70,7 @@ async function getLeaderboard () {
         ...Object.values(LBInfo.members).sort((a, b) => b.local_score - a.local_score).map((member, index) =>
           ({
             name: `${medals[index] || ""} ${member.name !== null ? member.name : "Anonymous"} (Score: ${member.local_score})`,
-            value: (member.stars > 0 && member.stars < 10) ? ":star:".repeat(member.stars) : `${member.stars} :star:`,
+            value: (member.stars > 0 && member.stars < 10) ? "⭐".repeat(member.stars) : `${member.stars} ⭐`,
           }),
         ),
       ],

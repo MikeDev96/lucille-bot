@@ -15,6 +15,8 @@ const PLATFORM_YOUTUBE = "youtube"
 const PLATFORM_SOUNDCLOUD = "soundcloud"
 const PLATFORM_OTHER = "other"
 const PLATFORM_RADIO = "radio"
+const PLATFORM_CONNECT = "connect"
+const PLATFORM_DISCONNECT = "disconnect"
 
 module.exports = class {
   constructor (input) {
@@ -334,20 +336,12 @@ module.exports = class {
 
   async getOther (id) {
     try {
-      const res = await axios({
-        method: "GET",
-        url: id,
-        responseType: "stream",
-      })
-      const contentType = res.headers["content-type"]
-      if (contentType.startsWith("audio/")) {
-        const track = new Track("Custom Link", id, "")
-          .setPlatform(PLATFORM_OTHER)
-          .setLink(id)
-          .setDuration(0)
+      const track = new Track("Custom Link", id, "")
+        .setPlatform(PLATFORM_OTHER)
+        .setLink(id)
+        .setDuration(0)
 
-        return [track]
-      }
+      return [track]
     }
     catch (err) {
       console.log("Get other failed")
@@ -365,3 +359,5 @@ module.exports.PLATFORM_YOUTUBE = "youtube"
 module.exports.PLATFORM_SOUNDCLOUD = "soundcloud"
 module.exports.PLATFORM_RADIO = PLATFORM_RADIO
 module.exports.PLATFORM_OTHER = PLATFORM_OTHER
+module.exports.PLATFORM_CONNECT = PLATFORM_CONNECT
+module.exports.PLATFORM_DISCONNECT = PLATFORM_DISCONNECT

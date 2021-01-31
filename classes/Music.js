@@ -3,7 +3,7 @@ const config = require("../config.json")
 const TopMostMessagePump = require("./TopMostMessagePump")
 const { safeJoin, msToTimestamp, selectRandom, escapeMarkdown } = require("../helpers")
 const TrackExtractor = require("./TrackExtractor")
-const { PLATFORM_YOUTUBE, PLATFORM_RADIO, PLATFORM_SPOTIFY, PLATFORM_TIDAL, PLATFORM_APPLE } = require("./TrackExtractor")
+const { PLATFORM_YOUTUBE, PLATFORM_RADIO, PLATFORM_SPOTIFY, PLATFORM_TIDAL, PLATFORM_APPLE, PLATFORM_DISCONNECT } = require("./TrackExtractor")
 const Track = require("./Track")
 const fs = require("fs")
 const { RadioMetadata } = require("./RadioMetadata")
@@ -14,6 +14,7 @@ const { searchYouTube } = require("../worker/bindings")
 const { getStream, getFfmpegStream } = require("./YouTubeToStream")
 const MusicState = require("./MusicState")
 const stringSimilarity = require("string-similarity")
+const Requestee = require("./Requestee")
 
 const PLATFORMS_REQUIRE_YT_SEARCH = [PLATFORM_SPOTIFY, PLATFORM_TIDAL, PLATFORM_APPLE, PLATFORM_YOUTUBE, "search"]
 
@@ -32,7 +33,6 @@ module.exports = class Music extends MusicState {
       bassBoost: 0,
       tempo: 1,
       volume: 100,
-      progressHandle: null,
       playedConnectSound: false,
       repeat: "off",
       radioAdBlock: new RadioAdBlock(),
@@ -43,6 +43,7 @@ module.exports = class Music extends MusicState {
     this.guild = guild
     this.client = guild.client
 
+    this.progressHandle = null
     this.listenTimeHandle = null
     this.streamTimeCache = 0
 
@@ -154,13 +155,10 @@ module.exports = class Music extends MusicState {
       return false
     }
 
-    if (!this.state.queue.length) {
-      this.state.messagePump.setChannel(textChannel)
-    }
-
     const wasRadio = this.state.queue[0] && this.state.queue[0].platform === PLATFORM_RADIO
-    const queueTracks = this.state.queue.filter(t => t.platform !== PLATFORM_RADIO)
+    const queueTracks = this.state.queue.filter(t => t.platform !== PLATFORM_RADIO && t.platform !== PLATFORM_DISCONNECT)
     const queueRadios = this.state.queue.filter(t => t.platform === PLATFORM_RADIO)
+    const queueDisconnect = this.state.queue.filter(t => t.platform === PLATFORM_DISCONNECT)
     const newTracks = tracks.filter(t => t.platform !== PLATFORM_RADIO)
     const newRadios = tracks.filter(t => t.platform === PLATFORM_RADIO)
 
@@ -170,6 +168,35 @@ module.exports = class Music extends MusicState {
     const radios = newRadios.concat(queueRadios)
     if (radios.length) {
       queueTracks.push(radios[0])
+    }
+
+    if (queueDisconnect.length) {
+      queueTracks.push(queueDisconnect[0])
+    }
+
+    if (!this.state.queue.length) {
+      this.state.messagePump.setChannel(textChannel)
+
+      const connectPath = "assets/sounds/connect"
+      const connectSounds = fs.existsSync(connectPath) && fs.readdirSync(connectPath)
+      const randomConnectSound = selectRandom(connectSounds)
+      const disconnectPath = "assets/sounds/disconnect"
+      const disconnectSounds = fs.existsSync(disconnectPath) && fs.readdirSync(disconnectPath)
+      const randomDisconnectSound = selectRandom(disconnectSounds)
+
+      const requestee = new Requestee(this.guild.me.displayName, this.client.user.displayAvatarURL(), this.client.user.id)
+
+      queueTracks.unshift(new Track("", "Random Connect Sound", "")
+        .setPlatform(TrackExtractor.PLATFORM_CONNECT)
+        .setLink(`${connectPath}/${randomConnectSound}`)
+        .setDuration(0)
+        .setRequestee(requestee))
+
+      queueTracks.push(new Track("", "Random Disconnect Sound", "")
+        .setPlatform(TrackExtractor.PLATFORM_DISCONNECT)
+        .setLink(`${disconnectPath}/${randomDisconnectSound}`)
+        .setDuration(0)
+        .setRequestee(requestee))
     }
 
     this.setState({ queue: queueTracks })
@@ -226,7 +253,7 @@ module.exports = class Music extends MusicState {
         await this.presearchNextItem()
       }
       else {
-        this.state.textChannel.send(`:x: Failed to find a YouTube video for \`${item.query}\``)
+        this.state.textChannel.send(`❌ Failed to find a YouTube video for \`${item.query}\``)
         console.log(`Couldn't find a video for: ${item.query}`)
       }
     }
@@ -258,18 +285,6 @@ module.exports = class Music extends MusicState {
       this.updateEmbed()
     }
 
-    if (!this.state.playedConnectSound) {
-      this.setState({ playedConnectSound: true })
-
-      try {
-        await this.connectSound()
-      }
-      catch (err) {
-        console.log("Failed to play connect sound")
-        console.log(err)
-      }
-    }
-
     const stream = await this.getMediaStream(item)
     if (!stream) {
       return
@@ -296,13 +311,11 @@ module.exports = class Music extends MusicState {
 
           if (item.duration > 0) {
             this.streamTimeCache = 0
-            this.setState({
-              progressHandle: setInterval(() => {
-                this.syncTime()
-                this.setState({ queue: this.state.queue })
-                this.updateEmbed(true)
-              }, 5000),
-            })
+            this.progressHandle = setInterval(() => {
+              this.syncTime()
+              this.setState({ queue: this.state.queue })
+              this.updateEmbed(true)
+            }, 5000)
           }
 
           this.startRadioMetadata(item)
@@ -348,7 +361,7 @@ module.exports = class Music extends MusicState {
         return await getStream(item.link, { startTime: item.startTime, filters: this.getAudioFilters() })
       }
       catch (err) {
-        this.state.textChannel.send(`:x: Failed to get a YouTube stream for\n${this.getTrackTitle(item)}\n${item.link}\n${err.message}`)
+        this.state.textChannel.send(`❌ Failed to get a YouTube stream for\n${this.getTrackTitle(item)}\n${item.link}\n${err.message}`)
         await this.processQueue()
         return
       }
@@ -466,7 +479,10 @@ module.exports = class Music extends MusicState {
     }
 
     if (this.state.queue.length < 1) {
-      this.disconnectSound()
+      if (!this.state.summoned) {
+        this.state.voiceConnection.disconnect()
+      }
+      this.cleanUp()
     }
     else {
       await this.searchAndPlay()
@@ -488,50 +504,9 @@ module.exports = class Music extends MusicState {
     }
   }
 
-  connectSound () {
-    return new Promise((resolve, reject) => {
-      const path = "assets/sounds/connect"
-      const sounds = fs.existsSync(path) && fs.readdirSync(path)
-      if (sounds && !sounds.length) {
-        resolve()
-      }
-      else {
-        const dispatcher = this.state.voiceConnection.play(`${path}/${selectRandom(sounds)}`)
-        dispatcher.setVolumeLogarithmic(3)
-        dispatcher.on("finish", () => {
-          resolve()
-        })
-        dispatcher.on("error", err => {
-          reject(err)
-        })
-      }
-    })
-  }
-
-  disconnectSound () {
-    const disconnect = () => {
-      if (!this.state.summoned) {
-        this.state.voiceConnection.disconnect()
-      }
-      this.cleanUp()
-    }
-
-    const path = "assets/sounds/disconnect"
-    const sounds = fs.existsSync(path) && fs.readdirSync(path)
-    if (sounds && !sounds.length) {
-      disconnect()
-    }
-    else {
-      const dispatcher = this.state.voiceConnection.play(`${path}/${selectRandom(sounds)}`)
-      dispatcher.setVolumeLogarithmic(3)
-      dispatcher.once("finish", disconnect)
-    }
-  }
-
   cleanProgress () {
-    if (this.state.progressHandle) {
-      clearInterval(this.state.progressHandle)
-      this.setState({ progressHandle: null })
+    if (this.progressHandle) {
+      clearInterval(this.progressHandle)
     }
   }
 
@@ -635,10 +610,10 @@ module.exports = class Music extends MusicState {
   }
 
   createQueueEmbed (currentlyPlaying, progressPerc) {
-    const queue = this.state.queue.slice(1).map((t, i) => `\`${(i + 1).toString().padStart(2, "0")}\` ${escapeMarkdown(this.getTrackTitle(t))} <@${t.requestee.id}>`.slice(0, 1024))
+    const queue = this.state.queue.filter((t, i) => i > 0 && t.platform !== PLATFORM_DISCONNECT).map((t, i) => `\`${(i + 1).toString().padStart(2, "0")}\` ${escapeMarkdown(this.getTrackTitle(t))} <@${t.requestee.id}>`.slice(0, 1024))
     const top10Items = queue.slice(0, 10)
     const top10 = Util.splitMessage(top10Items, { maxLength: 1024 })
-    const remainingCount = this.state.queue.length - 1 - top10Items.length
+    const remainingCount = queue.length - top10Items.length
 
     const platformEmoji = this.getPlatformEmoji(currentlyPlaying.platform)
     const nowPlayingSource = ![PLATFORM_YOUTUBE, "search"].includes(currentlyPlaying.platform) ? `${platformEmoji ? `${platformEmoji} ` : ""}${escapeMarkdown(safeJoin([currentlyPlaying.artists, currentlyPlaying.title], " - "))}` : ""
@@ -666,7 +641,7 @@ module.exports = class Music extends MusicState {
             value: nowPlaying,
             inline: true,
           },
-          ...this.state.queue.length > 1 ? [{
+          ...queue.length > 0 ? [{
             name: "Up Next",
             value: top10[0],
           }] : [],
@@ -720,7 +695,7 @@ module.exports = class Music extends MusicState {
   getPlatformEmoji (platform) {
     switch (platform) {
     case PLATFORM_RADIO:
-      return ":radio:"
+      return "📻"
     default:
       return this.guild.customEmojis[platform]
     }

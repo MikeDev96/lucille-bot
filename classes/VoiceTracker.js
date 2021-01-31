@@ -257,11 +257,11 @@ module.exports = class {
     const fields = [
       ["Quiet", quietestSort, data => data.selfMute + data.serverMute + data.selfDeaf + data.serverDeaf + (data.afk || 0)],
       ["Mute", muteSort, data => data.selfMute + data.serverMute],
-      ["Mute :timer:", muteDurationSort, data => data.selfMuteMax],
+      ["Mute ⏲️", muteDurationSort, data => data.selfMuteMax],
       ["Deaf", deafSort, data => data.selfDeaf + data.serverDeaf],
-      ["Deaf :timer:", deafDurationSort, data => data.selfDeafMax],
+      ["Deaf ⏲️", deafDurationSort, data => data.selfDeafMax],
       ["AFK", afkSort, data => data.afk],
-      ["AFK :timer:", afkDurationSort, data => data.afkMax],
+      ["AFK ⏲️", afkDurationSort, data => data.afkMax],
     ].reduce((acc, [header, data, getValue]) => {
       for (let i = 0; i < Math.min(keys.length, 3); i++) {
         acc.push({
