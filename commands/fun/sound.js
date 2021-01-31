@@ -6,7 +6,8 @@ const config = require("../../config.json")
 const { getRequestee, getVoiceChannel } = require("../../helpers")
 const Track = require("../../classes/Track")
 const { PLATFORM_OTHER } = require("../../classes/TrackExtractor")
-const { Util } = require("discord.js")
+const { Util, MessageAttachment } = require("discord.js")
+const AdmZip = require("adm-zip")
 
 module.exports = class extends Command {
   constructor (client) {
@@ -26,6 +27,12 @@ module.exports = class extends Command {
           key: "arg2",
           prompt: "connect [c] | disconnect [d]",
           type: "string",
+        },
+        {
+          key: "arg3",
+          prompt: "sound name",
+          type: "string",
+          default: "",
         },
       ],
       guildOnly: true,
@@ -102,17 +109,79 @@ module.exports = class extends Command {
       if (key) {
         fs.readdir(`./assets/sounds/${key}`, (err, files) => {
           if (!err) {
-            const music = msg.guild.music
-            const tracks = files.map(f =>
-              new Track("", f, "")
-                .setPlatform(PLATFORM_OTHER)
-                .setLink(`./assets/sounds/${key}/${f}`)
-                .setDuration(0),
-            )
+            if (args.arg3) {
+              const file = files.find(f => f.toLowerCase().includes(args.arg3.toLowerCase()))
+              if (file) {
+                const music = msg.guild.music
+                const tracks = [
+                  new Track("", file, "")
+                    .setPlatform(PLATFORM_OTHER)
+                    .setLink(`./assets/sounds/${key}/${file}`)
+                    .setDuration(0),
+                ]
 
-            music.add(tracks, getRequestee(msg), getVoiceChannel(msg), false, msg.channel)
+                music.add(tracks, getRequestee(msg), getVoiceChannel(msg), false, msg.channel)
+              }
+              else {
+                msg.reply(`Couldn't find a ${key} sound for \`${args.arg3}\``)
+              }
+            }
+            else {
+              const music = msg.guild.music
+              const tracks = files.map(f =>
+                new Track("", f, "")
+                  .setPlatform(PLATFORM_OTHER)
+                  .setLink(`./assets/sounds/${key}/${f}`)
+                  .setDuration(0),
+              )
+
+              music.add(tracks, getRequestee(msg), getVoiceChannel(msg), false, msg.channel)
+            }
           }
           else {
+            console.log(err)
+          }
+        })
+      }
+    }
+    else if (["download", "dl"].includes(arg1)) {
+      const key = typeMap[args.arg2.toLowerCase()]
+      if (key) {
+        const waitReact = msg.react("⏳")
+        const path = `./assets/sounds/${key}`
+        fs.readdir(path, (err, files) => {
+          if (!err) {
+            if (args.arg3) {
+              const file = files.find(f => f.toLowerCase().includes(args.arg3.toLowerCase()))
+              if (file) {
+                const attach = new MessageAttachment(`${path}/${file}`, file)
+                msg.reply(attach).then(() => {
+                  msg.react("⬇️")
+                  waitReact.then(r => r.remove())
+                })
+              }
+              else {
+                msg.reply(`Couldn't find a ${key} sound for \`${args.arg3}\``)
+                waitReact.then(r => r.remove())
+              }
+            }
+            else {
+              const zip = new AdmZip()
+              zip.addLocalFolder(path)
+              zip.toBuffer(buffer => {
+                const attach = new MessageAttachment(buffer, `${files.length} ${key} sounds.zip`)
+                msg.reply(attach).then(() => {
+                  msg.react("⬇️")
+                  waitReact.then(r => r.remove())
+                })
+              }, () => {
+                msg.reply(`Failed to zip up the ${key} sounds folder`)
+                waitReact.then(r => r.remove())
+              })
+            }
+          }
+          else {
+            waitReact.then(r => r.remove())
             console.log(err)
           }
         })
