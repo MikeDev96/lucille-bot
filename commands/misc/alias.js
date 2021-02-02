@@ -103,8 +103,13 @@ module.exports = class Alias extends Command {
     }
     else {
       if (aliasname === "delete" || aliasname === "remove" || aliasname === "rm") {
-        this.client.aliasTracker.removeAlias(args.value)
-        msg.reply(`Deleted alias '${aliasname}' :)`)
+        if (this.client.aliasTracker.checkForAlias(aliasvalue).length) {
+          this.client.aliasTracker.removeAlias(aliasvalue)
+          msg.reply(`Deleted alias '${aliasvalue}' :)`)
+        }
+        else {
+          msg.reply(`Alias '${aliasvalue}' not found`)
+        }
       }
       else if (this.client.aliasTracker.checkForAlias(aliasname).length) {
         msg.reply("This alias already exists :(")
