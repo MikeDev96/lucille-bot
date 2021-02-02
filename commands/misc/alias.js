@@ -1,6 +1,7 @@
 const { Command } = require("discord.js-commando")
 const config = require("../../config.json")
 const { proxyCommand } = require("../../classes/DiscordJSHelpers")
+const { Util } = require("discord.js")
 
 module.exports = class Alias extends Command {
   constructor (client) {
@@ -67,12 +68,7 @@ module.exports = class Alias extends Command {
           embed: {
             color: 0x0099ff,
             title: "Lucille alias commands",
-            fields: [
-              ...List.map(alias => ({
-                name: alias.alias,
-                value: alias.command,
-              })),
-            ],
+            fields: list(List),
             footer: {
               text: config.discord.footer,
               icon_url: config.discord.authorAvatarUrl,
@@ -125,4 +121,11 @@ module.exports = class Alias extends Command {
       }
     }
   }
+}
+
+const list = (aliasList) => {
+  return Util.splitMessage(aliasList.map(alias => `**${alias.alias}** - ${alias.command}`), { maxLength: 1024 }).map((str, idx) => ({
+    name: `Alias page ${idx + 1}`,
+    value: str,
+  }))
 }
