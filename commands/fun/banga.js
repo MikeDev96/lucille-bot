@@ -87,8 +87,16 @@ module.exports = class extends Command {
       return
     }
 
-    if (args.arg1.toLowerCase() === "remove") {
-      const grug = this.client.bangaTracker.findBanga(args.arg2, msg.author.id)
+    if (args.arg1.toLowerCase() === "remove" || args.arg1.toLowerCase() === "rm") {
+      let currTrack = false
+      const queueItem = music.state.queue[0]
+
+      if (queueItem) currTrack = queueItem.youTubeTitle
+      if (queueItem && queueItem.radioMetadata && queueItem.radioMetadata.title && queueItem.radioMetadata.artist) currTrack = queueItem.radioMetadata.artist + " - " + queueItem.radioMetadata.title
+      if (queueItem && queueItem.platform === "soundcloud") currTrack = queueItem.title
+
+      const grug = this.client.bangaTracker.findBanga(args.arg2 !== "" ? args.arg2 : currTrack, msg.author.id)
+
       if (!grug) {
         msg.channel.send("Nice try")
         return
@@ -104,7 +112,17 @@ module.exports = class extends Command {
         msg.react(firstKey)
 
         if (firstKey === "☑️") {
-          this.client.bangaTracker.removeBanga(args.arg2, msg.author.id)
+          if (args.arg2 === "") {
+            if (currTrack) {
+              this.client.bangaTracker.removeBanga(currTrack, msg.author.id)
+            }
+            else {
+              msg.react("🖕")
+            }
+          }
+          else {
+            this.client.bangaTracker.removeBanga(args.arg2, msg.author.id)
+          }
         }
       }
       return

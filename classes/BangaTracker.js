@@ -50,18 +50,31 @@ module.exports = class {
   removeBanga (banger, user) {
     const data = this.db.get("bangers")
       .find(e => {
-        return e.song.toLowerCase().includes(banger.toLowerCase()) && (e.users.indexOf(user) > -1)
+        return e.song.toLowerCase().includes(banger.toLowerCase()) && (e.users.includes(user))
       })
       .value()
 
     const index = data.users.indexOf(user)
 
-    if (index > -1) data.users.splice(index, 1)
+    if (data.users.length === 1) {
+      var allData = this.db.get("bangers").value()
+      var bangaIndex = allData.indexOf(data)
+      if (bangaIndex > -1) allData.splice(bangaIndex, 1)
 
-    this.db.get("bangers")
-      .find({ song: banger })
-      .assign(data)
-      .write()
+      if (index > -1) data.users.splice(index, 1)
+
+      this.db.get("bangers")
+        .assign(allData)
+        .write()
+    }
+    else {
+      if (index > -1) data.users.splice(index, 1)
+
+      this.db.get("bangers")
+        .find({ song: banger })
+        .assign(data)
+        .write()
+    }
   }
 
   findBanga (banger, user) {
