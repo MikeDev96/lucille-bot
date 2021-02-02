@@ -3,17 +3,6 @@ const config = require("../../config.json")
 const { getRequestee, getVoiceChannel, shuffle } = require("../../helpers")
 const Track = require("../../classes/Track")
 const { MessageAttachment, Util } = require("discord.js")
-const AWS = require("aws-sdk")
-
-AWS.config.update({
-  credentials: {
-    accessKeyId: config.aws.accessKeyId,
-    secretAccessKey: config.aws.secretAccessKey,
-  },
-  region: "eu-west-1",
-})
-
-const DynamoDB = new AWS.DynamoDB.DocumentClient()
 
 module.exports = class extends Command {
   constructor (client) {
@@ -124,71 +113,6 @@ module.exports = class extends Command {
             this.client.bangaTracker.removeBanga(args.arg2, msg.author.id)
           }
         }
-      }
-      return
-    }
-
-    if (args.arg1.toLowerCase() === "export") {
-      const UserId = msg.author.id
-      const playId = this.findUserId(msg, args.arg2)
-
-      if (!playId) {
-        return
-      }
-
-      let SongsArr = this.client.bangaTracker.listBangas(playId)
-
-      SongsArr = SongsArr.map(song => {
-        if (song.spotifyUri) {
-          if (song.spotifyUri.length) {
-            return song.spotifyUri
-          }
-        }
-      })
-
-      SongsArr = SongsArr.filter(Boolean)
-
-      if (SongsArr.length === 0) {
-        msg.reply("You have 0 bangas with spotify uris")
-      }
-      else if (SongsArr.length > 100) {
-        msg.reply("You have more than 100 bangas with spotify uris please remove some and then try again")
-      }
-      else {
-        msg.reply("Sent you a dm with information")
-        msg.author.send({
-          embed: {
-            color: 0x0099ff,
-            title: "Lucille Spotify Exporter",
-            fields: [
-              {
-                name: "Spotify Exporter Link",
-                value: `Visit [this link](${config.export.url}/home/${UserId}) and authorise with Spotify`,
-              },
-            ],
-            footer: {
-              text: config.discord.footer,
-              icon_url: config.discord.authorAvatarUrl,
-            },
-          },
-        })
-
-        var params = {
-          TableName: "Lucille-SpotifyURIs",
-          Item: {
-            User: UserId,
-            SongsURIs: SongsArr,
-          },
-        }
-
-        DynamoDB.put(params, function (err, data) {
-          if (err) {
-            console.log("Error", err)
-          }
-          else {
-            console.log("Succesfully wrote to DynamoDB")
-          }
-        })
       }
       return
     }
