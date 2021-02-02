@@ -6,11 +6,11 @@ const { PassThrough } = require("stream")
 * Random voice each time
 */
 module.exports = class TextToSpeech {
-  constructor (client) {
+  constructor(client) {
     this.client = client
   }
 
-  run (event, voiceObj) {
+  run(event, voiceObj) {
     const { voiceState } = voiceObj
     const botID = this.client.user.id
 
@@ -31,7 +31,7 @@ module.exports = class TextToSpeech {
         const gtts = new GTTS(
           this.getMessage(
             event,
-            this.validUsername(res.displayName) ? res.displayName : "Karen",
+            this.validUsername(res.displayName) ? res.displayName : "User",
             event === "move" ? voiceObj.toChannel.name : voiceState.channel.name)
           , "en-au")
 
@@ -50,24 +50,24 @@ module.exports = class TextToSpeech {
       })
   }
 
-  getMessage (event, user, channel) {
+  getMessage(event, user, channel) {
     user = user.toLowerCase()
     switch (event) {
-    case "join": return `${user} has joined ${channel}`
-    case "leave": return `${user} has left ${channel}`
-    case "move": return `${user} has moved to ${channel}`
-    default: throw new Error("Invalid case passed")
+      case "join": return `${user} has joined ${channel}`
+      case "leave": return `${user} has left ${channel}`
+      case "move": return `${user} has moved to ${channel}`
+      default: throw new Error("Invalid case passed")
     }
   }
 
-  validUsername (username) {
-    if (username === null || username.length > 32 || !(RegExp(`^[a-zA-Z0-9 .]*$`).test(username)) || username.toLowerCase().includes("jane") || username.toLowerCase().includes("jayne") || username.toLowerCase().includes("jain")) {
+  validUsername(username) {
+    if (username === null || username.length > 32 || !(RegExp(`^[a-zA-Z0-9 .]*$`).test(username))) {
       return false
     }
     return true
   }
 
-  playGTTSStream (voiceState, stream) {
+  playGTTSStream(voiceState, stream) {
     return new Promise((resolve) => {
       const dispatcher = this.client.voice.connections
         .get(voiceState.guild.id)
