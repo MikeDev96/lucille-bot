@@ -31,7 +31,7 @@ module.exports = class TextToSpeech {
         const gtts = new GTTS(
           this.getMessage(
             event,
-            this.validUsername(res.displayName) ? res.displayName : "Karens Loins",
+            this.validUsername(res.displayName) ? res.displayName : "User",
             event === "move" ? voiceObj.toChannel.name : voiceState.channel.name)
           , "en-au")
 
@@ -53,27 +53,9 @@ module.exports = class TextToSpeech {
   getMessage (event, user, channel) {
     user = user.toLowerCase()
     switch (event) {
-    case "join":
-      if (user === "keef") {
-        return `${user} has joined to ram Karen harder than a mule in ${channel}`
-      }
-      else {
-        return `${user} has joined ${channel}`
-      }
-    case "leave":
-      if (user === "keef") {
-        return `${user} has left ${channel} to go lick the jam off kerens thighs`
-      }
-      else {
-        return `${user} has left ${channel}`
-      }
-    case "move":
-      if (user === "keef") {
-        return `${user} has moved to ${channel} to go spelunking in karens hole`
-      }
-      else {
-        return `${user} has moved to ${channel}`
-      }
+    case "join": return `${user} has joined ${channel}`
+    case "leave": return `${user} has left ${channel}`
+    case "move": return `${user} has moved to ${channel}`
     default: throw new Error("Invalid case passed")
     }
   }
