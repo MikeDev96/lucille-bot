@@ -32,12 +32,9 @@ module.exports = class extends Command {
 
   async run (msg, args) {
     const music = msg.guild.music
-
     if (args.arg1.toLowerCase() === "list") {
-      const listId = this.findUserId(msg, args.arg2)
-      if (!listId) return
-      let nickname = msg.guild.member(listId).nickname
-      if (!nickname) nickname = msg.guild.member(listId).user.username
+      const listId = await this.findUserId(msg, args.arg2)
+      const nickname = await this.findUsername(msg, args.arg2)
       const bangas = this.client.bangaTracker.listBangas(listId)
       if (!bangas.length) {
         msg.channel.send("This person is boring and has no bangers")
@@ -180,18 +177,41 @@ module.exports = class extends Command {
     return usrArr
   }
 
-  findUserId (msg, user) {
+  async findUsername (msg, user) {
+    let username
+    if (user.length > 0) {
+      await msg.guild.members.fetch().then(members => members.map(users => {
+        if (users.user.username.toLowerCase().includes(user.toLowerCase())) {
+          username = users.user.username
+        }
+        return username
+      }))
+    }
+    else {
+      username = msg.author.id
+    }
+    if (!username) {
+      msg.channel.send("No user found")
+      return null
+    }
+    return username
+  }
+
+  async findUserId (msg, user) {
     let userID
     if (user.length > 0) {
-      msg.guild.members.cache.map(e => {
-        if (e.user.username.toLowerCase().includes(user.toLowerCase())) userID = e.user.id
-      })
+      await msg.guild.members.fetch().then(members => members.map(users => {
+        if (users.user.username.toLowerCase().includes(user.toLowerCase())) {
+          userID = users.user.id
+        }
+        return userID
+      }))
     }
     else {
       userID = msg.author.id
     }
     if (!userID) {
-      msg.channel.send("No user found")
+      msg.channel.send("No ID found")
       return null
     }
     return userID
