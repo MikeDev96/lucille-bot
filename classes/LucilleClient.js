@@ -14,6 +14,7 @@ const { ppResetDaily } = require("../commands/fun/pp")
 const { aocResetDaily } = require("../commands/misc/aocleaderboard")
 const { imposterReleaseCountdown } = require("../commands/fun/imposter")
 const TextToSpeech = require("./TextToSpeech")
+const StocksPortfolio = require("./StocksPortfolio")
 // const VoiceCommands = require("./classes/VoiceCommands")
 
 module.exports = class LucilleClient extends CommandoClient {
@@ -25,6 +26,7 @@ module.exports = class LucilleClient extends CommandoClient {
     this.bangaTracker = new BangaTracker(this)
     this.aliasTracker = new AliasTracker(this)
     this.voiceStateAdapter = new VoiceStateAdapter(this)
+    this.stocksPortfolio = new StocksPortfolio(this)
     // client.voiceCommands = new VoiceCommands(client)
 
     this.createMessageInterceptor()
