@@ -3,6 +3,7 @@ config*.json
 db.json
 banga.json
 aliases.json
+stocks.json
 logs
 .env
 assets/sounds/connect*
