@@ -188,10 +188,14 @@ module.exports = class extends Command {
       }))
     }
     else {
-      username = msg.author.id
+      await msg.guild.members.fetch().then(members => members.map(users => {
+        if (users.user.id === msg.author.id) {
+          username = users.user.username
+        }
+        return username
+      }))
     }
     if (!username) {
-      msg.channel.send("No user found")
       return null
     }
     return username
