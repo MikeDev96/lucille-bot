@@ -55,12 +55,12 @@ module.exports = class extends Command {
       }
     }
     else {
-      const listId = this.findUserId(msg, args.symbol)
-      if (!listId) return
-      let nickname = msg.guild.member(listId).nickname
-      if (!nickname) nickname = msg.guild.member(listId).user.username
-
-      if (args.action === "list" || args.action === "ls") {
+      if (args.action === "list" || args.action === "ls") {      
+        const listId = this.findUserId(msg, args.symbol)
+        if (!listId) return
+        let nickname = msg.guild.member(listId).nickname
+        if (!nickname) nickname = msg.guild.member(listId).user.username
+        
         const list = this.client.stocksPortfolio.listStocks(listId)
         if (list.length > 0) {
           const tempArr = this.list(list, nickname)
