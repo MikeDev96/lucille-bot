@@ -32,12 +32,6 @@ module.exports = class PlayCommand extends Command {
 const run = async (msg, args, jump) => {
   const music = msg.guild.music
 
-  const channel = getVoiceChannel(msg)
-
-  if (msg.member.voice && msg.member.voice.channelID) {
-    await channel.join()
-  }
-
   if (!msg.guild.voice || !msg.guild.voice.channelID || !msg.member.voice.channelID || msg.guild.voice.channelID !== msg.member.voice.channelID) {
     msg.react("🖕")
     return
