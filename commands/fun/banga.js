@@ -3,17 +3,6 @@ const config = require("../../config.json")
 const { getRequestee, getVoiceChannel, shuffle } = require("../../helpers")
 const Track = require("../../classes/Track")
 const { MessageAttachment, Util } = require("discord.js")
-const AWS = require("aws-sdk")
-
-AWS.config.update({
-  credentials: {
-    accessKeyId: config.aws.accessKeyId,
-    secretAccessKey: config.aws.secretAccessKey,
-  },
-  region: "eu-west-1",
-})
-
-const DynamoDB = new AWS.DynamoDB.DocumentClient()
 
 module.exports = class extends Command {
   constructor (client) {
@@ -43,12 +32,9 @@ module.exports = class extends Command {
 
   async run (msg, args) {
     const music = msg.guild.music
-
     if (args.arg1.toLowerCase() === "list") {
-      const listId = this.findUserId(msg, args.arg2)
-      if (!listId) return
-      let nickname = msg.guild.member(listId).nickname
-      if (!nickname) nickname = msg.guild.member(listId).user.username
+      const listId = await this.findUserId(msg, args.arg2)
+      const nickname = await this.findUsername(msg, args.arg2)
       const bangas = this.client.bangaTracker.listBangas(listId)
       if (!bangas.length) {
         msg.channel.send("This person is boring and has no bangers")
@@ -87,8 +73,16 @@ module.exports = class extends Command {
       return
     }
 
-    if (args.arg1.toLowerCase() === "remove") {
-      const grug = this.client.bangaTracker.findBanga(args.arg2, msg.author.id)
+    if (args.arg1.toLowerCase() === "remove" || args.arg1.toLowerCase() === "rm") {
+      let currTrack = false
+      const queueItem = music.state.queue[0]
+
+      if (queueItem) currTrack = queueItem.youTubeTitle
+      if (queueItem && queueItem.radioMetadata && queueItem.radioMetadata.title && queueItem.radioMetadata.artist) currTrack = queueItem.radioMetadata.artist + " - " + queueItem.radioMetadata.title
+      if (queueItem && queueItem.platform === "soundcloud") currTrack = queueItem.title
+
+      const grug = this.client.bangaTracker.findBanga(args.arg2 !== "" ? args.arg2 : currTrack, msg.author.id)
+
       if (!grug) {
         msg.channel.send("Nice try")
         return
@@ -104,73 +98,18 @@ module.exports = class extends Command {
         msg.react(firstKey)
 
         if (firstKey === "☑️") {
-          this.client.bangaTracker.removeBanga(args.arg2, msg.author.id)
-        }
-      }
-      return
-    }
-
-    if (args.arg1.toLowerCase() === "export") {
-      const UserId = msg.author.id
-      const playId = this.findUserId(msg, args.arg2)
-
-      if (!playId) {
-        return
-      }
-
-      let SongsArr = this.client.bangaTracker.listBangas(playId)
-
-      SongsArr = SongsArr.map(song => {
-        if (song.spotifyUri) {
-          if (song.spotifyUri.length) {
-            return song.spotifyUri
-          }
-        }
-      })
-
-      SongsArr = SongsArr.filter(Boolean)
-
-      if (SongsArr.length === 0) {
-        msg.reply("You have 0 bangas with spotify uris")
-      }
-      else if (SongsArr.length > 100) {
-        msg.reply("You have more than 100 bangas with spotify uris please remove some and then try again")
-      }
-      else {
-        msg.reply("Sent you a dm with information")
-        msg.author.send({
-          embed: {
-            color: 0x0099ff,
-            title: "Lucille Spotify Exporter",
-            fields: [
-              {
-                name: "Spotify Exporter Link",
-                value: `Visit [this link](${config.export.url}/home/${UserId}) and authorise with Spotify`,
-              },
-            ],
-            footer: {
-              text: config.discord.footer,
-              icon_url: config.discord.authorAvatarUrl,
-            },
-          },
-        })
-
-        var params = {
-          TableName: "Lucille-SpotifyURIs",
-          Item: {
-            User: UserId,
-            SongsURIs: SongsArr,
-          },
-        }
-
-        DynamoDB.put(params, function (err, data) {
-          if (err) {
-            console.log("Error", err)
+          if (args.arg2 === "") {
+            if (currTrack) {
+              this.client.bangaTracker.removeBanga(currTrack, msg.author.id)
+            }
+            else {
+              msg.react("🖕")
+            }
           }
           else {
-            console.log("Succesfully wrote to DynamoDB")
+            this.client.bangaTracker.removeBanga(args.arg2, msg.author.id)
           }
-        })
+        }
       }
       return
     }
@@ -238,18 +177,45 @@ module.exports = class extends Command {
     return usrArr
   }
 
-  findUserId (msg, user) {
+  async findUsername (msg, user) {
+    let username
+    if (user.length > 0) {
+      await msg.guild.members.fetch().then(members => members.map(users => {
+        if (users.user.username.toLowerCase().includes(user.toLowerCase())) {
+          username = users.user.username
+        }
+        return username
+      }))
+    }
+    else {
+      await msg.guild.members.fetch().then(members => members.map(users => {
+        if (users.user.id === msg.author.id) {
+          username = users.user.username
+        }
+        return username
+      }))
+    }
+    if (!username) {
+      return null
+    }
+    return username
+  }
+
+  async findUserId (msg, user) {
     let userID
     if (user.length > 0) {
-      msg.guild.members.cache.map(e => {
-        if (e.user.username.toLowerCase().includes(user.toLowerCase())) userID = e.user.id
-      })
+      await msg.guild.members.fetch().then(members => members.map(users => {
+        if (users.user.username.toLowerCase().includes(user.toLowerCase())) {
+          userID = users.user.id
+        }
+        return userID
+      }))
     }
     else {
       userID = msg.author.id
     }
     if (!userID) {
-      msg.channel.send("No user found")
+      msg.channel.send("No ID found")
       return null
     }
     return userID

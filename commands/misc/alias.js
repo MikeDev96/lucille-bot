@@ -1,6 +1,7 @@
 const { Command } = require("discord.js-commando")
 const config = require("../../config.json")
 const { proxyCommand } = require("../../classes/DiscordJSHelpers")
+const { Util } = require("discord.js")
 
 module.exports = class Alias extends Command {
   constructor (client) {
@@ -67,12 +68,7 @@ module.exports = class Alias extends Command {
           embed: {
             color: 0x0099ff,
             title: "Lucille alias commands",
-            fields: [
-              ...List.map(alias => ({
-                name: alias.alias,
-                value: alias.command,
-              })),
-            ],
+            fields: list(List),
             footer: {
               text: config.discord.footer,
               icon_url: config.discord.authorAvatarUrl,
@@ -102,9 +98,14 @@ module.exports = class Alias extends Command {
       }
     }
     else {
-      if (aliasvalue === "delete" || aliasvalue === "remove") {
-        this.client.aliasTracker.removeAlias(args.aliasname)
-        msg.reply(`Deleted alias '${aliasname}' :)`)
+      if (aliasname === "delete" || aliasname === "remove" || aliasname === "rm") {
+        if (this.client.aliasTracker.checkForAlias(aliasvalue).length) {
+          this.client.aliasTracker.removeAlias(aliasvalue)
+          msg.reply(`Deleted alias '${aliasvalue}' :)`)
+        }
+        else {
+          msg.reply(`Alias '${aliasvalue}' not found`)
+        }
       }
       else if (this.client.aliasTracker.checkForAlias(aliasname).length) {
         msg.reply("This alias already exists :(")
@@ -120,4 +121,11 @@ module.exports = class Alias extends Command {
       }
     }
   }
+}
+
+const list = (aliasList) => {
+  return Util.splitMessage(aliasList.map(alias => `**${alias.alias}** - ${alias.command}`), { maxLength: 1024 }).map((str, idx) => ({
+    name: `Alias page ${idx + 1}`,
+    value: str,
+  }))
 }
