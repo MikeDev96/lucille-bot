@@ -76,6 +76,10 @@ const getVoiceChannel = msg => {
   return msg.member.voice.channel || msg.guild.channels.cache.find(c => c.type === "voice")
 }
 
+const isInBotsVoiceChannel = msg => {
+  return msg.guild.voice && msg.guild.voice.channelID && msg.guild.voice.channelID === msg.member.voice.channelID
+}
+
 module.exports.noop = noop
 module.exports.safeJoin = safeJoin
 module.exports.shuffle = shuffle
@@ -87,3 +91,4 @@ module.exports.getEmoji = getEmoji
 module.exports.textToStream = textToStream
 module.exports.getRequestee = getRequestee
 module.exports.getVoiceChannel = getVoiceChannel
+module.exports.isInBotsVoiceChannel = isInBotsVoiceChannel

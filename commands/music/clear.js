@@ -1,4 +1,6 @@
 const { Command } = require("discord.js-commando")
+const { isInBotsVoiceChannel } = require("../../helpers")
+
 module.exports = class extends Command {
   constructor (client) {
     super(client, {
@@ -13,7 +15,7 @@ module.exports = class extends Command {
 
   async run (msg, _args) {
     const music = msg.guild.music
-    if (!(msg.guild.voice && msg.guild.voice.channelID === msg.member.voice.channelID)) {
+    if (!isInBotsVoiceChannel(msg)) {
       msg.react("🖕")
       return
     }

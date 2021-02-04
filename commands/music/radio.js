@@ -1,6 +1,6 @@
 const { Command } = require("discord.js-commando")
 const radios = require("../../radios.json")
-const { getRequestee, getVoiceChannel } = require("../../helpers")
+const { getRequestee, getVoiceChannel, isInBotsVoiceChannel } = require("../../helpers")
 const { PLATFORM_RADIO } = require("../../classes/TrackExtractor")
 const Track = require("../../classes/Track")
 
@@ -30,7 +30,7 @@ module.exports = class extends Command {
       return
     }
 
-    if (!(msg.guild.voice && msg.guild.voice.channelID === msg.member.voice.channelID)) {
+    if (!isInBotsVoiceChannel(msg)) {
       msg.react("🖕")
       return
     }
