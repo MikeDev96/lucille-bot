@@ -2,6 +2,7 @@ const { Util } = require("discord.js")
 const GTTS = require("gtts")
 const { PassThrough } = require("stream")
 const Requestee = require("./classes/Requestee")
+const config = require("./config.json")
 
 const noop = () => { }
 
@@ -77,7 +78,7 @@ const getVoiceChannel = msg => {
 }
 
 const isInBotsVoiceChannel = msg => {
-  return msg.guild.voice && msg.guild.voice.channelID && msg.guild.voice.channelID === msg.member.voice.channelID
+  return msg.author.id === config.discord.owner || (msg.guild.voice && msg.guild.voice.channelID && msg.guild.voice.channelID === msg.member.voice.channelID)
 }
 
 module.exports.noop = noop
