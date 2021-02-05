@@ -65,6 +65,9 @@ Use `npm ci` to install the Node dependencies so that you don't end up with a di
 ### Good to go
 You should now be good to go, run `npm start` to get going!
 
+### Set up hooks
+First time use: execute `npm run hooks` in the root of your local repository to initialize web hooks
+
 ---
 
 ## Add bot to server
