@@ -59,14 +59,14 @@ module.exports = class LucilleClient extends CommandoClient {
   }
 
   createTTS () {
-    const TextToSpeechHandler = (ttsLastHappend, method, voiceObj) => {
+    const TextToSpeechHandler = (ttsLastHappendTime, method, voiceObj) => {
       var currentTime = new Date().getTime()
       // Rate limit reduced for the time being
-      if (ttsLastHappend + (5 * 1000) < currentTime || ttsLastHappend === undefined) {
+      if (ttsLastHappendTime + (5 * 1000) < currentTime || ttsLastHappendTime === undefined) {
         new TextToSpeech(this).run(method, voiceObj)
         return currentTime
       }
-      return ttsLastHappend
+      return ttsLastHappendTime
     }
 
     const ttsLastHappend = {}

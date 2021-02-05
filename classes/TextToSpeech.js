@@ -1,5 +1,4 @@
-const GTTS = require("gtts")
-const { PassThrough } = require("stream")
+const { textToStream } = require("../helpers")
 /*
 * TODO:
 * Queue messages ie 2 people join at once
@@ -28,15 +27,9 @@ module.exports = class TextToSpeech {
 
     voiceState.guild.members.fetch(voiceState.id)
       .then(async res => {
-        const gtts = new GTTS(
-          this.getMessage(
-            event,
-            this.validUsername(res.displayName) ? res.displayName : "User",
-            event === "move" ? voiceObj.toChannel.name : voiceState.channel.name)
-          , "en-au")
-
-        const passThrough = new PassThrough()
-        const output = gtts.stream().pipe(passThrough)
+        const user = this.validUsername(res.displayName) ? res.displayName : "User"
+        const channel = event === "move" ? voiceObj.toChannel.name : voiceState.channel.name
+        const output = await textToStream(this.getMessage(event, user, channel))
         const music = voiceState.guild.music
 
         if (music.state.queue.length === 0) {
