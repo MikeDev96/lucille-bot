@@ -1,6 +1,4 @@
-const { VoiceChannel } = require("discord.js")
 const { Command } = require("discord.js-commando")
-const { query } = require("express")
 
 module.exports = class extends Command {
   constructor (client) {
@@ -101,20 +99,20 @@ module.exports = class extends Command {
   }
 }
 
-const join = (arr) => {
-  if (arr.length === 0) {
-    return ""
-  }
+// const join = (arr) => {
+//   if (arr.length === 0) {
+//     return ""
+//   }
 
-  const newArr = arr.map(str => `\`${str}\``)
-  const lastItem = newArr.pop()
-  const outArr = []
+//   const newArr = arr.map(str => `\`${str}\``)
+//   const lastItem = newArr.pop()
+//   const outArr = []
 
-  if (newArr.length) {
-    outArr.push(newArr.join(", "))
-  }
+//   if (newArr.length) {
+//     outArr.push(newArr.join(", "))
+//   }
 
-  outArr.push(lastItem)
+//   outArr.push(lastItem)
 
-  return `${outArr.join(" & ")} 👋👋👋`
-}
+//   return `${outArr.join(" & ")} 👋👋👋`
+// }
