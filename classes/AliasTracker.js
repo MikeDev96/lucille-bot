@@ -3,6 +3,28 @@ const FileSync = require("lowdb/adapters/FileSync")
 const fs = require("fs")
 
 class AliasTracker {
+  initAlias () {
+    this.db.exec(`
+      CREATE TABLE IF NOT EXISTS Alias
+      (
+        AliasId     INTEGER PRIMARY KEY AUTOINCREMENT,
+        Name        TEXT
+      )
+    `)
+
+    this.db.exec(`
+      CREATE TABLE IF NOT EXISTS AliasCommand
+      (
+        AliasCommandId     INTEGER PRIMARY KEY AUTOINCREMENT,
+        AliasId            INTEGER,
+        Command            TEXT,
+        FOREIGN KEY (AliasId) REFERENCES Alias(AliasId) ON DELETE CASCADE
+      )
+   `)
+
+    this.migrateAliases()
+  }
+
   writeAlias (alias, aliascommand) {
     aliascommand = aliascommand.split("&")
 

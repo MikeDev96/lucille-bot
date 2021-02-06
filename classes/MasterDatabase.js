@@ -1,5 +1,6 @@
 const SQLite = require("better-sqlite3")
 const AliasTracker = require("./AliasTracker")
+const BangaTracker = require("./BangaTracker")
 
 class MasterDatabase {
   constructor () {
@@ -84,22 +85,6 @@ class MasterDatabase {
         )
       `)
 
-      .exec(`
-       CREATE TABLE IF NOT EXISTS Alias (
-          AliasId     INTEGER PRIMARY KEY AUTOINCREMENT,
-          Name        TEXT
-        )
-      `)
-
-      .exec(`
-       CREATE TABLE IF NOT EXISTS AliasCommand (
-          AliasCommandId     INTEGER PRIMARY KEY AUTOINCREMENT,
-          AliasId            INTEGER,
-          Command            TEXT,
-          FOREIGN KEY(AliasId) REFERENCES Alias(AliasId) ON DELETE CASCADE
-        )
-      `)
-
     // probably should use some sort of versioning? maybe user_version
     if (!this.columnExists("PenisSize", "DailyPP")) {
       this.db.exec("ALTER TABLE PenisSize ADD COLUMN DailyPP INTEGER DEFAULT -1")
@@ -110,7 +95,8 @@ class MasterDatabase {
     this.db.exec("DELETE FROM YouTubeHistory WHERE VideoId IS NULL")
     this.db.exec("DROP TABLE IF EXISTS YouTubeLinks")
 
-    this.migrateAliases()
+    this.initAlias()
+    this.initBanga()
 
     console.log("Master database initialised")
   }
@@ -325,5 +311,6 @@ WHERE [ServerId] = @server
 }
 
 AliasTracker.applyToClass(MasterDatabase)
+BangaTracker.applyToClass(MasterDatabase)
 
 module.exports = MasterDatabase

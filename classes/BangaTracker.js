@@ -1,88 +1,79 @@
 const low = require("lowdb")
 const FileSync = require("lowdb/adapters/FileSync")
+const fs = require("fs")
 
-module.exports = class {
-  constructor (client) {
-    this.client = client
-    this.monitor = {}
-    this.initDB()
-  }
+class BangaTracker {
+  initBanga () {
+    this.db.exec(`
+      CREATE TABLE IF NOT EXISTS Banga
+      (
+        BangaId     INTEGER PRIMARY KEY AUTOINCREMENT,
+        Title       INTEGER,
+        SpotifyUri  TEXT
+      )
+    `)
 
-  initDB () {
-    const adapter = new FileSync("banga.json")
-    this.db = low(adapter)
+    this.db.exec(`
+      CREATE TABLE IF NOT EXISTS BangaUser
+      (
+        BangaId     INTEGER,
+        UserId      TEXT,
+        PRIMARY KEY (BangaId, UserId),
+        FOREIGN KEY (BangaId) REFERENCES Banga(BangaId) ON DELETE CASCADE
+      )
+    `)
 
-    this.db.defaults({ bangers: [], poopers: [] })
-      .write()
+    this.migrateBangas()
   }
 
   writeBanga (spotifyUri, banger, user) {
-    this.db.get("bangers")
-      .push({
-        song: banger,
-        users: [user],
-        spotifyUri: spotifyUri || "",
-      })
-      .write()
+    const { lastInsertRowid } = this.run("INSERT INTO Banga (Title, SpotifyUri) VALUES (?, ?)", banger, spotifyUri || "")
+    this.run("INSERT INTO BangaUser (BangaId, UserId) VALUES (?, ?)", lastInsertRowid, user)
   }
 
   checkForBanga (banger) {
-    return this.db.get("bangers")
-      .filter({ song: banger })
-      .take(1)
-      .value()
+    return this.reduceBangas(this.runQuery(`
+      SELECT b.Title AS song, b.SpotifyUri AS spotifyUri, bu.UserId AS userId
+      FROM Banga b
+      JOIN BangaUser bu
+      ON bu.BangaId = b.BangaId
+      WHERE b.Title = ? COLLATE NOCASE
+    `, banger))
   }
 
-  updateUsers (banger, user) {
-    const data = this.db.get("bangers")
-      .filter({ song: banger })
-      .take(1)
-      .value()
-
-    data[0].users.push(user)
-
-    this.db.get("bangers")
-      .find({ song: banger })
-      .assign(data[0])
-      .write()
+  updateBangaUsers (banger, user) {
+    this.run(`
+      INSERT INTO BangaUser VALUES
+      (
+        (SELECT BangaId FROM Banga WHERE Title = ?),
+        ?
+      )`
+    , banger, user)
   }
 
   removeBanga (banger, user) {
-    const data = this.db.get("bangers")
-      .find(e => {
-        return e.song.toLowerCase().includes(banger.toLowerCase()) && (e.users.includes(user))
-      })
-      .value()
+    this.run(`
+      DELETE FROM BangaUser AS bu
+      WHERE bu.BangaId IN (SELECT b.BangaId FROM Banga b WHERE b.Title = ? COLLATE NOCASE)
+        AND bu.UserId = ?
+    `, banger, user)
 
-    const index = data.users.indexOf(user)
-
-    if (data.users.length === 1) {
-      var allData = this.db.get("bangers").value()
-      var bangaIndex = allData.indexOf(data)
-      if (bangaIndex > -1) allData.splice(bangaIndex, 1)
-
-      if (index > -1) data.users.splice(index, 1)
-
-      this.db.get("bangers")
-        .assign(allData)
-        .write()
-    }
-    else {
-      if (index > -1) data.users.splice(index, 1)
-
-      this.db.get("bangers")
-        .find({ song: banger })
-        .assign(data)
-        .write()
-    }
+    this.run(`
+      DELETE FROM Banga AS b
+      WHERE b.Title = ? COLLATE NOCASE
+        AND NOT EXISTS(SELECT bu.BangaId FROM BangaUser bu WHERE bu.BangaId = b.BangaId)
+    `, banger)
   }
 
   findBanga (banger, user) {
-    let data = this.db.get("bangers")
-      .find(e => {
-        return e.song.toLowerCase().includes(banger.toLowerCase()) && (e.users.indexOf(user) > -1)
-      })
-      .value()
+    let [data] = this.reduceBangas(this.runQuery(`
+      SELECT b.Title AS song, b.SpotifyUri AS spotifyUri, bu.UserId AS userId
+      FROM Banga b
+      JOIN BangaUser bu
+      ON bu.BangaId = b.BangaId
+      WHERE b.Title = ? COLLATE NOCASE
+        AND bu.UserId = ?
+    `, banger, user))
 
     if (!data) data = { song: null }
 
@@ -90,8 +81,51 @@ module.exports = class {
   }
 
   listBangas (user) {
-    return this.db.get("bangers")
-      .filter({ users: [user] })
-      .value()
+    return this.runQuery(`
+      SELECT b.Title AS song
+      FROM Banga b
+      JOIN BangaUser bu
+      ON bu.BangaId = b.BangaId
+      WHERE bu.UserId = ?
+    `, user)
+  }
+
+  reduceBangas (bangas) {
+    return bangas.reduce(([map, arr], { song, spotifyUri, userId }) => {
+      if (!map.has(song)) {
+        map.set(song, arr.push({ song, spotifyUri, users: [] }) - 1)
+      }
+
+      arr[map.get(song)].users.push(userId)
+
+      return [map, arr]
+    }, [new Map(), []])[1]
+  }
+
+  migrateBangas () {
+    if (fs.existsSync("banga.json")) {
+      const adapter = new FileSync("banga.json")
+      const db = low(adapter)
+      const bangas = db.get("bangers").value()
+
+      bangas.forEach(banga => {
+        if (banga.users.length) {
+          const { lastInsertRowid } = this.run("INSERT INTO Banga (Title, SpotifyUri) VALUES (?, ?)", banga.song, banga.spotifyUri)
+          banga.users.forEach(user => {
+            this.run("INSERT INTO BangaUser (BangaId, UserId) VALUES (?, ?)", lastInsertRowid, user)
+          })
+        }
+      })
+
+      fs.renameSync("banga.json", "banga.json.bak")
+    }
+  }
+
+  static applyToClass (structure) {
+    for (const prop of Object.getOwnPropertyNames(BangaTracker.prototype).slice(1)) {
+      Object.defineProperty(structure.prototype, prop, Object.getOwnPropertyDescriptor(BangaTracker.prototype, prop))
+    }
   }
 }
+
+module.exports = BangaTracker
