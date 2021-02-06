@@ -68,7 +68,7 @@ module.exports = class Alias extends Command {
           embed: {
             color: 0x0099ff,
             title: "Lucille alias commands",
-            fields: list(List),
+            fields: embedHandler(List),
             footer: {
               text: config.discord.footer,
               icon_url: config.discord.authorAvatarUrl,
@@ -123,9 +123,31 @@ module.exports = class Alias extends Command {
   }
 }
 
-const list = (aliasList) => {
-  return Util.splitMessage(aliasList.map(alias => `**${alias.alias}** - ${alias.command}`), { maxLength: 1024 }).map((str, idx) => ({
-    name: `Alias page ${idx + 1}`,
+const embedHandler = (aliasList) => {
+  return Util.splitMessage(aliasList.map(alias => {
+    return (
+      `${alias.command.reduce((string, cmd) => `${string} ${formatAliasCmd(cmd)}`, `**${alias.alias}** - `)}`
+    )
+  }), { maxLength: 1024 }).map((str, idx) => ({
+    name: `Alias Page ${idx + 1}`,
     value: str,
   }))
+}
+
+const formatAliasCmd = (aliasCmd) => {
+  if (aliasCmd.includes("https://")) {
+    return checkForLink(aliasCmd, "https://")
+  }
+  else if (aliasCmd.includes("http://")) {
+    return checkForLink(aliasCmd, "http://")
+  }
+  return aliasCmd
+}
+
+const checkForLink = (aliasCmd, linkType) => {
+  if (aliasCmd.includes(linkType)) {
+    const linkIndex = aliasCmd.indexOf(linkType)
+    const link = aliasCmd.substring(linkIndex)
+    return `${aliasCmd.replace(link, `[${link.length > 25 ? link.substring(0, 50) + "..." : link}](${link})`)}`
+  }
 }

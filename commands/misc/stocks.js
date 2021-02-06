@@ -1,7 +1,6 @@
 const { MessageEmbed, Util } = require("discord.js")
 const { Command } = require("discord.js-commando")
 const fetch = require("node-fetch")
-const stocksData = require("../../stocks.json")
 const config = require("../../config.json")
 
 module.exports = class extends Command {

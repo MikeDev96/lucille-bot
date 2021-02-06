@@ -151,29 +151,6 @@ module.exports = class extends Command {
 
           firstGuildChannel.send(dailyEmbed)
         }
-        else {
-          const embed = {
-            embed: {
-              color: 0x0099ff,
-              title: "Imposter Release",
-              description: "It's already been released dum dum.",
-              author: {
-                name: msg.member.displayName,
-                icon_url: msg.author.displayAvatarURL(),
-              },
-              fields: [
-                {
-                  name: "HariboDev Launcher",
-                  value: `[Download the HariboDev Launcher](https://launcher.haribo.dev)`,
-                },
-              ],
-              footer: {
-                text: discord.footer,
-              },
-            },
-          }
-          msg.reply(embed)
-        }
       })
       .catch(err => {
         console.log("Imposter countdown API has been deleted. Contact Haribo.")
