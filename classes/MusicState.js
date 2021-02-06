@@ -36,7 +36,7 @@ module.exports = class MusicState {
     return {
       serverId: this.guild.id,
       voiceChannelId: (voiceChannel || {}).id,
-      textChannelId: (messagePump.textChannel || {}).id,
+      textChannelId: (messagePump.textChannel || {}).id || "",
       queue: queue.map(item => ({
         artists: item.artists,
         title: item.title,
