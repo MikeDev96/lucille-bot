@@ -1,9 +1,6 @@
 node_modules
-config*.json
-db.json
-banga.json
-aliases.json
-stocks.json
+*.json
+*.json.bak
 logs
 .env
 assets/sounds/connect*

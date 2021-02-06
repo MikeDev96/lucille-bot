@@ -1,49 +1,75 @@
 const low = require("lowdb")
 const FileSync = require("lowdb/adapters/FileSync")
+const fs = require("fs")
 
-module.exports = class AliasTracker {
-  constructor (client) {
-    this.client = client
-    this.monitor = {}
-    this.initDB()
-  }
-
-  initDB () {
-    const adapter = new FileSync("aliases.json")
-    this.db = low(adapter)
-    this.db.defaults({ aliases: [] })
-      .write()
-  }
-
+class AliasTracker {
   writeAlias (alias, aliascommand) {
     aliascommand = aliascommand.split("&")
 
     aliascommand = aliascommand.filter(cmd => cmd !== "")
 
     if (aliascommand.length) {
-      this.db.get("aliases")
-        .push({
-          alias: alias,
-          command: aliascommand,
-        })
-        .write()
+      const { lastInsertRowid } = this.run("INSERT INTO Alias (Name) VALUES (?)", alias)
+      aliascommand.forEach(cmd => this.run("INSERT INTO AliasCommand (AliasId, Command) VALUES (?, ?)", lastInsertRowid, cmd))
     }
   }
 
   removeAlias (alias) {
-    this.db.get("aliases")
-      .remove({ alias: alias })
-      .write()
+    this.run("DELETE FROM Alias WHERE Name = ?", alias)
   }
 
   listAliases () {
-    return this.db.get("aliases").value()
+    return this.reduceAliases(this.runQuery(`
+      SELECT Name AS name, Command AS command
+      FROM Alias a
+      JOIN AliasCommand ac
+      ON ac.AliasId = a.AliasId
+    `))
   }
 
   checkForAlias (alias) {
-    return this.db.get("aliases")
-      .filter({ alias: alias })
-      .take(1)
-      .value()
+    return this.reduceAliases(this.runQuery(`
+      SELECT Name AS name, Command AS command
+      FROM Alias a
+      JOIN AliasCommand ac
+      ON ac.AliasId = a.AliasId
+      WHERE a.Name = ?
+    `, alias))
+  }
+
+  reduceAliases (aliases) {
+    return aliases.reduce(([map, arr], { name, command }) => {
+      if (!map.has(name)) {
+        map.set(name, arr.push({ alias: name, command: [] }) - 1)
+      }
+
+      arr[map.get(name)].command.push(command)
+
+      return [map, arr]
+    }, [new Map(), []])[1]
+  }
+
+  migrateAliases () {
+    if (fs.existsSync("aliases.json")) {
+      const adapter = new FileSync("aliases.json")
+      const db = low(adapter)
+      const aliases = db.get("aliases").value()
+      aliases.forEach(({ alias, command }) => {
+        const { lastInsertRowid } = this.run("INSERT INTO Alias (Name) VALUES (?)", alias)
+        command.forEach(cmd => {
+          this.run("INSERT INTO AliasCommand (AliasId, Command) VALUES (?, ?)", lastInsertRowid, cmd)
+        })
+      })
+
+      fs.renameSync("aliases.json", "aliases.json.bak")
+    }
+  }
+
+  static applyToClass (structure) {
+    for (const prop of Object.getOwnPropertyNames(AliasTracker.prototype).slice(1)) {
+      Object.defineProperty(structure.prototype, prop, Object.getOwnPropertyDescriptor(AliasTracker.prototype, prop))
+    }
   }
 }
+
+module.exports = AliasTracker
