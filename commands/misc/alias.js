@@ -67,7 +67,7 @@ module.exports = class Alias extends Command {
         msg.channel.send({
           embed: {
             color: 0x0099ff,
-            title: "Lucille alias commands",
+            title: "Lucille Alias Commands",
             fields: embedHandler(List),
             footer: {
               text: config.discord.footer,
