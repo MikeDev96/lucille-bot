@@ -32,7 +32,7 @@ module.exports = class extends Command {
 
   async run (msg, args) {
     const music = msg.guild.music
-    if (args.arg1.toLowerCase() === "list") {
+    if (args.arg1.toLowerCase() === "list" || args.arg1.toLowerCase() === "ls") {
       const listId = await this.findUserId(msg, args.arg2)
       const nickname = await this.findUsername(msg, args.arg2)
       const bangas = this.client.bangaTracker.listBangas(listId)
@@ -61,7 +61,7 @@ module.exports = class extends Command {
 
     if (args.arg1.toLowerCase() === "play") {
       let playArr = []
-      const playId = this.findUserId(msg, args.arg2)
+      const playId = await this.findUserId(msg, args.arg2)
       if (!playId) return
       playArr = this.client.bangaTracker.listBangas(playId)
       const trackedMusic = playArr.map(dbSong => new Track()
@@ -214,6 +214,7 @@ module.exports = class extends Command {
     else {
       userID = msg.author.id
     }
+
     if (!userID) {
       msg.channel.send("No ID found")
       return null
