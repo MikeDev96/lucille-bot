@@ -51,6 +51,7 @@ module.exports = class extends Command {
               .setThumbnail(searchResults[index].thumbnail)
               .setLink(`https://www.youtube.com/watch?v=${searchResults[index].id}`)
               .setDuration(searchResults[index].duration)
+              .setStartTime(0)
 
             if (queueIndex === 0) {
               music.state.queue.splice(queueIndex + 1, 0, track)
