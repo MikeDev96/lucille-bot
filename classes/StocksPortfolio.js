@@ -1,7 +1,3 @@
-const low = require("lowdb")
-const FileSync = require("lowdb/adapters/FileSync")
-const fs = require("fs")
-
 class StocksPortfolio {
   initStocks () {
     this.db.exec(`
@@ -22,8 +18,6 @@ class StocksPortfolio {
         FOREIGN KEY (StockId) REFERENCES Stock(StockId) ON DELETE CASCADE
       )
     `)
-
-    this.migrateStocks()
   }
 
   checkForStock (symbol) {
@@ -114,25 +108,6 @@ class StocksPortfolio {
 
       return [map, arr]
     }, [new Map(), []])[1]
-  }
-
-  migrateStocks () {
-    if (fs.existsSync("stocks.json")) {
-      const adapter = new FileSync("stocks.json")
-      const db = low(adapter)
-      const stocks = db.get("stocks").value()
-
-      stocks.forEach(stock => {
-        if (stock.users.length) {
-          const { lastInsertRowid } = this.run("INSERT INTO Stock (Symbol) VALUES (?)", stock.symbol)
-          stock.users.forEach(user => {
-            this.run("INSERT INTO StockUser (StockId, UserId) VALUES (?, ?)", lastInsertRowid, user)
-          })
-        }
-      })
-
-      fs.renameSync("stocks.json", "stocks.json.bak")
-    }
   }
 
   static applyToClass (structure) {

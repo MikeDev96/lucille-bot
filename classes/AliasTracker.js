@@ -1,7 +1,3 @@
-const low = require("lowdb")
-const FileSync = require("lowdb/adapters/FileSync")
-const fs = require("fs")
-
 class AliasTracker {
   initAlias () {
     this.db.exec(`
@@ -21,8 +17,6 @@ class AliasTracker {
         FOREIGN KEY (AliasId) REFERENCES Alias(AliasId) ON DELETE CASCADE
       )
    `)
-
-    this.migrateAliases()
   }
 
   writeAlias (alias, aliascommand) {
@@ -69,22 +63,6 @@ class AliasTracker {
 
       return [map, arr]
     }, [new Map(), []])[1]
-  }
-
-  migrateAliases () {
-    if (fs.existsSync("aliases.json")) {
-      const adapter = new FileSync("aliases.json")
-      const db = low(adapter)
-      const aliases = db.get("aliases").value()
-      aliases.forEach(({ alias, command }) => {
-        const { lastInsertRowid } = this.run("INSERT INTO Alias (Name) VALUES (?)", alias)
-        command.forEach(cmd => {
-          this.run("INSERT INTO AliasCommand (AliasId, Command) VALUES (?, ?)", lastInsertRowid, cmd)
-        })
-      })
-
-      fs.renameSync("aliases.json", "aliases.json.bak")
-    }
   }
 
   static applyToClass (structure) {

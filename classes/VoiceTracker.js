@@ -1,8 +1,5 @@
-const low = require("lowdb")
-const FileSync = require("lowdb/adapters/FileSync")
 const humanizeDuration = require("humanize-duration")
 const config = require("../config.json")
-const fs = require("fs")
 
 class VoiceTracker {
   constructor (client) {
@@ -28,24 +25,6 @@ class VoiceTracker {
         PRIMARY KEY (ServerId, UserId)
       )
     `)
-
-    this.migrateVoiceStats()
-  }
-
-  migrateVoiceStats () {
-    if (fs.existsSync("db.json")) {
-      const adapter = new FileSync("db.json")
-      const db = low(adapter)
-      const servers = db.get("servers").value()
-
-      Object.entries(servers).forEach(([serverId, server]) => {
-        Object.entries(server.users).forEach(([userId, user]) => {
-          this.run("INSERT INTO VoiceStats (ServerId, UserId, SelfMute, SelfDeaf, ServerMute, ServerDeaf, Afk, SelfMuteMax, SelfDeafMax, AfkMax) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", serverId, userId, user.selfMute, user.selfDeaf, user.serverMute, user.serverDeaf, user.afk, user.selfMuteMax, user.selfDeafMax, user.afkMax)
-        })
-      })
-
-      fs.renameSync("db.json", "db.json.bak")
-    }
   }
 
   initClient () {

@@ -1,7 +1,3 @@
-const low = require("lowdb")
-const FileSync = require("lowdb/adapters/FileSync")
-const fs = require("fs")
-
 class BangaTracker {
   initBanga () {
     this.db.exec(`
@@ -22,8 +18,6 @@ class BangaTracker {
         FOREIGN KEY (BangaId) REFERENCES Banga(BangaId) ON DELETE CASCADE
       )
     `)
-
-    this.migrateBangas()
   }
 
   writeBanga (spotifyUri, banger, user) {
@@ -100,25 +94,6 @@ class BangaTracker {
 
       return [map, arr]
     }, [new Map(), []])[1]
-  }
-
-  migrateBangas () {
-    if (fs.existsSync("banga.json")) {
-      const adapter = new FileSync("banga.json")
-      const db = low(adapter)
-      const bangas = db.get("bangers").value()
-
-      bangas.forEach(banga => {
-        if (banga.users.length) {
-          const { lastInsertRowid } = this.run("INSERT INTO Banga (Title, SpotifyUri) VALUES (?, ?)", banga.song, banga.spotifyUri)
-          banga.users.forEach(user => {
-            this.run("INSERT INTO BangaUser (BangaId, UserId) VALUES (?, ?)", lastInsertRowid, user)
-          })
-        }
-      })
-
-      fs.renameSync("banga.json", "banga.json.bak")
-    }
   }
 
   static applyToClass (structure) {
