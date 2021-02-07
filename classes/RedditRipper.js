@@ -132,6 +132,14 @@ const RedditRipper = class {
       const res = await fetch(url)
       const html = await res.text()
 
+      if (res.status === 503) {
+        await fetch(url)
+          .then(async (response) => {
+            res = response
+            html = await response.text()
+          })
+      }
+
       const titleMatch = /<meta\s+?property="og:title"\s+?content="(.+?)"\s*?\/>/.exec(html)
       const jsonMatch = /(?<=<script id="data">window\.___r = ).+?(?=;<\/script>)/s.exec(html)
 
