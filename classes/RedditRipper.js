@@ -65,7 +65,13 @@ const RedditRipper = class {
       const reaction = msg.react("⏳")
 
       const [url, id] = link
-      const [filename, endpoint] = await this.run(url, id)
+      const res = await this.run(url, id)
+      if (!res) {
+        reaction.then(r => r.remove())
+        return
+      }
+
+      const [filename, endpoint] = res
 
       try {
         const attach = new MessageAttachment(filename)
@@ -121,27 +127,34 @@ const RedditRipper = class {
       const res = await fetch(url)
       const html = await res.text()
 
-      const match = /"dashUrl":"(.+?)"/.exec(html)
       const titleMatch = /<meta\s+?property="og:title"\s+?content="(.+?)"\s*?\/>/.exec(html)
+      const jsonMatch = /(?<=<script id="data">window\.___r = ).+?(?=;<\/script>)/s.exec(html)
 
-      if (match && titleMatch) {
-        const [, url] = match
-        const [, title] = titleMatch
-
-        const filename = path.join(VIDEOS_PATH, `${sanitise(title)} ${id}.mp4`)
-
-        try {
-          await fsp.access(VIDEOS_PATH)
-        }
-        catch (err) {
-          // If this errors, let it bubble up
-          await fsp.mkdir(VIDEOS_PATH, { recursive: true })
-        }
-
-        return await this.convertVideo(url, filename, id)
+      if (!titleMatch || !jsonMatch) {
+        return
       }
 
-      throw new Error("Couldn't find video link")
+      const [json] = jsonMatch
+      const data = JSON.parse(json)
+      const media = data.posts.models[`t3_${id}`].media
+
+      if (media.type !== "video" && media.type !== "gifvideo") {
+        return
+      }
+
+      const [, title] = titleMatch
+      const key = media.type === "video" ? "dashUrl" : "content"
+      const filename = path.join(VIDEOS_PATH, `${sanitise(title)} ${id}.mp4`)
+
+      try {
+        await fsp.access(VIDEOS_PATH)
+      }
+      catch (err) {
+        // If this errors, let it bubble up
+        await fsp.mkdir(VIDEOS_PATH, { recursive: true })
+      }
+
+      return await this.convertVideo(media[key], filename, id)
     }
     catch (err) {
       throw new Error(err.message)
