@@ -129,8 +129,17 @@ const RedditRipper = class {
 
   async process (url, id) {
     try {
-      const res = await fetch(url)
-      const html = await res.text()
+      let res = await fetch(url)
+      let html = await res.text()
+
+      // May be a better solution - but it works for now
+      if (res.status === 503) {
+        await fetch(url)
+          .then(async (response) => {
+            res = response
+            html = await response.text()
+          })
+      }
 
       const titleMatch = /<meta\s+?property="og:title"\s+?content="(.+?)"\s*?\/>/.exec(html)
       const jsonMatch = /(?<=<script id="data">window\.___r = ).+?(?=;<\/script>)/s.exec(html)
