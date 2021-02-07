@@ -5,7 +5,7 @@ class VoiceTracker {
   constructor (client) {
     this.client = client
     this.monitor = {}
-    this.initClient()
+    // this.initClient()
   }
 
   initVoiceStats () {
