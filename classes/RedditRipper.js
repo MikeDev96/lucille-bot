@@ -71,14 +71,19 @@ const RedditRipper = class {
         return
       }
 
-      const [filename, endpoint] = res
+      const [type, filename, endpoint] = res
 
-      try {
-        const attach = new MessageAttachment(filename)
-        await msg.reply(attach)
+      if (type === "image") {
+        await msg.reply(filename)
       }
-      catch (err) {
-        msg.reply(new URL(endpoint, process.env.PUBLIC_URL).href)
+      else if (type === "video") {
+        try {
+          const attach = new MessageAttachment(filename)
+          await msg.reply(attach)
+        }
+        catch (err) {
+          msg.reply(new URL(endpoint, process.env.PUBLIC_URL).href)
+        }
       }
 
       reaction.then(r => r.remove())
@@ -116,7 +121,7 @@ const RedditRipper = class {
 
     const paths = await globby(`${VIDEOS_PATH}/* ${id}.mp4`)
     if (paths.length) {
-      return [paths[0], `/reddit/video/${id}`]
+      return ["video", paths[0], `/reddit/video/${id}`]
     }
 
     return await (this.processing[id] = this.process(url, id))
@@ -138,7 +143,10 @@ const RedditRipper = class {
       const data = JSON.parse(json)
       const media = data.posts.models[`t3_${id}`].media
 
-      if (media.type !== "video" && media.type !== "gifvideo") {
+      if (media.type === "image") {
+        return ["image", media.content]
+      }
+      else if (media.type !== "video" && media.type !== "gifvideo") {
         return
       }
 
@@ -180,7 +188,7 @@ const RedditRipper = class {
 
       ffmpeg.on("exit", code => {
         if (code === 0) {
-          resolve([filename, `/reddit/video/${id}`])
+          resolve(["video", filename, `/reddit/video/${id}`])
         }
         else {
           reject(new Error(`FFMpeg error code ${code}`))
