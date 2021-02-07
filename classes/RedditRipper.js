@@ -77,12 +77,15 @@ const RedditRipper = class {
         await msg.reply(filename)
       }
       else if (type === "video") {
-        try {
+        const fileStats = fs.statSync(filename)
+        const limit = (msg.guild.premiumTier < 2 ? 8 : msg.guild.premiumTier < 3 ? 50 : 100) * Math.pow(1024, 2) - 512 // https://www.reddit.com/r/discordapp/comments/aflp3p/the_truth_about_discord_file_upload_limits/
+
+        if (fileStats.size > limit) {
+          await msg.reply(new URL(endpoint, process.env.PUBLIC_URL).href)
+        }
+        else {
           const attach = new MessageAttachment(filename)
           await msg.reply(attach)
-        }
-        catch (err) {
-          msg.reply(new URL(endpoint, process.env.PUBLIC_URL).href)
         }
       }
 
@@ -127,18 +130,14 @@ const RedditRipper = class {
     return await (this.processing[id] = this.process(url, id))
   }
 
-  async process (url, id) {
+  async process (url, id, depth = 0) {
     try {
-      let res = await fetch(url)
-      let html = await res.text()
+      const res = await fetch(url)
+      const html = await res.text()
 
       // May be a better solution - but it works for now
-      if (res.status === 503) {
-        await fetch(url)
-          .then(async (response) => {
-            res = response
-            html = await response.text()
-          })
+      if (res.status === 503 && !depth) {
+        return await this.process(url, id, 1)
       }
 
       const titleMatch = /<meta\s+?property="og:title"\s+?content="(.+?)"\s*?\/>/.exec(html)
