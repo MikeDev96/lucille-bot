@@ -2,21 +2,50 @@ const low = require("lowdb")
 const FileSync = require("lowdb/adapters/FileSync")
 const humanizeDuration = require("humanize-duration")
 const config = require("../config.json")
+const fs = require("fs")
 
-module.exports = class {
+class VoiceTracker {
   constructor (client) {
     this.client = client
     this.monitor = {}
-    this.initDB()
     this.initClient()
   }
 
-  initDB () {
-    const adapter = new FileSync("db.json")
-    this.db = low(adapter)
+  initVoiceStats () {
+    this.db.exec(`
+      CREATE TABLE IF NOT EXISTS VoiceStats
+      (
+        ServerId    TEXT,
+        UserId      TEXT,
+        SelfMute    INTEGER,
+        SelfDeaf    INTEGER,
+        ServerMute  INTEGER,
+        ServerDeaf  INTEGER,
+        Afk         INTEGER,
+        SelfMuteMax INTEGER,
+        SelfDeafMax INTEGER,
+        AfkMax      INTEGER,
+        PRIMARY KEY (ServerId, UserId)
+      )
+    `)
 
-    this.db.defaults({ servers: {}, users: {} })
-      .write()
+    this.migrateVoiceStats()
+  }
+
+  migrateVoiceStats () {
+    if (fs.existsSync("db.json")) {
+      const adapter = new FileSync("db.json")
+      const db = low(adapter)
+      const servers = db.get("servers").value()
+
+      Object.entries(servers).forEach(([serverId, server]) => {
+        Object.entries(server.users).forEach(([userId, user]) => {
+          this.run("INSERT INTO VoiceStats (ServerId, UserId, SelfMute, SelfDeaf, ServerMute, ServerDeaf, Afk, SelfMuteMax, SelfDeafMax, AfkMax) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", serverId, userId, user.selfMute, user.selfDeaf, user.serverMute, user.serverDeaf, user.afk, user.selfMuteMax, user.selfDeafMax, user.afkMax)
+        })
+      })
+
+      fs.renameSync("db.json", "db.json.bak")
+    }
   }
 
   initClient () {
@@ -53,7 +82,17 @@ module.exports = class {
     const mon = this.monitor[oldMember.id]
     const curTime = new Date().getTime()
 
-    const changes = []
+    const changes = {
+      selfMute: 0,
+      selfDeaf: 0,
+      serverMute: 0,
+      serverDeaf: 0,
+      afk: 0,
+      selfMuteMax: 0,
+      selfDeafMax: 0,
+      afkMax: 0,
+    }
+
     const trackingFields = ["selfMute", "selfDeaf", "serverMute", "serverDeaf"]
 
     // User joined the voice channel
@@ -78,7 +117,7 @@ module.exports = class {
         if ("afk" in mon) {
           const duration = curTime - mon.afk
           delete mon.afk
-          changes.push(["afk", duration])
+          changes.afk = duration
         }
       }
       // User left another voice channel
@@ -87,7 +126,7 @@ module.exports = class {
           if (k in mon) {
             const duration = curTime - mon[k]
             delete mon[k]
-            changes.push([k, duration])
+            changes[k] = duration
           }
         })
       }
@@ -99,7 +138,7 @@ module.exports = class {
         if ("afk" in mon) {
           const duration = curTime - mon.afk
           delete mon.afk
-          changes.push(["afk", duration])
+          changes.afk = duration
         }
 
         // User is no longer in AFK, start tracking other fields again
@@ -118,7 +157,7 @@ module.exports = class {
           if (k in mon) {
             const duration = curTime - mon[k]
             delete mon[k]
-            changes.push([k, duration])
+            changes[k] = duration
           }
         })
       }
@@ -136,7 +175,7 @@ module.exports = class {
               if (k in mon) {
                 const duration = curTime - mon[k]
                 delete mon[k]
-                changes.push([k, duration])
+                changes[k] = duration
               }
             }
           }
@@ -144,75 +183,26 @@ module.exports = class {
       }
     }
 
-    if (changes.length) {
+    if (changes.selfMute > 0 || changes.selfDeaf > 0 || changes.serverMute > 0 || changes.serverDeaf > 0 || changes.afk > 0 || changes.selfMuteMax > 0 || changes.selfDeafMax > 0 || changes.afkMax > 0) {
       const serverId = oldMember.guild.id
-      const serverName = oldMember.guild.name
       const userId = oldMember.id
-      const displayName = oldMember.member.displayName
 
-      const server = this.db.get("servers").get(serverId)
-        .defaults({ name: serverName, users: {} })
-        .value()
-
-      server.name = serverName
-
-      if (!(userId in server.users)) {
-        server.users[userId] = {}
-      }
-
-      if (!("selfMute" in server.users[userId])) server.users[userId].selfMute = 0
-      if (!("selfDeaf" in server.users[userId])) server.users[userId].selfDeaf = 0
-      if (!("serverMute" in server.users[userId])) server.users[userId].serverMute = 0
-      if (!("serverDeaf" in server.users[userId])) server.users[userId].serverDeaf = 0
-      if (!("afk" in server.users[userId])) server.users[userId].afk = 0
-      if (!("selfMuteMax" in server.users[userId])) server.users[userId].selfMuteMax = 0
-      if (!("selfDeafMax" in server.users[userId])) server.users[userId].selfDeafMax = 0
-      if (!("afkMax" in server.users[userId])) server.users[userId].afkMax = 0
-
-      const map = {
-        selfMute: "selfMuteMax",
-        selfDeaf: "selfDeafMax",
-        afk: "afkMax",
-      }
-
-      for (let i = 0; i < changes.length; i++) {
-        server.users[userId][changes[i][0]] += changes[i][1]
-
-        if (changes[i][0] in map && changes[i][1] > server.users[userId][map[changes[i][0]]]) {
-          server.users[userId][map[changes[i][0]]] = changes[i][1]
-        }
-      }
-
-      // const muteCheck = changes.find(([k]) => k.endsWith("Mute"))
-      // const deafCheck = changes.find(([k]) => k.endsWith("Deaf"))
-      // const afkCheck = changes.find(([k]) => k === "afk")
-      // const isServer = typeof changes.find(([k]) => k.startsWith("server")) !== "undefined"
-
-      // if (typeof muteCheck !== "undefined" && typeof deafCheck !== "undefined") {
-      //   if (muteCheck[1] !== deafCheck[1]) {
-      //     this.notify(oldMember.guild.systemChannel, displayName, isServer, `muted for ${this.formatMs(muteCheck[1])} & deafened`, deafCheck[1])
-      //   }
-      //   else {
-      //     this.notify(oldMember.guild.systemChannel, displayName, isServer, "muted & deafened", muteCheck[1], deafCheck[1])
-      //   }
-      // }
-      // else if (typeof muteCheck !== "undefined") {
-      //   this.notify(oldMember.guild.systemChannel, displayName, isServer, "muted", muteCheck[1])
-      // }
-      // else if (typeof deafCheck !== "undefined") {
-      //   this.notify(oldMember.guild.systemChannel, displayName, isServer, "deafened", deafCheck[1])
-      // }
-      // else if (typeof afkCheck !== "undefined") {
-      //   this.notify(oldMember.guild.systemChannel, displayName, isServer, "AFK", afkCheck[1])
-      // }
-
-      this.db.get("servers")
-        .set(serverId, server)
-        .write()
-
-      this.db.get("users")
-        .set(userId, displayName)
-        .write()
+      this.client.db.run(`
+        INSERT INTO VoiceStats VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ON CONFLICT(ServerId, UserId) DO UPDATE
+        SET
+          SelfMute = SelfMute + ?,
+          SelfDeaf = SelfDeaf + ?,
+          ServerMute = ServerMute + ?,
+          ServerDeaf = ServerDeaf + ?,
+          Afk = Afk + ?,
+          SelfMuteMax = CASE WHEN SelfMute + ? > SelfMuteMax THEN SelfMute + ? ELSE SelfMuteMax END,
+          SelfDeafMax = CASE WHEN SelfDeaf + ? > SelfDeafMax THEN SelfDeaf + ? ELSE SelfDeafMax END,
+          AfkMax = CASE WHEN Afk + ? > AfkMax THEN Afk + ? ELSE AfkMax END
+        WHERE ServerId = ?
+          AND UserId = ?
+      `, serverId, userId, changes.selfMute, changes.selfDeaf, changes.serverMute, changes.serverDeaf, changes.afk, changes.selfMute, changes.selfDeaf, changes.afk,
+      changes.selfMute, changes.selfDeaf, changes.serverMute, changes.serverDeaf, changes.afk, changes.selfMute, changes.selfMute, changes.selfDeaf, changes.selfDeaf, changes.afk, changes.afk, serverId, userId)
     }
   }
 
@@ -308,4 +298,12 @@ module.exports = class {
 
     return Math.round(num / 1000) * 1000
   }
+
+  static applyToClass (structure) {
+    for (const prop of Object.getOwnPropertyNames(VoiceTracker.prototype).slice(1)) {
+      Object.defineProperty(structure.prototype, prop, Object.getOwnPropertyDescriptor(VoiceTracker.prototype, prop))
+    }
+  }
 }
+
+module.exports = VoiceTracker

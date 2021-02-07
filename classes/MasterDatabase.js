@@ -1,6 +1,7 @@
 const SQLite = require("better-sqlite3")
 const AliasTracker = require("./AliasTracker")
 const BangaTracker = require("./BangaTracker")
+const VoiceTracker = require("./VoiceTracker")
 
 class MasterDatabase {
   constructor () {
@@ -97,6 +98,7 @@ class MasterDatabase {
 
     this.initAlias()
     this.initBanga()
+    this.initVoiceStats()
 
     console.log("Master database initialised")
   }
@@ -312,5 +314,6 @@ WHERE [ServerId] = @server
 
 AliasTracker.applyToClass(MasterDatabase)
 BangaTracker.applyToClass(MasterDatabase)
+VoiceTracker.applyToClass(MasterDatabase)
 
 module.exports = MasterDatabase
