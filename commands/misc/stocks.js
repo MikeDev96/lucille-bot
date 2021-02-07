@@ -32,7 +32,7 @@ module.exports = class extends Command {
 
   async run (msg, args) {
     if (args.action === "add") {
-      const success = this.client.stocksPortfolio.addUser(args.symbol.toUpperCase(), msg.author.id)
+      const success = this.client.db.addUser(args.symbol.toUpperCase(), msg.author.id)
 
       if (success) {
         msg.react("👍")
@@ -43,7 +43,7 @@ module.exports = class extends Command {
       }
     }
     else if (args.action === "remove" || args.action === "rm" || args.action === "delete") {
-      const success = this.client.stocksPortfolio.removeUser(args.symbol.toUpperCase(), msg.author.id)
+      const success = this.client.db.removeUser(args.symbol.toUpperCase(), msg.author.id)
 
       if (success) {
         msg.react("👍")
@@ -61,7 +61,7 @@ module.exports = class extends Command {
           msg.reply("Could not find user ID")
           return
         }
-        const list = this.client.stocksPortfolio.listStocks(listId)
+        const list = this.client.db.listStocks(listId)
         if (list.length > 0) {
           const tempArr = this.list(list, nickname)
           const embed = {

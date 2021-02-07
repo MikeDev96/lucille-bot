@@ -25,7 +25,7 @@ module.exports = class LucilleClient extends CommandoClient {
     this.bangaTracker = new BangaTracker()
     this.aliasTracker = new AliasTracker()
     this.voiceStateAdapter = new VoiceStateAdapter(this)
-    this.stocksPortfolio = new StocksPortfolio(this)
+    this.stocksPortfolio = new StocksPortfolio()
 
     this.createMessageInterceptor()
     this.createDailyTracker()
