@@ -129,8 +129,8 @@ const RedditRipper = class {
 
   async process (url, id) {
     try {
-      const res = await fetch(url)
-      const html = await res.text()
+      let res = await fetch(url)
+      let html = await res.text()
 
       if (res.status === 503) {
         await fetch(url)
