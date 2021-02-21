@@ -65,14 +65,28 @@ const RedditRipper = class {
       const reaction = msg.react("⏳")
 
       const [url, id] = link
-      const [filename, endpoint] = await this.run(url, id)
-
-      try {
-        const attach = new MessageAttachment(filename)
-        await msg.reply(attach)
+      const res = await this.run(url, id)
+      if (!res) {
+        reaction.then(r => r.remove())
+        return
       }
-      catch (err) {
-        msg.reply(new URL(endpoint, process.env.PUBLIC_URL).href)
+
+      const [type, filename, endpoint] = res
+
+      if (type === "image") {
+        await msg.reply(filename)
+      }
+      else if (type === "video") {
+        const fileStats = fs.statSync(filename)
+        const limit = (msg.guild.premiumTier < 2 ? 8 : msg.guild.premiumTier < 3 ? 50 : 100) * Math.pow(1024, 2) - 512 // https://www.reddit.com/r/discordapp/comments/aflp3p/the_truth_about_discord_file_upload_limits/
+
+        if (fileStats.size > limit) {
+          await msg.reply(new URL(endpoint, process.env.PUBLIC_URL).href)
+        }
+        else {
+          const attach = new MessageAttachment(filename)
+          await msg.reply(attach)
+        }
       }
 
       reaction.then(r => r.remove())
@@ -110,38 +124,53 @@ const RedditRipper = class {
 
     const paths = await globby(`${VIDEOS_PATH}/* ${id}.mp4`)
     if (paths.length) {
-      return [paths[0], `/reddit/video/${id}`]
+      return ["video", paths[0], `/reddit/video/${id}`]
     }
 
     return await (this.processing[id] = this.process(url, id))
   }
 
-  async process (url, id) {
+  async process (url, id, depth = 0) {
     try {
       const res = await fetch(url)
       const html = await res.text()
 
-      const match = /"dashUrl":"(.+?)"/.exec(html)
-      const titleMatch = /<meta\s+?property="og:title"\s+?content="(.+?)"\s*?\/>/.exec(html)
-
-      if (match && titleMatch) {
-        const [, url] = match
-        const [, title] = titleMatch
-
-        const filename = path.join(VIDEOS_PATH, `${sanitise(title)} ${id}.mp4`)
-
-        try {
-          await fsp.access(VIDEOS_PATH)
-        }
-        catch (err) {
-          // If this errors, let it bubble up
-          await fsp.mkdir(VIDEOS_PATH, { recursive: true })
-        }
-
-        return await this.convertVideo(url, filename, id)
+      // May be a better solution - but it works for now
+      if (res.status === 503 && !depth) {
+        return await this.process(url, id, 1)
       }
 
-      throw new Error("Couldn't find video link")
+      const titleMatch = /<meta\s+?property="og:title"\s+?content="(.+?)"\s*?\/>/.exec(html)
+      const jsonMatch = /(?<=<script id="data">window\.___r = ).+?(?=;<\/script>)/s.exec(html)
+
+      if (!titleMatch || !jsonMatch) {
+        return
+      }
+
+      const [json] = jsonMatch
+      const data = JSON.parse(json)
+      const media = data.posts.models[`t3_${id}`].media
+
+      if (media.type === "image") {
+        return ["image", media.content]
+      }
+      else if (media.type !== "video" && media.type !== "gifvideo") {
+        return
+      }
+
+      const [, title] = titleMatch
+      const key = media.type === "video" ? "dashUrl" : "content"
+      const filename = path.join(VIDEOS_PATH, `${sanitise(title)} ${id}.mp4`)
+
+      try {
+        await fsp.access(VIDEOS_PATH)
+      }
+      catch (err) {
+        // If this errors, let it bubble up
+        await fsp.mkdir(VIDEOS_PATH, { recursive: true })
+      }
+
+      return await this.convertVideo(media[key], filename, id)
     }
     catch (err) {
       throw new Error(err.message)
@@ -167,7 +196,7 @@ const RedditRipper = class {
 
       ffmpeg.on("exit", code => {
         if (code === 0) {
-          resolve([filename, `/reddit/video/${id}`])
+          resolve(["video", filename, `/reddit/video/${id}`])
         }
         else {
           reject(new Error(`FFMpeg error code ${code}`))

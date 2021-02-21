@@ -1,6 +1,10 @@
 const SQLite = require("better-sqlite3")
+const AliasTracker = require("./AliasTracker")
+const BangaTracker = require("./BangaTracker")
+const StocksPortfolio = require("./StocksPortfolio")
+const VoiceTracker = require("./VoiceTracker")
 
-module.exports = class {
+class MasterDatabase {
   constructor () {
     this.db = new SQLite("main.db", { readonly: false })
     this.initTables()
@@ -92,6 +96,11 @@ module.exports = class {
     this.db.exec("DELETE FROM YouTubeVideos WHERE VideoId IS NULL")
     this.db.exec("DELETE FROM YouTubeHistory WHERE VideoId IS NULL")
     this.db.exec("DROP TABLE IF EXISTS YouTubeLinks")
+
+    this.initAlias()
+    this.initBanga()
+    this.initVoiceStats()
+    this.initStocks()
 
     console.log("Master database initialised")
   }
@@ -304,3 +313,10 @@ WHERE [ServerId] = @server
     `, videoId)
   }
 }
+
+AliasTracker.applyToClass(MasterDatabase)
+BangaTracker.applyToClass(MasterDatabase)
+VoiceTracker.applyToClass(MasterDatabase)
+StocksPortfolio.applyToClass(MasterDatabase)
+
+module.exports = MasterDatabase

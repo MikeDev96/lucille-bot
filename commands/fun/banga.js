@@ -32,10 +32,10 @@ module.exports = class extends Command {
 
   async run (msg, args) {
     const music = msg.guild.music
-    if (args.arg1.toLowerCase() === "list" || args.arg1.toLowerCase() === "ls") {
+    if (["list", "ls"].includes(args.arg1.toLowerCase())) {
       const listId = await this.findUserId(msg, args.arg2)
       const nickname = await this.findUsername(msg, args.arg2)
-      const bangas = this.client.bangaTracker.listBangas(listId)
+      const bangas = this.client.db.listBangas(listId)
       if (!bangas.length) {
         msg.channel.send("This person is boring and has no bangers")
         return
@@ -59,11 +59,11 @@ module.exports = class extends Command {
       return
     }
 
-    if (args.arg1.toLowerCase() === "play") {
+    if (["play", "p"].includes(args.arg1.toLowerCase())) {
       let playArr = []
       const playId = await this.findUserId(msg, args.arg2)
       if (!playId) return
-      playArr = this.client.bangaTracker.listBangas(playId)
+      playArr = this.client.db.listBangas(playId)
       const trackedMusic = playArr.map(dbSong => new Track()
         .setPlatform("search")
         .setQuery(dbSong.song)
@@ -73,7 +73,7 @@ module.exports = class extends Command {
       return
     }
 
-    if (args.arg1.toLowerCase() === "remove" || args.arg1.toLowerCase() === "rm") {
+    if (["remove", "rm"].includes(args.arg1.toLowerCase())) {
       let currTrack = false
       const queueItem = music.state.queue[0]
 
@@ -81,7 +81,7 @@ module.exports = class extends Command {
       if (queueItem && queueItem.radioMetadata && queueItem.radioMetadata.title && queueItem.radioMetadata.artist) currTrack = queueItem.radioMetadata.artist + " - " + queueItem.radioMetadata.title
       if (queueItem && queueItem.platform === "soundcloud") currTrack = queueItem.title
 
-      const grug = this.client.bangaTracker.findBanga(args.arg2 !== "" ? args.arg2 : currTrack, msg.author.id)
+      const grug = this.client.db.findBanga(args.arg2 !== "" ? args.arg2 : currTrack, msg.author.id)
 
       if (!grug) {
         msg.channel.send("Nice try")
@@ -100,14 +100,14 @@ module.exports = class extends Command {
         if (firstKey === "☑️") {
           if (args.arg2 === "") {
             if (currTrack) {
-              this.client.bangaTracker.removeBanga(currTrack, msg.author.id)
+              this.client.db.removeBanga(currTrack, msg.author.id)
             }
             else {
               msg.react("🖕")
             }
           }
           else {
-            this.client.bangaTracker.removeBanga(args.arg2, msg.author.id)
+            this.client.db.removeBanga(args.arg2, msg.author.id)
           }
         }
       }
@@ -126,7 +126,7 @@ module.exports = class extends Command {
       return
     }
 
-    const checkEx = this.client.bangaTracker.checkForBanga(currTrack)
+    const checkEx = this.client.db.checkForBanga(currTrack)
 
     if (args.arg1 === "?") {
       msg.channel.send(`${this.findUsers(checkEx).join(", ")} thinks its a banger`)
@@ -140,13 +140,13 @@ module.exports = class extends Command {
         msg.channel.send("You've already said this was a banger")
       }
       else {
-        this.client.bangaTracker.updateUsers(currTrack, msg.author.id)
+        this.client.db.updateBangaUsers(currTrack, msg.author.id)
         msg.react("👍")
         msg.channel.send(bangerStampImg)
       }
     }
     else {
-      this.client.bangaTracker.writeBanga(queueItem.spotifyUri, currTrack, msg.author.id)
+      this.client.db.writeBanga(queueItem.spotifyUri, currTrack, msg.author.id)
       msg.react("👍")
       msg.channel.send(bangerStampImg)
     }

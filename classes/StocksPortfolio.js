@@ -1,117 +1,83 @@
-const { assign } = require("lodash")
-const low = require("lowdb")
-const FileSync = require("lowdb/adapters/FileSync")
+class StocksPortfolio {
+  initStocks () {
+    this.db.exec(`
+      CREATE TABLE IF NOT EXISTS Stock
+      (
+        StockId  INTEGER PRIMARY KEY AUTOINCREMENT,
+        Symbol   TEXT    UNIQUE
+      )
+    `)
 
-module.exports = class {
-  constructor (client) {
-    this.client = client
-    this.monitor = {}
-    this.initDB()
-  }
-
-  initDB () {
-    const adapter = new FileSync("stocks.json")
-    this.db = low(adapter)
-
-    this.db.defaults({ stocks: [] })
-      .write()
+    this.db.exec(`
+      CREATE TABLE IF NOT EXISTS StockUser
+      (
+        StockUserId  INTEGER PRIMARY KEY AUTOINCREMENT,
+        StockId      INTEGER,
+        UserId       TEXT,
+        UNIQUE (StockId, UserId),
+        FOREIGN KEY (StockId) REFERENCES Stock(StockId) ON DELETE CASCADE
+      )
+    `)
   }
 
   checkForStock (symbol) {
-    return this.db.get("stocks")
-      .filter({ symbol: symbol })
-      .take(1)
-      .value()
+    return this.reduceStocks(this.runQuery(`
+      SELECT s.Symbol AS symbol, su.UserId AS userId
+      FROM Stock s
+      LEFT JOIN StockUser su
+      ON su.StockId = s.StockId
+      WHERE s.Symbol = ?
+    `, symbol))
   }
 
   writeStock (symbol) {
-    this.db.get("stocks")
-      .push({
-        symbol: symbol,
-        users: [],
-      })
-      .write()
+    this.run("INSERT INTO Stock (Symbol) VALUES (?)", symbol)
   }
 
   checkForUser (symbol, user) {
-    var stockItem = this.db.get("stocks")
-      .filter({ symbol: symbol })
-      .take(1)
-      .value()
-
+    const stockItem = this.checkForStock(symbol)
     return (stockItem[0].users.includes(user))
   }
 
   addUser (symbol, user) {
-    var stockExists = this.checkForStock(symbol)
+    const stockExists = this.checkForStock(symbol)
 
     if (!stockExists.length) {
       this.writeStock(symbol)
     }
 
-    var userExists = this.checkForUser(symbol, user)
+    const userExists = this.checkForUser(symbol, user)
 
     if (userExists) {
       return false
     }
     else {
-      const data = this.db.get("stocks")
-        .filter({ symbol: symbol })
-        .take(1)
-        .value()
-
-      data[0].users.push(user)
-
-      this.db.get("stocks")
-        .find({ symbol: symbol })
-        .assign(data[0])
-        .write()
-
+      this.run(`INSERT INTO StockUser (StockId, UserId) VALUES ((SELECT StockId FROM Stock WHERE Symbol = ?), ?)`, symbol, user)
       return true
     }
   }
 
   removeUser (symbol, user) {
-    var stockExists = this.checkForStock(symbol)
+    const stockExists = this.checkForStock(symbol)
 
     if (!stockExists.length) {
       this.writeStock(symbol)
     }
 
-    var userExists = this.checkForUser(symbol, user)
+    const userExists = this.checkForUser(symbol, user)
 
     if (userExists) {
-      const data = this.db.get("stocks")
-        .find(e => {
-          return e.symbol.includes(symbol) && (e.users.includes(user))
-        })
-        .value()
+      this.run(`
+        DELETE FROM StockUser AS su
+        WHERE su.StockId IN (SELECT s.StockId FROM Stock s WHERE s.Symbol = ?)
+          AND su.UserId = ?
+      `, symbol, user)
 
-      const indexOfUser = data.users.indexOf(user)
-
-      if (data.users.length === 1) {
-        var allData = this.db.get("stocks").value()
-        var stockIndex = allData.indexOf(data)
-
-        if (stockIndex > -1) allData.splice(stockIndex, 1)
-
-        this.db.get("stock")
-          .assign(allData)
-          .write()
-      }
-      else {
-        if (indexOfUser > -1) data[0].users.splice(indexOfUser, 1)
-
-        this.db.get("stocks")
-          .find({ symbol: symbol })
-        assign(data)
-          .write()
-      }
-
-      this.db.get("stocks")
-        .find({ symbol: symbol })
-        .assign(data)
-        .write()
+      this.run(`
+        DELETE FROM Stock AS s
+        WHERE s.Symbol = ?
+          AND NOT EXISTS(SELECT su.StockId FROM StockUser su WHERE su.StockId = s.StockId)
+      `, symbol)
 
       return true
     }
@@ -121,8 +87,34 @@ module.exports = class {
   }
 
   listStocks (user) {
-    return this.db.get("stocks")
-      .filter({ users: [user] })
-      .value()
+    return this.runQuery(`
+      SELECT s.Symbol AS symbol
+      FROM Stock s
+      JOIN StockUser su
+      ON su.StockId = s.StockId
+      WHERE su.UserId = ?
+    `, user)
+  }
+
+  reduceStocks (stocks) {
+    return stocks.reduce(([map, arr], { symbol, userId }) => {
+      if (!map.has(symbol)) {
+        map.set(symbol, arr.push({ symbol, users: [] }) - 1)
+      }
+
+      if (userId) {
+        arr[map.get(symbol)].users.push(userId)
+      }
+
+      return [map, arr]
+    }, [new Map(), []])[1]
+  }
+
+  static applyToClass (structure) {
+    for (const prop of Object.getOwnPropertyNames(StocksPortfolio.prototype).slice(1)) {
+      Object.defineProperty(structure.prototype, prop, Object.getOwnPropertyDescriptor(StocksPortfolio.prototype, prop))
+    }
   }
 }
+
+module.exports = StocksPortfolio

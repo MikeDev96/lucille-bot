@@ -16,6 +16,8 @@ module.exports = class extends Command {
     const music = msg.guild.music
     if (music && music.state && music.state.voiceConnection) {
       msg.react("🛑")
+      music.state.queue.splice(0, music.state.queue.length)
+      music.setState({ queue: music.state.queue })
       music.state.voiceConnection.disconnect()
     }
   }
