@@ -78,7 +78,7 @@ const getVoiceChannel = msg => {
 }
 
 const isInBotsVoiceChannel = msg => {
-  return msg.author.id === config.discord.owner || (msg.guild.voice && msg.guild.voice.channelID && msg.guild.voice.channelID === msg.member.voice.channelID)
+  return msg.author.id === config.discord.owner || (msg.guild.voice && msg.guild.voice.channelID && msg.guild.voice.channelID === msg.member.voice.channelID) || msg.member.voice.deaf
 }
 
 module.exports.noop = noop

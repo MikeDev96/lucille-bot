@@ -33,7 +33,7 @@ module.exports = class PlayCommand extends Command {
 const run = async (msg, args, jump) => {
   const music = msg.guild.music
 
-  if (msg.author.id !== config.discord.owner && (!msg.member.voice.channelID || (msg.guild.voice && msg.guild.voice.channelID && msg.guild.voice.channelID !== msg.member.voice.channelID))) {
+  if (msg.author.id !== config.discord.owner && (!msg.member.voice.channelID || (msg.guild.voice && msg.guild.voice.channelID && msg.guild.voice.channelID !== msg.member.voice.channelID) || msg.member.voice.deaf)) {
     msg.react("🖕")
     return
   }
