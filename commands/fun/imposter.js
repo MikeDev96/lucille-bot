@@ -1,7 +1,5 @@
 const { Command } = require("discord.js-commando")
 const { discord } = require("../../config")
-const countdown = require("countdown")
-const axios = require("axios")
 
 module.exports = class extends Command {
   constructor (client) {

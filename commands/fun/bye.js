@@ -19,6 +19,10 @@ module.exports = class extends Command {
       return
     }
 
+    const music = msg.guild.music
+    music.state.queue.splice(0, music.state.queue.length)
+    music.setState({ queue: music.state.queue })
+
     const kickedMembers = msg.member.voice.channel.members.map(member => {
       member.voice.setChannel(null)
       return member.displayName
