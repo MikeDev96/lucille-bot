@@ -26,6 +26,10 @@ module.exports = class extends Command {
         },
         fields: [
           {
+            name: "Updates",
+            value: `[View updates](https://launcher.haribodev.uk/news)`,
+          },
+          {
             name: "HariboDev Launcher",
             value: `[Download the HariboDev Launcher](https://launcher.haribodev.uk)`,
           },
