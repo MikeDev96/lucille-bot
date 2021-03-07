@@ -3,9 +3,10 @@
 ## How to set up a development environment
 This is a quick and easy quide to get Lucille up and running ready for development!
 ### Prerequisites
-- Windows Build Tools
-Lucille uses SQLite which requires WBT.
-Follow the installation guide here: https://github.com/nodejs/node-gyp#on-windows
+- **Windows Build Tools**  
+Lucille uses SQLite which requires WBT.  
+Follow the installation guide here: https://github.com/nodejs/node-gyp#on-windows  
+Alternatively just install run ```npm i -g windows-build-tools``` (https://github.com/felixrieseberg/windows-build-tools)
 ### Clone the repository
 ```bash
 git clone https://github.com/MikeDev96/lucille-bot.git

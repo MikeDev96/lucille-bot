@@ -98,7 +98,6 @@ module.exports = class Music extends MusicState {
 
         this.state.voiceConnection.once("disconnect", () => {
           this.setState({
-            queue: this.state.queue.splice(0, this.state.queue.length),
             summoned: false,
             voiceConnection: null,
             voiceChannel: null,
