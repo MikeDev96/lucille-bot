@@ -12,7 +12,6 @@ const AmazonRipper = require("./AmazonRipper")
 const TikTokRipper = require("./TikTokRipper")
 const { ppResetDaily } = require("../commands/fun/pp")
 const { aocResetDaily } = require("../commands/misc/aocleaderboard")
-const { imposterDailyReminder } = require("../commands/fun/imposter")
 const TextToSpeech = require("./TextToSpeech")
 const StocksPortfolio = require("./StocksPortfolio")
 
@@ -54,7 +53,6 @@ module.exports = class LucilleClient extends CommandoClient {
     this.dailyTracker.on("reset", () => this.guilds.cache.forEach(guild => {
       ppResetDaily(this, guild)
       aocResetDaily(guild)
-      imposterDailyReminder(this, guild)
     }))
   }
 
