@@ -1,7 +1,7 @@
 const { MessageEmbed } = require("discord.js")
 const { Command } = require("discord.js-commando")
 const { DateTime } = require("luxon")
-const { RRule, RRuleSet, rrulestr } = require("rrule")
+const { RRule } = require("rrule")
 const config = require("../../config.json")
 const humanizeDuration = require("humanize-duration")
 const chrono = require("chrono-node")
