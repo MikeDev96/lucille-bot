@@ -17,7 +17,7 @@ module.exports = class extends Command {
       args: [
         {
           key: "arg1",
-          prompt: "Possible options are `add` `remove` `list` `help`, run `!cal help` for more help",
+          prompt: `Possible options are \`add\` \`remove\` \`list\` \`help\`, run \`${config.discord.prefix}cal help\` for more help`,
           type: "string",
         },
         {
@@ -181,17 +181,17 @@ module.exports = class extends Command {
     else if (args.arg1 === "help") {
       msg.reply(`
 Usage:
-  !cal add once \`<start date>\` \`<event>\`
-  !cal add recur \`<start date>\` \`<recurrence rule>\` \`<event>\`
-  !cal remove|rm|rem \`<event>\`
-  !cal list
-  !cal help
+  ${config.discord.prefix}cal add once \`<start date>\` \`<event>\`
+  ${config.discord.prefix}cal add recur \`<start date>\` \`<recurrence rule>\` \`<event>\`
+  ${config.discord.prefix}cal remove|rm|rem \`<event>\`
+  ${config.discord.prefix}cal list
+  ${config.discord.prefix}cal help
 
 Examples:
-  !cal add once "tomorrow at 1pm" "This is an example event"
-  !cal add recur "21 Nov 1996" "every year" "Mike's Birthday"
-  !cal add recur "today" "Every month on the 2nd last Friday for 7 times" "Advanced example"
-  !cal rm "Mike's Birthday"`)
+  ${config.discord.prefix}cal add once "tomorrow at 1pm" "This is an example event"
+  ${config.discord.prefix}cal add recur "21 Nov 1996" "every year" "Mike's Birthday"
+  ${config.discord.prefix}cal add recur "today" "Every month on the 2nd last Friday for 7 times" "Advanced example"
+  ${config.discord.prefix}cal rm "Mike's Birthday"`)
     }
   }
 
