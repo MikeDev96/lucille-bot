@@ -137,7 +137,7 @@ module.exports = class extends Command {
         msg.react("❌")
       }
     }
-    else if (args.arg1 === "list") {
+    else if (args.arg1 === "list" || args.arg1 === "ls") {
       const events = this.client.db.getCalendarEvents(msg.guild.id)
 
       const reducedEvents = events.reduce((acc, event) => {
@@ -184,7 +184,7 @@ Usage:
   ${config.discord.prefix}cal add once \`<start date>\` \`<event>\`
   ${config.discord.prefix}cal add recur \`<start date>\` \`<recurrence rule>\` \`<event>\`
   ${config.discord.prefix}cal remove|rm|rem \`<event>\`
-  ${config.discord.prefix}cal list
+  ${config.discord.prefix}cal list|ls
   ${config.discord.prefix}cal help
 
 Examples:
