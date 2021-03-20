@@ -295,7 +295,7 @@ module.exports = class Music extends MusicState {
     // TODO: Handle the error event
     stream.once("readable", () => {
       const dispatcher = this.state.voiceConnection.play(stream, { type: "opus" })
-      dispatcher.setVolumeLogarithmic(this.state.volume / 100)
+      dispatcher.setVolumeLogarithmic([TrackExtractor.PLATFORM_CONNECT, TrackExtractor.PLATFORM_DISCONNECT].includes(item.platform) ? 3 : this.state.volume / 100)
 
       dispatcher.on("start", () => {
         // Fixes a song resuming from its paused state if a TTS message is played
