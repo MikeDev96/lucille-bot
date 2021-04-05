@@ -70,7 +70,7 @@ ${client.commandPrefix}pp perm \`lb\` gets the pp leaderboard, see whose rocking
   }
 
   getLocalised (ppLength) {
-    return `8=${"=".repeat(ppLength)}D${ppLength === 15 ? " ~ ~ ~" : ""}`
+    return `8${"=".repeat(ppLength)}D${ppLength === 15 ? " ~ ~ ~" : ""}`
   }
 
   getSize (isPerm, isDaily, authorId, guildId) {
@@ -162,7 +162,7 @@ __**${prefix}PP command:**__
       .sort((val1, val2) => val2 - val1)
       .map((val1, idx) =>
         `${medals[idx] || ""} ${groupedBySize.get(val1).map(user => "`" + (user.DisplayName !== null ? user.DisplayName : guild.users.cache.find(user => user.id === user.UserId).username) + "`").join(" & ")}
-8=${"=".repeat(val1)}D${val1 === 15 ? " ~ ~ ~" : ""}\r\n`,
+8${"=".repeat(val1)}D${val1 === 15 ? " ~ ~ ~" : ""}\r\n`,
       )
 
     if (!fields.length) {
