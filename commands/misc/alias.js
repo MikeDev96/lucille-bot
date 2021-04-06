@@ -64,16 +64,18 @@ module.exports = class Alias extends Command {
 
       if (List.length) {
         // Build the embed
-        msg.channel.send({
-          embed: {
-            color: 0x0099ff,
-            title: "Lucille Alias Commands",
-            fields: embedHandler(List),
-            footer: {
-              text: config.discord.footer,
-              icon_url: config.discord.authorAvatarUrl,
+        embedHandler(List).forEach(item => {
+          msg.channel.send({
+            embed: {
+              color: 0x0099ff,
+              title: "Lucille Alias Commands",
+              fields: item,
+              footer: {
+                text: config.discord.footer,
+                icon_url: config.discord.authorAvatarUrl,
+              },
             },
-          },
+          })
         })
       }
       else msg.reply("No aliases have been added yet")

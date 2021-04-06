@@ -5,7 +5,7 @@ const axios = require("axios")
 const { DateTime } = require("luxon")
 
 module.exports = class extends Command {
-  constructor(client) {
+  constructor (client) {
     super(client, {
       name: "imposter",
       aliases: ["i"],
@@ -17,7 +17,7 @@ module.exports = class extends Command {
     })
   }
 
-  run(msg) {
+  run (msg) {
     axios.get("http://server.haribodev.uk/imposter/versions/update")
       .then(res => {
         if (res.data === "N/A") {
@@ -46,7 +46,8 @@ module.exports = class extends Command {
             },
           }
           msg.reply(embed)
-        } else {
+        }
+        else {
           var day = Number(res.data.substring(0, 2))
           var month = Number(res.data.substring(3, 5))
           var year = Number(res.data.substring(6, 10))
@@ -128,7 +129,7 @@ module.exports = class extends Command {
       })
   }
 
-  static imposterDailyReminder(client, guild) {
+  static imposterDailyReminder (client, guild) {
     axios.get("http://server.haribodev.uk/imposter/versions/update")
       .then(res => {
         if (res.date !== "N/A") {
