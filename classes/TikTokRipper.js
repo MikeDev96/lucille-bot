@@ -143,7 +143,7 @@ const TikTokRipper = class {
       })
     }
     catch (err) {
-      throw new Error(err.message)
+      throw new Error(err)
     }
     finally {
       if (id in this.processing) {
