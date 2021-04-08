@@ -149,7 +149,9 @@ const RedditRipper = class {
 
       const [json] = jsonMatch
       const data = JSON.parse(json)
-      const media = data.posts.models[`t3_${id}`].media
+
+      const model = data.posts.models[`t3_${id}`]
+      const media = model.crosspostParentId ? data.posts.models[model.crosspostParentId].media : model.media
 
       if (media.type === "image") {
         return ["image", media.content]
