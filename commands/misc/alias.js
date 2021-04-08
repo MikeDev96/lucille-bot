@@ -2,7 +2,7 @@ const { Command } = require("discord.js-commando")
 const config = require("../../config.json")
 const { proxyCommand } = require("../../classes/DiscordJSHelpers")
 const { Util } = require("discord.js")
-
+const { paginatedEmbed } = require("../../helpers.js")
 module.exports = class Alias extends Command {
   constructor (client) {
     super(client, {
@@ -63,20 +63,16 @@ module.exports = class Alias extends Command {
       const List = this.client.db.listAliases()
 
       if (List.length) {
-        // Build the embed
-        embedHandler(List).forEach(item => {
-          msg.channel.send({
-            embed: {
-              color: 0x0099ff,
-              title: "Lucille Alias Commands",
-              fields: item,
-              footer: {
-                text: config.discord.footer,
-                icon_url: config.discord.authorAvatarUrl,
-              },
+        paginatedEmbed(msg, {
+          embed: {
+            color: 0x0099ff,
+            title: "Lucille Alias Commands",
+            footer: {
+              text: config.discord.footer,
+              icon_url: config.discord.authorAvatarUrl,
             },
-          })
-        })
+          },
+        }, embedHandler(List))
       }
       else msg.reply("No aliases have been added yet")
     }

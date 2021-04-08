@@ -1,6 +1,6 @@
 const { Command } = require("discord.js-commando")
 const config = require("../../config.json")
-const { getRequestee, getVoiceChannel, shuffle } = require("../../helpers")
+const { getRequestee, getVoiceChannel, shuffle, paginatedEmbed } = require("../../helpers")
 const Track = require("../../classes/Track")
 const { MessageAttachment, Util } = require("discord.js")
 
@@ -40,8 +40,8 @@ module.exports = class extends Command {
         msg.channel.send("This person is boring and has no bangers")
         return
       }
-      const tempArr = this.list(bangas, nickname)
-      const embed = {
+
+      paginatedEmbed(msg, {
         embed: {
           color: 0x0099ff,
           title: "Lucille 🎵",
@@ -49,13 +49,11 @@ module.exports = class extends Command {
             name: msg.member.displayName,
             icon_url: msg.author.displayAvatarURL(),
           },
-          fields: tempArr,
           footer: {
             text: config.discord.footer,
           },
         },
-      }
-      msg.reply(embed)
+      }, this.list(bangas, nickname))
       return
     }
 
