@@ -40,22 +40,23 @@ module.exports = class extends Command {
         msg.channel.send("This person is boring and has no bangers")
         return
       }
-      const tempArr = this.list(bangas, nickname)
-      const embed = {
-        embed: {
-          color: 0x0099ff,
-          title: "Lucille 🎵",
-          author: {
-            name: msg.member.displayName,
-            icon_url: msg.author.displayAvatarURL(),
+
+      this.list(bangas, nickname).forEach(item => {
+        msg.channel.send({
+          embed: {
+            color: 0x0099ff,
+            title: "Lucille 🎵",
+            author: {
+              name: msg.member.displayName,
+              icon_url: msg.author.displayAvatarURL(),
+            },
+            fields: item,
+            footer: {
+              text: config.discord.footer,
+            },
           },
-          fields: tempArr,
-          footer: {
-            text: config.discord.footer,
-          },
-        },
-      }
-      msg.reply(embed)
+        })
+      })
       return
     }
 
