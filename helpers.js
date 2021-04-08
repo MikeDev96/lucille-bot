@@ -81,6 +81,35 @@ const isInBotsVoiceChannel = msg => {
   return msg.author.id === config.discord.owner || (msg.guild.voice && msg.guild.voice.channelID && msg.guild.voice.channelID === msg.member.voice.channelID) || msg.member.voice.deaf
 }
 
+const paginatedEmbed = async (msg, embedTemplate, embedList, emojiList = ["⏪", "◀️", "▶️", "⏩"], timeout = 120000) => {
+  if (!msg || !msg.channel || !embedList || emojiList.length !== 4) return
+
+  let embedIndex = 0
+  embedTemplate.embed.fields = embedList[embedIndex]
+  const currentEmbed = await msg.channel.send(embedTemplate)
+
+  for (const emoji of emojiList) await currentEmbed.react(emoji)
+
+  const reactionCollector = currentEmbed.createReactionCollector((reaction, user) => emojiList.includes(reaction.emoji.name) && !user.bot, { time: timeout })
+  reactionCollector.on("collect", reaction => {
+    reaction.users.remove(msg.author)
+
+    switch (reaction.emoji.name) {
+    case emojiList[0] : { embedIndex = 0; break }
+    case emojiList[1] : { embedIndex = (embedIndex > 0) ? --embedIndex : embedList.length - 1; break }
+    case emojiList[2] : { embedIndex = (embedIndex + 1 < embedList.length) ? ++embedIndex : 0; break }
+    case emojiList[3] : { embedIndex = embedList.length - 1; break }
+    default: break
+    }
+
+    embedTemplate.embed.fields = embedList[embedIndex]
+    currentEmbed.edit(embedTemplate)
+  })
+
+  reactionCollector.on("end", () => currentEmbed.reactions.removeAll())
+  return currentEmbed
+}
+
 module.exports.noop = noop
 module.exports.safeJoin = safeJoin
 module.exports.shuffle = shuffle
@@ -93,3 +122,4 @@ module.exports.textToStream = textToStream
 module.exports.getRequestee = getRequestee
 module.exports.getVoiceChannel = getVoiceChannel
 module.exports.isInBotsVoiceChannel = isInBotsVoiceChannel
+module.exports.paginatedEmbed = paginatedEmbed
