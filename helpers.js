@@ -27,11 +27,21 @@ const msToTimestamp = (duration, { ms = false } = {}) => {
   const seconds = Math.floor((duration / 1000) % 60)
   const minutes = Math.floor((duration / (1000 * 60)) % 60)
   const hours = Math.floor((duration / (1000 * 60 * 60)) % 24)
+  const days = Math.floor(duration / (1000 * 60 * 60 * 24))
 
   let out = ""
 
+  if (days > 0) {
+    out += `${days}:`
+  }
+
   if (hours > 0) {
-    out += `${hours}:`
+    if (days) {
+      out += `${hours.toString().padStart(2, "0")}:`
+    }
+    else {
+      out += `${hours}:`
+    }
   }
 
   out += `${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`
