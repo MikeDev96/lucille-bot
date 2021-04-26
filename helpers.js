@@ -32,16 +32,10 @@ const msToTimestamp = (duration, { ms = false } = {}) => {
   let out = ""
 
   if (days > 0) {
-    out += `${days}:`
+    out += `${days}:${hours.toString().padStart(2, "0")}:`
   }
-
-  if (hours > 0) {
-    if (days) {
-      out += `${hours.toString().padStart(2, "0")}:`
-    }
-    else {
-      out += `${hours}:`
-    }
+  else if (hours > 0) {
+    out += `${hours}:`
   }
 
   out += `${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`
