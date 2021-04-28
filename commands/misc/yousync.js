@@ -70,7 +70,7 @@ module.exports = class extends Command {
     const res = await axios({
       method: "POST",
       url: `${process.env.YOUSYNC_API_URL}/api/room?username=${this.client.user.username}&video=${video}`,
-      body: categories,
+      data: categories,
     })
 
     if (res && res.status === 200) {
