@@ -14,7 +14,7 @@ module.exports = class extends Command {
       args: [
         {
           key: "strength",
-          prompt: "Enter a sponsor skip strength",
+          prompt: "Enter a sponsor skip strength (optional)",
           type: "string",
           default: "low",
         },
@@ -36,8 +36,14 @@ module.exports = class extends Command {
     }
 
     if (args.strength !== "none" && args.strength !== "low" && args.strength !== "med" && args.strength !== "all") {
-      msg.reply("Invalid strength. Please choose from `none`, `low`, `med`, `all`.")
-      return
+      if (args.strength.includes("http")) {
+        args.link = args.strength
+        args.strength = "low"
+      }
+      else {
+        msg.reply("Invalid strength. Please choose from `none`, `low`, `med`, `all`.")
+        return
+      }
     }
 
     const categories = {
@@ -81,6 +87,6 @@ module.exports = class extends Command {
   getHelpMessage (prefix) {
     return `
 __**${prefix}YouSync command:**__    
-\`${prefix}ys\` \`sponsor strength\` \`link\` - Where strength can be \`none\`, \`low\`, \`med\`, \`all\`.`
+\`${prefix}ys\` \`sponsor strength (optional)\` \`link\` - Where strength can be \`none\`, \`low\`, \`med\`, \`all\`.`
   }
-}	
+}
