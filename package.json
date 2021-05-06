@@ -16,7 +16,7 @@
     "axios": "^0.21.1",
     "better-sqlite3": "^7.1.2",
     "cheerio": "^1.0.0-rc.5",
-    "chrono-node": "^2.2.3",
+    "chrono-node": "^2.2.4",
     "countdown": "^2.6.0",
     "discord.js": "^12.5.1",
     "discord.js-commando": "^0.11.1",
