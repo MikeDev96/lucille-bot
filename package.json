@@ -42,7 +42,7 @@
     "tenorjs": "^1.0.7",
     "tiktok-scraper": "^1.4.22",
     "workerpool": "^6.0.3",
-    "ws": "^7.3.1",
+    "ws": "^7.4.6",
     "ytdl-core": "^4.5.0",
     "ytpl": "^1.0.1"
   },
