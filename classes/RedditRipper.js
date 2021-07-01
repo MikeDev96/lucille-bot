@@ -153,26 +153,33 @@ const RedditRipper = class {
       const model = data.posts.models[`t3_${id}`]
       const media = model.crosspostParentId ? data.posts.models[model.crosspostParentId].media : model.media
 
-      if (media.type === "image") {
-        return ["image", media.content]
-      }
-      else if (media.type !== "video" && media.type !== "gifvideo") {
-        return
-      }
+      if (media) {
+        if (media.type === "image") {
+          return ["image", media.content]
+        }
+        else if (media.type !== "video" && media.type !== "gifvideo") {
+          return
+        }
 
-      const [, title] = titleMatch
-      const key = media.type === "video" ? "dashUrl" : "content"
-      const filename = path.join(VIDEOS_PATH, `${sanitise(title)} ${id}.mp4`)
+        const [, title] = titleMatch
+        const key = media.type === "video" ? "dashUrl" : "content"
+        const filename = path.join(VIDEOS_PATH, `${sanitise(title)} ${id}.mp4`)
 
-      try {
-        await fsp.access(VIDEOS_PATH)
-      }
-      catch (err) {
-        // If this errors, let it bubble up
-        await fsp.mkdir(VIDEOS_PATH, { recursive: true })
-      }
+        try {
+          await fsp.access(VIDEOS_PATH)
+        }
+        catch (err) {
+          // If this errors, let it bubble up
+          await fsp.mkdir(VIDEOS_PATH, { recursive: true })
+        }
 
-      return await this.convertVideo(media[key], filename, id)
+        return await this.convertVideo(media[key], filename, id)
+      }
+      else {
+        if (model.source && model.source.url) {
+          return ["image", model.source.url]
+        }
+      }
     }
     catch (err) {
       throw new Error(err.message)
