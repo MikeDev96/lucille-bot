@@ -1,7 +1,7 @@
 const { Command } = require("discord.js-commando")
 
 module.exports = class PlayCommand extends Command {
-  constructor (client) {
+  constructor(client) {
     super(client, {
       name: "voteskip",
       aliases: ["vskip", "vs"],
@@ -12,7 +12,7 @@ module.exports = class PlayCommand extends Command {
     })
   }
 
-  async run (msg, args) {
+  async run(msg, args) {
     const music = msg.guild.music
     const tracks = music.state.queue
 
@@ -35,18 +35,16 @@ module.exports = class PlayCommand extends Command {
 
         try {
           const filter = (reaction, user) => reaction.emoji.name === "🗳️" && voiceChannelMembers.has(user.id)
-          const reactions = await voteMsg.awaitReactions(filter, { time: 30000 })
+          const reactions = await voteMsg.awaitReactions(filter, { time: 30000, })
 
           const votes = reactions.has("🗳️") ? reactions.get("🗳️").count - 1 : 0
 
           await voteMsg.delete()
 
-          // 15 seconds has passed, so make sure the track is still playing
+          // 30 seconds has passed, so make sure the track is still playing
           if (votes >= votesNeeded && tracks[0] && music.getTrackTitle(tracks[0]) === currentlyPlayingTitle) {
             msg.react("⏭️")
 
-            music.state.queue.splice(1, 1)
-            music.setState({ queue: music.state.queue })
             music.dispatcherExec(d => d.end())
           }
           else {
