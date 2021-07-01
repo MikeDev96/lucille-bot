@@ -45,7 +45,7 @@ module.exports = class PlayCommand extends Command {
           if (votes >= votesNeeded && tracks[0] && music.getTrackTitle(tracks[0]) === currentlyPlayingTitle) {
             msg.react("⏭️")
 
-            music.state.queue.splice(1)
+            music.state.queue.splice(1, 1)
             music.setState({ queue: music.state.queue })
             music.dispatcherExec(d => d.end())
           }
