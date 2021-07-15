@@ -40,7 +40,10 @@ Populate it with the following skeleton config:
   },
   "tenor": {
     "key": ""
-  }
+  },
+  "speedTest":{
+    "token": ""
+  },
 }
 ```
 > Certain features won't work without credentials provided in the config.json

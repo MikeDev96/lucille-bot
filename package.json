@@ -23,6 +23,7 @@
     "dotenv": "^8.6.0",
     "eventsource": "^1.1.0",
     "express": "^4.17.1",
+    "fast-speedtest-api": "^0.3.2",
     "ffmpeg-static": "^4.4.0",
     "get-audio-duration": "^2.0.3",
     "globby": "^11.0.4",
