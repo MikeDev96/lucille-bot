@@ -33,7 +33,13 @@ Populate it with the following skeleton config:
     "clientId": ""
   },
   "aws": {
-    "accessKeyId": ""
+    "accessKeyId": "",
+    "secretAccessKey": "",
+    "region": ""
+  },
+  "export": {
+    "url": "",
+    "tableName": ""
   },
   "aoc": {
     "cookie": ""
@@ -43,7 +49,7 @@ Populate it with the following skeleton config:
   },
   "speedTest":{
     "token": ""
-  },
+  }
 }
 ```
 > Certain features won't work without credentials provided in the config.json

@@ -76,7 +76,7 @@ class BangaTracker {
 
   listBangas (user) {
     return this.runQuery(`
-      SELECT b.Title AS song
+      SELECT b.Title AS song, b.SpotifyUri AS spotifyUri
       FROM Banga b
       JOIN BangaUser bu
       ON bu.BangaId = b.BangaId

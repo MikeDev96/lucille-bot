@@ -3,9 +3,10 @@ const config = require("../../config.json")
 const { getRequestee, getVoiceChannel, shuffle, paginatedEmbed } = require("../../helpers")
 const Track = require("../../classes/Track")
 const { MessageAttachment, Util } = require("discord.js")
+const AWS = require("aws-sdk")
 
 module.exports = class extends Command {
-  constructor (client) {
+  constructor(client) {
     super(client, {
       name: "banga",
       aliases: ["banger", "banging", "bangin", "b"],
@@ -30,7 +31,7 @@ module.exports = class extends Command {
     })
   }
 
-  async run (msg, args) {
+  async run(msg, args) {
     const music = msg.guild.music
     if (["list", "ls"].includes(args.arg1.toLowerCase())) {
       const listId = await this.findUserId(msg, args.arg2)
@@ -112,6 +113,10 @@ module.exports = class extends Command {
       return
     }
 
+    if (args.arg1.toLowerCase() === "export") {
+      return this.exportBangas(msg, args)
+    }
+
     let currTrack = false
     const queueItem = music.state.queue[0]
 
@@ -150,7 +155,7 @@ module.exports = class extends Command {
     }
   }
 
-  checkForUser (user, mess) {
+  checkForUser(user, mess) {
     let greg = false
     user[0].users.map(e => {
       if (e === mess.author.id) greg = true
@@ -158,7 +163,7 @@ module.exports = class extends Command {
     return greg
   }
 
-  findUsers (banger) {
+  findUsers(banger) {
     const usrArr = []
     let username
     if (banger[0]) {
@@ -175,7 +180,7 @@ module.exports = class extends Command {
     return usrArr
   }
 
-  async findUsername (msg, user) {
+  async findUsername(msg, user) {
     let username
     if (user.length > 0) {
       await msg.guild.members.fetch().then(members => members.map(users => {
@@ -199,7 +204,7 @@ module.exports = class extends Command {
     return username
   }
 
-  async findUserId (msg, user) {
+  async findUserId(msg, user) {
     let userID
     if (user.length > 0) {
       await msg.guild.members.fetch().then(members => members.map(users => {
@@ -220,10 +225,81 @@ module.exports = class extends Command {
     return userID
   }
 
-  list (songs, nickname) {
+  list(songs, nickname) {
     return Util.splitMessage(songs.map(s => Util.escapeMarkdown(`- ${s.song}`)), { maxLength: 1024 }).map((str, idx) => ({
       name: `${nickname}'s Bangers ${idx + 1}`,
       value: str,
     }))
+  }
+
+  exportBangas(msg) {
+    AWS.config.update({
+      credentials: {
+        accessKeyId: config.aws.accessKeyId,
+        secretAccessKey: config.aws.secretAccessKey,
+      },
+      region: config.aws.region,
+    })
+    
+    const DynamoDB = new AWS.DynamoDB.DocumentClient()
+
+    const UserId = msg.author.id
+
+    if (!UserId) {
+      return
+    }
+
+    let SongsArr = this.client.db.listBangas(UserId)
+  
+    SongsArr = SongsArr.map(song => {
+      if (song.spotifyUri) {
+        if (song.spotifyUri.length) {
+          return song.spotifyUri
+        }
+      }
+    })
+
+    SongsArr = SongsArr.filter(Boolean)
+
+    if (SongsArr.length === 0) {
+      msg.reply("You have 0 bangas with spotify links")
+    }
+    else {
+      msg.reply("Sent you a DM with information")
+      msg.author.send({
+        embed: {
+          color: 0x0099ff,
+          title: "Lucille Spotify Exporter",
+          fields: [
+            {
+              name: "Spotify Exporter Link",
+              value: `Visit [this link](${config.export.url}/${UserId}) and authorise with Spotify`,
+            },
+          ],
+          footer: {
+            text: config.discord.footer,
+            icon_url: config.discord.authorAvatarUrl,
+          },
+        },
+      })
+
+      var params = {
+        TableName: config.export.tableName,
+        Item: {
+          discordID: UserId,
+          SongsURIs: SongsArr,
+        },
+      }
+
+      DynamoDB.put(params, function (err, data) {
+        if (err) {
+          console.log("Error", err)
+        }
+        else {
+          console.log("Succesfully wrote to DynamoDB")
+        }
+      })
+    }
+    return
   }
 }
