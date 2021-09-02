@@ -87,6 +87,7 @@ module.exports = class extends Command {
       else if (args.action === "track") {
         if (msg.guild.stocks) {
           msg.guild.stocks.end()
+          return
         }
 
         if (!args.symbol) {
