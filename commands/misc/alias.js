@@ -60,7 +60,7 @@ module.exports = class Alias extends Command {
     const Prefix = this.client.commandPrefix
 
     if (aliasname === "list") {
-      const List = this.client.db.listAliases()
+      const List = this.client.db.listAliases(aliasvalue)
 
       if (List.length) {
         paginatedEmbed(msg, {
