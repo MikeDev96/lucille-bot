@@ -18,6 +18,22 @@ module.exports = class extends Command {
       msg.react("🖕")
       return
     }
+    const checkPeopleAreInChannel = []
+    msg.member.voice.channel.members.map(member => {
+      checkPeopleAreInChannel.push(member.user.id)
+    })
+    const confirmMsg = await msg.reply(`Is this bye wanted?`)
+    confirmMsg.react("🛑")
+    const filter = (reaction, user) => ["🛑"].includes(reaction.emoji.name) && !user.bot && checkPeopleAreInChannel.includes(user.id)
+    const collected = await confirmMsg.awaitReactions(filter, { time: 8000, max: 1 })
+    confirmMsg.delete()
+
+    const firstKey = collected.firstKey()
+
+    if (firstKey) {
+      msg.channel.send("Nuuuuuuuuuuuu, nu bye")
+      return
+    }
 
     const music = msg.guild.music
     music.state.queue.splice(0, music.state.queue.length)
