@@ -100,7 +100,7 @@ const AmazonRipper = class {
       const t = process.hrtime()
       const $ = cheerio.load(html)
 
-      const price = $("#priceblock_ourprice, #priceblock_dealprice, #priceblock_saleprice").text()
+      const price = $("#priceblock_ourprice, #priceblock_dealprice, #priceblock_saleprice, #corePrice_desktop .apexPriceToPay > span:not(.a-offscreen)").text()
       const features = $("#feature-bullets > ul.a-unordered-list > li:not(.aok-hidden) > span.a-list-item").map((_idx, el) => $(el).text().trim()).toArray()
       const rating = $("span[data-hook='rating-out-of-text']").text()
 
