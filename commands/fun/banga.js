@@ -6,7 +6,7 @@ const { MessageAttachment, Util } = require("discord.js")
 const AWS = require("aws-sdk")
 
 module.exports = class extends Command {
-  constructor(client) {
+  constructor (client) {
     super(client, {
       name: "banga",
       aliases: ["banger", "banging", "bangin", "b"],
@@ -31,7 +31,7 @@ module.exports = class extends Command {
     })
   }
 
-  async run(msg, args) {
+  async run (msg, args) {
     const music = msg.guild.music
     if (["list", "ls"].includes(args.arg1.toLowerCase())) {
       const listId = await this.findUserId(msg, args.arg2)
@@ -155,7 +155,7 @@ module.exports = class extends Command {
     }
   }
 
-  checkForUser(user, mess) {
+  checkForUser (user, mess) {
     let greg = false
     user[0].users.map(e => {
       if (e === mess.author.id) greg = true
@@ -163,7 +163,7 @@ module.exports = class extends Command {
     return greg
   }
 
-  findUsers(banger) {
+  findUsers (banger) {
     const usrArr = []
     let username
     if (banger[0]) {
@@ -180,7 +180,7 @@ module.exports = class extends Command {
     return usrArr
   }
 
-  async findUsername(msg, user) {
+  async findUsername (msg, user) {
     let username
     if (user.length > 0) {
       await msg.guild.members.fetch().then(members => members.map(users => {
@@ -204,7 +204,7 @@ module.exports = class extends Command {
     return username
   }
 
-  async findUserId(msg, user) {
+  async findUserId (msg, user) {
     let userID
     if (user.length > 0) {
       await msg.guild.members.fetch().then(members => members.map(users => {
@@ -225,14 +225,14 @@ module.exports = class extends Command {
     return userID
   }
 
-  list(songs, nickname) {
+  list (songs, nickname) {
     return Util.splitMessage(songs.map(s => Util.escapeMarkdown(`- ${s.song}`)), { maxLength: 1024 }).map((str, idx) => ({
       name: `${nickname}'s Bangers ${idx + 1}`,
       value: str,
     }))
   }
 
-  exportBangas(msg) {
+  exportBangas (msg) {
     AWS.config.update({
       credentials: {
         accessKeyId: config.aws.accessKeyId,
@@ -240,7 +240,7 @@ module.exports = class extends Command {
       },
       region: config.aws.region,
     })
-    
+
     const DynamoDB = new AWS.DynamoDB.DocumentClient()
 
     const UserId = msg.author.id
@@ -250,7 +250,7 @@ module.exports = class extends Command {
     }
 
     let SongsArr = this.client.db.listBangas(UserId)
-  
+
     SongsArr = SongsArr.map(song => {
       if (song.spotifyUri) {
         if (song.spotifyUri.length) {
@@ -300,6 +300,5 @@ module.exports = class extends Command {
         }
       })
     }
-    return
   }
 }

@@ -1,5 +1,5 @@
 class AliasTracker {
-  initAlias() {
+  initAlias () {
     this.db.exec(`
       CREATE TABLE IF NOT EXISTS Alias
       (
@@ -19,7 +19,7 @@ class AliasTracker {
    `)
   }
 
-  writeAlias(alias, aliascommand) {
+  writeAlias (alias, aliascommand) {
     aliascommand = aliascommand.split("&")
 
     aliascommand = aliascommand.filter(cmd => cmd !== "")
@@ -30,20 +30,21 @@ class AliasTracker {
     }
   }
 
-  removeAlias(alias) {
+  removeAlias (alias) {
     this.run("DELETE FROM Alias WHERE Name = ?", alias)
   }
 
-  listAliases(aliasvalue) {
-    if (aliasvalue !== "")
+  listAliases (aliasvalue) {
+    if (aliasvalue !== "") {
       return this.reduceAliases(this.runQuery(`
         SELECT Name AS name, Command AS command
         FROM Alias a
         JOIN AliasCommand ac
         ON ac.AliasId = a.AliasId
         WHERE a.Name LIKE ?
-    `, aliasvalue + '%'))
-     
+    `, aliasvalue + "%"))
+    }
+
     return this.reduceAliases(this.runQuery(`
       SELECT Name AS name, Command AS command
       FROM Alias a
@@ -52,7 +53,7 @@ class AliasTracker {
     `))
   }
 
-  checkForAlias(alias) {
+  checkForAlias (alias) {
     return this.reduceAliases(this.runQuery(`
       SELECT Name AS name, Command AS command
       FROM Alias a
@@ -62,7 +63,7 @@ class AliasTracker {
     `, alias))
   }
 
-  reduceAliases(aliases) {
+  reduceAliases (aliases) {
     return aliases.reduce(([map, arr], { name, command }) => {
       if (!map.has(name)) {
         map.set(name, arr.push({ alias: name, command: [] }) - 1)
@@ -74,7 +75,7 @@ class AliasTracker {
     }, [new Map(), []])[1]
   }
 
-  static applyToClass(structure) {
+  static applyToClass (structure) {
     for (const prop of Object.getOwnPropertyNames(AliasTracker.prototype).slice(1)) {
       Object.defineProperty(structure.prototype, prop, Object.getOwnPropertyDescriptor(AliasTracker.prototype, prop))
     }

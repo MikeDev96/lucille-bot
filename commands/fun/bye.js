@@ -18,10 +18,25 @@ module.exports = class extends Command {
       msg.react("🖕")
       return
     }
-    const checkPeopleAreInChannel = []
-    msg.member.voice.channel.members.map(member => {
-      checkPeopleAreInChannel.push(member.user.id)
-    })
+
+    if (!msg.channel.id.includes("729980395151556709")) {
+      msg.channel.send("Post this in general please, you sneaky beaver")
+      return
+    }
+
+    const byeDbStatus = await this.client.db.getByeStatus()
+    if (!byeDbStatus.length) {
+      await this.client.db.addByeStatus(1)
+      setTimeout(() => {
+        this.client.db.removeBye()
+      }, 30000)
+    }
+    else {
+      msg.channel.send("Bye Cooldown, this takes 30 seconds")
+      return
+    }
+
+    const checkPeopleAreInChannel = msg.member.voice.channel.members.map(member => member.user.id)
     const confirmMsg = await msg.reply(`Is this bye wanted?`)
     confirmMsg.react("🛑")
     const filter = (reaction, user) => ["🛑"].includes(reaction.emoji.name) && !user.bot && checkPeopleAreInChannel.includes(user.id)
