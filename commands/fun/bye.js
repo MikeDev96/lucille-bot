@@ -67,6 +67,7 @@ module.exports = class extends Command {
 
     if (!msg.guild.voice) {
       msg.channel.send("You left anyway, whats the point")
+      return
     }
 
     if (authorCurrentChannelID !== authorOriginalChannelID) {
