@@ -5,7 +5,8 @@ class ByeDb {
         (
           ByeId              INTEGER PRIMARY KEY AUTOINCREMENT,
           ByeStatus          INTEGER
-        )
+        );
+        DELETE FROM BYE
       `)
   }
 
