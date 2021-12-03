@@ -25,7 +25,7 @@ module.exports = class extends Command {
       return
     }
 
-    if (!msg.channel.name.includes("general")) {
+    if (!(msg.channel.name === "general")) {
       msg.channel.send("Post this in general please, you sneaky beaver")
       return
     }
@@ -44,7 +44,7 @@ module.exports = class extends Command {
 
     const authorOfMessage = msg.guild.members.cache.get(msg.member.id)
     const authorOriginalChannelID = getVoiceChannel(msg)
-    let peopleToBeRemoved = msg.member.voice.channel.members.map(member => member)
+    const peopleToBeRemoved = msg.member.voice.channel.members.map(member => member)
     const checkPeopleAreInChannel = msg.member.voice.channel.members.map(member => member.user.id)
     const confirmMsg = await msg.reply(`Is this bye wanted?`)
     confirmMsg.react("🛑")
@@ -64,6 +64,10 @@ module.exports = class extends Command {
     }
 
     const authorCurrentChannelID = getVoiceChannel(msg)
+
+    if (!msg.guild.voice) {
+      msg.channel.send("You left anyway, whats the point")
+    }
 
     if (authorCurrentChannelID !== authorOriginalChannelID) {
       authorOfMessage.voice.setChannel(null)
