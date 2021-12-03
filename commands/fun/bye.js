@@ -44,7 +44,7 @@ module.exports = class extends Command {
 
     const authorOfMessage = msg.guild.members.cache.get(msg.member.id)
     const authorOriginalChannelID = getVoiceChannel(msg)
-    const peopleToBeRemoved = msg.member.voice.channel.members.map(member => member)
+    let peopleToBeRemoved = msg.member.voice.channel.members.map(member => member)
     const checkPeopleAreInChannel = msg.member.voice.channel.members.map(member => member.user.id)
     const confirmMsg = await msg.reply(`Is this bye wanted?`)
     confirmMsg.react("🛑")
