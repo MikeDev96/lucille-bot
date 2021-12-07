@@ -30,11 +30,10 @@ module.exports = class extends Command {
       return
     }
 
-    const byeDbStatus = await this.client.db.getByeStatus()
-    if (!byeDbStatus.length) {
-      await this.client.db.addByeStatus(1)
+    if (!msg.guild.bye) {
+      msg.guild.bye = true
       setTimeout(() => {
-        this.client.db.removeBye()
+        msg.guild.bye = false
       }, 30000)
     }
     else {
@@ -65,7 +64,7 @@ module.exports = class extends Command {
 
     const authorCurrentChannelID = getVoiceChannel(msg)
 
-    if (!msg.guild.voice) {
+    if (!msg.guild.voice || !msg.guild.voice.channel) {
       msg.channel.send("You left anyway, whats the point")
       return
     }
