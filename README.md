@@ -41,9 +41,6 @@ Populate it with the following skeleton config:
     "url": "",
     "tableName": ""
   },
-  "aoc": {
-    "cookie": ""
-  },
   "tenor": {
     "key": ""
   },
