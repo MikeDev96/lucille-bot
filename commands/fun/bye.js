@@ -64,7 +64,7 @@ module.exports = class extends Command {
 
     const authorCurrentChannelID = getVoiceChannel(msg)
 
-    if (!msg.guild.voice || !msg.guild.voice.channel) {
+    if (!msg.member.voice || !msg.member.voice.channel) {
       msg.channel.send("You left anyway, whats the point")
       return
     }
