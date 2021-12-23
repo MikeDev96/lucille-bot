@@ -34,6 +34,12 @@ const AmazonRipper = class {
                 inline: true,
               },
             ] : [],
+            ...info.overview.length ? [
+              {
+                name: "Overview",
+                value: info.overview.map(({ key, value }) => `${key}: ${value}`).join("\n").substr(0, 1024),
+              },
+            ] : [],
             ...info.features.length ? [
               {
                 name: "Features",
@@ -100,7 +106,11 @@ const AmazonRipper = class {
       const t = process.hrtime()
       const $ = cheerio.load(html)
 
-      const price = $("#priceblock_ourprice, #priceblock_dealprice, #priceblock_saleprice, #apex_desktop .a-price > span:not(.a-offscreen)").text()
+      const price = $("#priceblock_ourprice, #priceblock_dealprice, #priceblock_saleprice, #apex_desktop .a-price.apexPriceToPay > span:not(.a-offscreen), #apex_desktop .a-price.priceToPay > span:not(.a-offscreen)").text()
+      const overview = $("[data-feature-name='productOverview'] tbody tr").map((_idx, el) => {
+        const [key, value] = $(el).find("td").map((_idx, cell) => $(cell).text().trim()).toArray()
+        return { key, value }
+      }).toArray()
       const features = $("#feature-bullets > ul.a-unordered-list > li:not(.aok-hidden) > span.a-list-item").map((_idx, el) => $(el).text().trim()).toArray()
       const rating = $("span[data-hook='rating-out-of-text']").text()
 
@@ -111,6 +121,7 @@ const AmazonRipper = class {
         title: data.title,
         image: imageUrl,
         price,
+        overview,
         features,
         rating,
       }
