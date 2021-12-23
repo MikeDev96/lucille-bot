@@ -5,7 +5,7 @@ const { getAmazonInfo } = require("../worker/bindings")
 const cheerio = require("cheerio")
 
 const AmazonRipper = class {
-  async runMessage (msg) {
+  async runMessage(msg) {
     if (!this.isAmazonLink(msg.content)) {
       return
     }
@@ -55,11 +55,11 @@ const AmazonRipper = class {
     reaction.then(r => r.remove())
   }
 
-  isAmazonLink (url) {
+  isAmazonLink(url) {
     return /\bhttps?:\/\/(?:www\.)?amazon.[a-zA-Z.]{1,3}\b/.test(url)
   }
 
-  static async getInfo (url) {
+  static async getInfo(url) {
     try {
       const res = await fetch(url, {
         headers: {
@@ -100,7 +100,7 @@ const AmazonRipper = class {
       const t = process.hrtime()
       const $ = cheerio.load(html)
 
-      const price = $("#priceblock_ourprice, #priceblock_dealprice, #priceblock_saleprice, #corePrice_desktop .apexPriceToPay > span:not(.a-offscreen)").text()
+      const price = $("#priceblock_ourprice, #priceblock_dealprice, #priceblock_saleprice, #apex_desktop .a-price > span:not(.a-offscreen)").text()
       const features = $("#feature-bullets > ul.a-unordered-list > li:not(.aok-hidden) > span.a-list-item").map((_idx, el) => $(el).text().trim()).toArray()
       const rating = $("span[data-hook='rating-out-of-text']").text()
 
