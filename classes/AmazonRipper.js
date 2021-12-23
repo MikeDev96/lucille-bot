@@ -5,7 +5,7 @@ const { getAmazonInfo } = require("../worker/bindings")
 const cheerio = require("cheerio")
 
 const AmazonRipper = class {
-  async runMessage(msg) {
+  async runMessage (msg) {
     if (!this.isAmazonLink(msg.content)) {
       return
     }
@@ -14,7 +14,7 @@ const AmazonRipper = class {
     const info = await getAmazonInfo(msg.content)
 
     if (info) {
-      msg.reply({
+      const embedMsg = msg.reply({
         embed: {
           color: 0xfffffe,
           title: `${getEmoji(msg.guild, "amazon")} ${he.decode(info.title)}`,
@@ -56,16 +56,18 @@ const AmazonRipper = class {
           },
         },
       })
+
+      embedMsg.then(msg => msg.react("🐪"))
     }
 
     reaction.then(r => r.remove())
   }
 
-  isAmazonLink(url) {
+  isAmazonLink (url) {
     return /\bhttps?:\/\/(?:www\.)?amazon.[a-zA-Z.]{1,3}\b/.test(url)
   }
 
-  static async getInfo(url) {
+  static async getInfo (url) {
     try {
       const res = await fetch(url, {
         headers: {
