@@ -35,33 +35,16 @@ module.exports = class LucilleClient extends CommandoClient {
         newVoice.guild.music.setState({ voiceChannel: newVoice.channel })
       }
     })
-
-    this.on("messageReactionAdd", (messageReaction, user) => {
-      if (user.id !== this.user.id && messageReaction.emoji.name === "🐪") {
-        const embed = messageReaction.message.embeds[0]
-        if (embed) {
-          const match = /(?<=\/dp\/)\w.+?\b/.exec(embed.url)
-          if (match) {
-            messageReaction.users.remove(user)
-
-            if (!messageReaction.message.originalImage) {
-              messageReaction.message.originalImage = embed.image.url
-            }
-
-            const newEmbed = embed.setImage(embed.image.url.includes("camelcamelcamel") ? messageReaction.message.originalImage : `https://charts.camelcamelcamel.com/uk/${match[0]}/amazon-new.png?force=1&zero=0&w=855&h=513&desired=false&legend=1&ilt=1&tp=all&fo=0&lang=en`)
-            messageReaction.message.edit({ embed: newEmbed })
-          }
-        }
-      }
-    })
   }
 
   createMessageInterceptor () {
+    const amazonRipper = new AmazonRipper(this)
+
     this.messageInterceptor = new MessageInterceptor(this)
     this.messageInterceptor.on("message", msg => {
       new MusicTracker().run(msg)
       new RedditRipper().runMessage(msg)
-      new AmazonRipper().runMessage(msg)
+      amazonRipper.runMessage(msg)
       new TikTokRipper().runMessage(msg)
     })
   }

@@ -12,6 +12,7 @@ dotenv.config()
 const client = new LucilleClient({
   owner: config.discord.owner,
   commandPrefix: config.discord.prefix,
+  partials: ["USER", "REACTION", "MESSAGE"],
 })
 
 client.registry
