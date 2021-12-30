@@ -72,8 +72,15 @@ Use `npm ci` to install the Node dependencies so that you don't end up with a di
 ### Set up hooks
 First time use: execute `npm run hooks` in the root of your local repository to initialize web hooks
 
+### Linting
+Install the ESLint extension in VS Code, open it's settings and enable 'Enables ESLint as a formatter'
+This will now use the linting config provided in the repository.
+
+![image](https://user-images.githubusercontent.com/8274829/147792939-bcfc47c0-4f3e-433f-9eed-4757b6abffe2.png)
+
 ### Good to go
 You should now be good to go, run `npm start` to get going!
+
 
 ---
 
