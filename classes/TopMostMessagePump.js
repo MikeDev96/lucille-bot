@@ -44,7 +44,7 @@ module.exports = class extends EventEmitter {
     // Check if a previous message is cached
     if (this.message) {
       // If there's no content, then we're deleting
-      if (!this.messageContents) {
+      if (!this.messageContents || this.shouldClear) {
         await delMsg()
       }
       else {
