@@ -42,7 +42,7 @@
     "socket.io-client": "^2.4.0",
     "spotify-web-api-node": "^4.0.0",
     "tenorjs": "^1.0.8",
-    "tiktok-scraper": "^1.4.32",
+    "tiktok-scraper": "^1.4.36",
     "workerpool": "^6.1.5",
     "ws": "^7.5.0",
     "ytdl-core": "^4.9.1",
