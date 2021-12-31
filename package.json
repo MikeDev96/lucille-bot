@@ -45,7 +45,7 @@
     "tiktok-scraper": "^1.4.32",
     "workerpool": "^6.1.5",
     "ws": "^7.5.0",
-    "ytdl-core": "^4.9.1",
+    "ytdl-core": "^4.9.2",
     "ytpl": "^1.0.1"
   },
   "devDependencies": {
