@@ -78,6 +78,8 @@ This will now use the linting config provided in the repository.
 
 ![image](https://user-images.githubusercontent.com/8274829/147792939-bcfc47c0-4f3e-433f-9eed-4757b6abffe2.png)
 
+Tell VS Code to auto format on save: https://www.aleksandrhovhannisyan.com/blog/format-code-on-save-vs-code-eslint/#automatically-formatting-code-on-save
+
 ### Good to go
 You should now be good to go, run `npm start` to get going!
 

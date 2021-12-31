@@ -23,10 +23,13 @@ const AmazonRipper = class {
 
             const ar = await msg.amazonRipper
 
-            const showCamel = !embed.image.url.includes("camelcamelcamel")
+            const showCamel = !embed.image || !embed.image.url.includes("camelcamelcamel")
 
             embed.setImage(showCamel ? `https://charts.camelcamelcamel.com/uk/${match[0]}/amazon-new.png?force=1&zero=0&w=855&h=513&desired=false&legend=1&ilt=1&tp=all&fo=0&lang=en` : ar.images[ar.imageIndex])
-            embed.setFooter(showCamel ? "CamelCamelCamel" : `Image ${ar.imageIndex + 1} of ${ar.images.length}`)
+            if (ar.images.length > 1) {
+              embed.setFooter(showCamel ? "CamelCamelCamel" : `Image ${ar.imageIndex + 1} of ${ar.images.length}`)
+            }
+
             messageReaction.message.edit({ embed })
           }
         }
@@ -46,7 +49,7 @@ const AmazonRipper = class {
       if (this.isAmazonLink(embed.url)) {
         reaction.users.remove(user)
 
-        if (embed.image.url.includes("camelcamelcamel")) {
+        if (!embed.image || embed.image.url.includes("camelcamelcamel")) {
           return
         }
 
@@ -55,6 +58,10 @@ const AmazonRipper = class {
         }
 
         const ar = await msg.amazonRipper
+
+        if (ar.images.length < 2) {
+          return
+        }
 
         ar.imageIndex = ar.imageIndex + dir < 0 ? ar.images.length - 1 : ar.imageIndex + dir > ar.images.length - 1 ? 0 : ar.imageIndex + dir
 
@@ -127,15 +134,17 @@ const AmazonRipper = class {
           image: {
             url: info.images[0],
           },
-          footer: {
-            text: `Image 1 of ${info.images.length}`,
-          },
+          ...info.images.length > 1 ? {
+            footer: {
+              text: `Image 1 of ${info.images.length}`,
+            },
+          } : {},
         },
       })
 
       embedMsg.then(msg => {
-        msg.amazonRipper = Promise.resolve(info)
-        msg.react("⬅").then(() => msg.react("➡").then(() => msg.react("🐪")))
+        msg.amazonRipper = Promise.resolve(info);
+        (info.images.length > 1 ? msg.react("⬅").then(() => msg.react("➡")) : Promise.resolve()).then(() => msg.react("🐪"))
       })
     }
   }
@@ -169,23 +178,8 @@ const AmazonRipper = class {
 
       const data = JSON.parse(jsonMatch[1].replace(/\\'/g, "'"))
 
-      const imageMatch = /var data = ({\s+'colorImages':.+?});/gs.exec(html)
-      if (!imageMatch) {
-        return
-      }
-
-      const match = /var data = ({\s*?'colorImages':.+?});/gs.exec(html)
-      if (!match) {
-        return
-      }
-
-      const [, json] = match
-
       const t = process.hrtime()
       const $ = cheerio.load(html)
-
-      const validJson = json.replace(/,\s+?'airyConfig' :A\.\$\.parseJSON\(.+?'\)/, "").replace("Date.now()", "\"\"").replace(/'/g, "\"")
-      const data2 = JSON.parse(validJson)
 
       const price = $("#priceblock_ourprice, #priceblock_dealprice, #priceblock_saleprice, #apex_desktop .a-price.apexPriceToPay > span:not(.a-offscreen), #apex_desktop .a-price.priceToPay > span:not(.a-offscreen)").first().text()
       const overview = $("[data-feature-name='productOverview'] tbody tr").map((_idx, el) => {
@@ -195,15 +189,14 @@ const AmazonRipper = class {
       const features = $("#feature-bullets > ul.a-unordered-list > li:not(.aok-hidden) > span.a-list-item").map((_idx, el) => $(el).text().trim()).toArray()
       const rating = $("span[data-hook='rating-out-of-text']").text()
 
-      // When a product has colour options, it seems to store the images in data2 instead of data
-      const imageData = data.landingAsinColor === "initial" ? data2 : data
+      const images = this.getImages(html, data)
 
       const elapsed = process.hrtime(t)
       console.log(`Ripped Amazon in ${elapsed[0] + (elapsed[1] / 1e9)}s... - ${data.title}`)
 
       return {
         title: data.title,
-        images: imageData.colorImages[data.landingAsinColor].map(img => img.large),
+        images,
         price,
         overview,
         features,
@@ -217,6 +210,23 @@ const AmazonRipper = class {
     }
 
     return null
+  }
+
+  static getImages (html, data) {
+    const match = /var data = ({\s*?'colorImages':.+?});/gs.exec(html)
+    if (match) {
+      const [, json] = match
+
+      const validJson = json.replace(/,\s+?'airyConfig' :A\.\$\.parseJSON\(.+?'\)/, "").replace("Date.now()", "\"\"").replace(/'/g, "\"")
+      const data2 = JSON.parse(validJson)
+
+      // When a product has colour options, it seems to store the images in data2 instead of data
+      const imageData = data.landingAsinColor === "initial" ? data2 : data
+
+      return imageData.colorImages[data.landingAsinColor].map(img => img.large)
+    }
+
+    return []
   }
 }
 
