@@ -2,9 +2,9 @@ const Porcupine = require("@picovoice/porcupine-node")
 const EventEmitter = require("events")
 
 class HotwordDetector extends EventEmitter {
-  constructor ({ stream, hotwordFile, sensitivity }) {
+  constructor ({ stream, hotwordFile, sensitivity, accessKey }) {
     super()
-    this.handle = new Porcupine([hotwordFile], [sensitivity])
+    this.handle = new Porcupine(accessKey, [hotwordFile], [sensitivity])
     this.frameAccumulator = []
     this.stream = stream
     this.handleData = this.onData.bind(this)

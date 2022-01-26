@@ -13,6 +13,7 @@ const TikTokRipper = require("./TikTokRipper")
 const { ppResetDaily } = require("../commands/fun/pp")
 const TextToSpeech = require("./TextToSpeech")
 const StocksPortfolio = require("./StocksPortfolio")
+const VoiceCommands = require("./VoiceCommands")
 
 module.exports = class LucilleClient extends CommandoClient {
   constructor (options) {
@@ -24,6 +25,7 @@ module.exports = class LucilleClient extends CommandoClient {
     this.aliasTracker = new AliasTracker()
     this.voiceStateAdapter = new VoiceStateAdapter(this)
     this.stocksPortfolio = new StocksPortfolio()
+    this.voiceCommands = new VoiceCommands(this)
 
     this.createMessageInterceptor()
     this.createDailyTracker()

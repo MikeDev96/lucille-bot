@@ -12,6 +12,8 @@
   "license": "ISC",
   "dependencies": {
     "@discordjs/opus": "^0.3.3",
+    "@google-cloud/speech": "^4.10.0",
+    "@picovoice/porcupine-node": "^2.1.0",
     "adm-zip": "^0.5.5",
     "aws-sdk": "^2.963.0",
     "axios": "^0.21.1",
