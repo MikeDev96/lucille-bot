@@ -15,6 +15,14 @@ class VoiceCommands {
   }
 
   initialise () {
+    if (!process.env.PORCUPINE_ACCESS_KEY) {
+      return console.log("Porcupine access key is missing! Voice commands disabled...")
+    }
+
+    if (!process.env.PORCUPINE_HOTWORD_FILE) {
+      return console.log("Porcupine hotword file is missing! Voice commands disabled...")
+    }
+
     const vsa = new VoiceStateAdapter(this.client)
     vsa.on("join", this.handleJoin.bind(this))
     vsa.on("leave", this.handleLeave.bind(this))
