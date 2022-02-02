@@ -9,7 +9,7 @@ const searchYouTube = async query => {
   }
   catch (err) {
     console.error("searchYouTube worker error:")
-    console.error(err)
+    console.error(err.message)
     throw err
   }
   finally {
