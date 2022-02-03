@@ -220,7 +220,7 @@ module.exports = class Music extends MusicState {
 
   async search (item) {
     console.log(`Started search for ${item.query}`)
-    const searchResult = (await searchYouTube(encodeURIComponent(item.query)))[0]
+    const searchResult = (await searchYouTube(item.query))[0]
     console.log(`Finished search for ${item.query} - ${searchResult && searchResult.id}`)
 
     if (searchResult) {
