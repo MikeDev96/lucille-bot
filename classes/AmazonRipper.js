@@ -1,7 +1,6 @@
 const fetch = require("node-fetch")
 const he = require("he")
 const { getEmoji, padInlineFields } = require("../helpers")
-const { getAmazonInfo } = require("../worker/bindings")
 const cheerio = require("cheerio")
 
 const AmazonRipper = class {
@@ -74,7 +73,7 @@ const AmazonRipper = class {
 
   async processMessage (msg, url) {
     const reaction = msg.react("⏳")
-    const info = await getAmazonInfo(url)
+    const info = await AmazonRipper.getInfo(url)
     reaction.then(r => r.remove())
     return info
   }

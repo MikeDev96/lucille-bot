@@ -1,5 +1,5 @@
 const { Command } = require("discord.js-commando")
-const { searchYouTube } = require("../../worker/bindings")
+const { searchYouTube } = require("../../helpers")
 const Track = require("../../classes/Track")
 const { msToTimestamp, escapeMarkdown } = require("../../helpers")
 
