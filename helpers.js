@@ -114,6 +114,11 @@ const paginatedEmbed = async (msg, embedTemplate, embedList, emojiList = ["⏪",
   return currentEmbed
 }
 
+const padInlineFields = fields => [
+  ...fields,
+  Array(3 - (((fields.length) % 3) || 3)).fill(0).map(() => ({ name: "\u200b", value: "\u200b", inline: true })),
+]
+
 module.exports.noop = noop
 module.exports.safeJoin = safeJoin
 module.exports.shuffle = shuffle
@@ -127,3 +132,4 @@ module.exports.getRequestee = getRequestee
 module.exports.getVoiceChannel = getVoiceChannel
 module.exports.isInBotsVoiceChannel = isInBotsVoiceChannel
 module.exports.paginatedEmbed = paginatedEmbed
+module.exports.padInlineFields = padInlineFields

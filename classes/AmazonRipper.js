@@ -1,6 +1,6 @@
 const fetch = require("node-fetch")
 const he = require("he")
-const { getEmoji } = require("../helpers")
+const { getEmoji, padInlineFields } = require("../helpers")
 const { getAmazonInfo } = require("../worker/bindings")
 const cheerio = require("cheerio")
 
@@ -93,27 +93,27 @@ const AmazonRipper = class {
           title: `${getEmoji(msg.guild, "amazon")} ${he.decode(info.title)}`,
           url: msg.content,
           fields: [
-            ...info.price ? [
-              {
-                name: "Price",
-                value: info.price,
+            ...padInlineFields([
+              ...info.price ? [
+                {
+                  name: "Price",
+                  value: info.price,
+                  inline: true,
+                },
+              ] : [],
+              ...info.rating ? [
+                {
+                  name: "Rating",
+                  value: info.rating,
+                  inline: true,
+                },
+              ] : [],
+              ...info.variations.map(v => ({
+                name: v.name,
+                value: v.value,
                 inline: true,
-              },
-            ] : [],
-            ...info.rating ? [
-              {
-                name: "Rating",
-                value: info.rating,
-                inline: true,
-              },
-            ] : [],
-            ...info.colour !== "initial" ? [
-              {
-                name: "Colour",
-                value: info.colour,
-                inline: true,
-              },
-            ] : [],
+              })),
+            ]),
             ...info.overview.length ? [
               {
                 name: "Overview",
@@ -191,6 +191,10 @@ const AmazonRipper = class {
 
       const images = this.getImages(html, data)
 
+      const twisterData = /(?<=P\.register\('twister-js-init-dpx-data', function\(\) {\s+?var dataToReturn = ){[\s\S]+?}(?=;\s+?return dataToReturn)/.exec(html)
+      // eslint-disable-next-line no-eval
+      const variations = twisterData ? eval(`(${twisterData[0]})`) : {}
+
       const elapsed = process.hrtime(t)
       console.log(`Ripped Amazon in ${elapsed[0] + (elapsed[1] / 1e9)}s... - ${data.title}`)
 
@@ -202,7 +206,7 @@ const AmazonRipper = class {
         features,
         rating,
         imageIndex: 0,
-        colour: data.landingAsinColor,
+        variations: variations.dimensions ? variations.dimensions.map(key => ({ name: variations.variationDisplayLabels[key], value: variations.selected_variations[key] })) : [],
       }
     }
     catch (err) {
