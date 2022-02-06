@@ -16,7 +16,7 @@
     "@picovoice/porcupine-node": "^2.1.0",
     "adm-zip": "^0.5.5",
     "aws-sdk": "^2.963.0",
-    "axios": "^0.21.1",
+    "axios": "^0.21.2",
     "better-sqlite3": "^7.4.1",
     "chrono-node": "^2.3.0",
     "countdown": "^2.6.0",
