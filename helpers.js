@@ -136,8 +136,7 @@ const searchYouTube = async query => {
     const videosRes = await fetch(`https://www.googleapis.com/youtube/v3/videos?part=contentDetails&id=${videoIds}&key=${process.env.YOUTUBE_DATA_API_V3_KEY}`)
     const videos = await videosRes.json()
 
-    const elapsed = process.hrtime(t)
-    console.log(`Searched Youtube Data API for '${query}' in ${elapsed[0] + (elapsed[1] / 1e9)}s...`)
+    console.log(`Searched Youtube Data API for '${query}' in ${getHRTimeDiff(t)}s...`)
 
     const videosMap = new Map(videos.items.map(i => [i.id, i.contentDetails]))
 
@@ -151,8 +150,7 @@ const searchYouTube = async query => {
   else {
     const searchResults = await youtube.search(query, { type: "video" })
 
-    const elapsed = process.hrtime(t)
-    console.log(`Searched youtubei for '${query}' in ${elapsed[0] + (elapsed[1] / 1e9)}s...`)
+    console.log(`Searched youtubei for '${query}' in ${getHRTimeDiff(t)}s...`)
 
     return searchResults.map(v => ({
       id: v.id,
@@ -161,6 +159,11 @@ const searchYouTube = async query => {
       duration: v.duration,
     }))
   }
+}
+
+const getHRTimeDiff = time => {
+  const elapsed2 = process.hrtime(time)
+  return elapsed2[0] + (elapsed2[1] / 1e9)
 }
 
 module.exports.noop = noop
@@ -178,3 +181,4 @@ module.exports.isInBotsVoiceChannel = isInBotsVoiceChannel
 module.exports.paginatedEmbed = paginatedEmbed
 module.exports.padInlineFields = padInlineFields
 module.exports.searchYouTube = searchYouTube
+module.exports.getHRTimeDiff = getHRTimeDiff

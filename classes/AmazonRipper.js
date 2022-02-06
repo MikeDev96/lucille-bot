@@ -1,7 +1,7 @@
 const fetch = require("node-fetch")
 const he = require("he")
-const { getEmoji, padInlineFields } = require("../helpers")
-const cheerio = require("cheerio")
+const { getEmoji, padInlineFields, getHRTimeDiff } = require("../helpers")
+const { parse } = require("node-html-parser")
 
 const AmazonRipper = class {
   constructor (client) {
@@ -178,15 +178,27 @@ const AmazonRipper = class {
       const data = JSON.parse(jsonMatch[1].replace(/\\'/g, "'"))
 
       const t = process.hrtime()
-      const $ = cheerio.load(html)
 
-      const price = $("#priceblock_ourprice, #priceblock_dealprice, #priceblock_saleprice, #apex_desktop .a-price.apexPriceToPay > span:not(.a-offscreen), #apex_desktop .a-price.priceToPay > span:not(.a-offscreen)").first().text()
-      const overview = $("[data-feature-name='productOverview'] tbody tr").map((_idx, el) => {
-        const [key, value] = $(el).find("td").map((_idx, cell) => $(cell).text().trim()).toArray()
+      const dom = parse(html, {
+        lowerCaseTagName: false,
+        comment: false,
+        blockTextElements: {
+          script: true,
+          noscript: true,
+          style: true,
+          pre: true,
+        },
+      })
+
+      const price = dom.querySelector("#apex_desktop .a-price.apexPriceToPay > span:not(.a-offscreen), #apex_desktop .a-price.priceToPay > span:not(.a-offscreen)").textContent
+
+      const overview = dom.querySelectorAll("[data-feature-name='productOverview'] tr").map(el => {
+        const [key, value] = el.querySelectorAll("td").map(el => el.textContent.trim())
         return { key, value }
-      }).toArray()
-      const features = $("#feature-bullets > ul.a-unordered-list > li:not(.aok-hidden) > span.a-list-item").map((_idx, el) => $(el).text().trim()).toArray()
-      const rating = $("span[data-hook='rating-out-of-text']").text()
+      })
+
+      const features = dom.querySelectorAll("#feature-bullets > ul.a-unordered-list > li:not(.aok-hidden) > span.a-list-item").map(el => el.textContent.trim())
+      const rating = dom.querySelector("span[data-hook='rating-out-of-text']").textContent
 
       const images = this.getImages(html, data)
 
@@ -194,8 +206,7 @@ const AmazonRipper = class {
       // eslint-disable-next-line no-eval
       const variations = twisterData ? eval(`(${twisterData[0]})`) : {}
 
-      const elapsed = process.hrtime(t)
-      console.log(`Ripped Amazon in ${elapsed[0] + (elapsed[1] / 1e9)}s... - ${data.title}`)
+      console.log(`Ripped Amazon in ${getHRTimeDiff(t)}s... - ${data.title}`)
 
       return {
         title: data.title,
