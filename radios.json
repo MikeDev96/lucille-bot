@@ -33,29 +33,29 @@
   },
   "kiss": {
     "name": "Kiss",
-    "url": "https://stream-kiss.planetradio.co.uk/kissnational.mp3?direct=true",
+    "url": "https://stream-kiss.planetradio.co.uk/kissnational.mp3?aw_0_1st.playerid=BMUK_html5",
     "metadata": {
       "type": "sse",
       "url": "https://stream-kiss.planetradio.co.uk/metadata?type=json",
-      "summon": "https://stream-kiss.planetradio.co.uk/kisstory.mp3?direct=true"
+      "summon": "https://stream-kiss.planetradio.co.uk/kisstory.mp3?aw_0_1st.playerid=BMUK_html5"
     }
   },
   "kisstory": {
     "name": "Kisstory",
-    "url": "https://stream-kiss.planetradio.co.uk/kisstory.mp3?direct=true",
+    "url": "https://stream-kiss.planetradio.co.uk/kisstory.mp3?aw_0_1st.playerid=BMUK_html5",
     "metadata": {
       "type": "sse",
       "url": "https://stream-kiss.planetradio.co.uk/metadata?type=json",
-      "summon": "https://stream-kiss.planetradio.co.uk/kisstory.mp3?direct=true"
+      "summon": "https://stream-kiss.planetradio.co.uk/kisstory.mp3?aw_0_1st.playerid=BMUK_html5"
     }
   },
   "kissfresh": {
     "name": "Kiss Fresh",
-    "url": "https://stream-kiss.planetradio.co.uk/kissfresh.mp3?direct=true",
+    "url": "https://stream-kiss.planetradio.co.uk/kissfresh.mp3?aw_0_1st.playerid=BMUK_html5",
     "metadata": {
       "type": "sse",
       "url": "https://stream-kiss.planetradio.co.uk/metadata?type=json",
-      "summon": "https://stream-kiss.planetradio.co.uk/kisstory.mp3?direct=true"
+      "summon": "https://stream-kiss.planetradio.co.uk/kisstory.mp3?aw_0_1st.playerid=BMUK_html5"
     }
   },
   "classic": {
