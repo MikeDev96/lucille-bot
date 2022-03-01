@@ -5,7 +5,7 @@ class VoiceTracker {
   constructor (client) {
     this.client = client
     this.monitor = {}
-    // this.initClient()
+    this.initClient()
   }
 
   initVoiceStats () {
@@ -70,6 +70,7 @@ class VoiceTracker {
       selfMuteMax: 0,
       selfDeafMax: 0,
       afkMax: 0,
+      active: 0,
     }
 
     const trackingFields = ["selfMute", "selfDeaf", "serverMute", "serverDeaf"]
@@ -162,6 +163,8 @@ class VoiceTracker {
       }
     }
 
+    console.log(changes)
+
     if (changes.selfMute > 0 || changes.selfDeaf > 0 || changes.serverMute > 0 || changes.serverDeaf > 0 || changes.afk > 0 || changes.selfMuteMax > 0 || changes.selfDeafMax > 0 || changes.afkMax > 0) {
       const serverId = oldMember.guild.id
       const userId = oldMember.id
@@ -189,6 +192,10 @@ class VoiceTracker {
     return `${humanizeDuration(this.round1000(ms))}`
   }
 
+  toObject (arr, key) {
+    return arr.reduce((a, b) => ({ ...a, [b[key]]: b }), {})
+  }
+
   async notify (channel, displayName, isServer, method, duration) {
     const replyMsg = await channel.send(`\`${displayName}\` was ${isServer ? "server " : ""}${method} for ${this.formatMs(duration)}`)
     if (replyMsg === 0) {
@@ -197,12 +204,13 @@ class VoiceTracker {
   }
 
   getLeaderboard (serverId, author = {}) {
-    const server = this.db.get("servers." + serverId).value()
+    const currentServer = this.client.guilds.cache.get(serverId)
+    let server = this.client.db.runQuery(`SELECT * FROM VoiceStats WHERE ServerId = ${serverId}`)
     if (!server) {
       return false
     }
-
-    const keys = Object.entries(server.users)
+    server = this.toObject(server, "UserId")
+    const keys = Object.entries(server)
     if (!keys.length) {
       return false
     }
@@ -215,27 +223,27 @@ class VoiceTracker {
     const afkSort = [...keys]
     const afkDurationSort = [...keys]
 
-    muteSort.sort(([aKey, aValue], [bKey, bValue]) => bValue.selfMute + bValue.serverMute - aValue.selfMute + aValue.serverMute)
-    muteDurationSort.sort(([aKey, aValue], [bKey, bValue]) => (bValue.selfMuteMax || 0) - (aValue.selfMuteMax || 0))
-    deafSort.sort(([aKey, aValue], [bKey, bValue]) => bValue.selfDeaf + bValue.serverDeaf - aValue.selfDeaf + aValue.serverDeaf)
-    deafDurationSort.sort(([aKey, aValue], [bKey, bValue]) => (bValue.selfDeafMax || 0) - (aValue.selfDeafMax || 0))
-    quietestSort.sort(([aKey, aValue], [bKey, bValue]) => bValue.selfMute + bValue.serverMute + bValue.selfDeaf + bValue.serverDeaf + bValue.afk - (aValue.selfMute + aValue.serverMute + aValue.selfDeaf + aValue.serverDeaf + (aValue.afk || 0)))
-    afkSort.sort(([aKey, aValue], [bKey, bValue]) => (bValue.afk || 0) - (aValue.afk || 0))
-    afkDurationSort.sort(([aKey, aValue], [bKey, bValue]) => (bValue.afkMax || 0) - (aValue.afkMax || 0))
+    muteSort.sort(([aKey, aValue], [bKey, bValue]) => bValue.SelfMute + bValue.ServerMute - aValue.SelfMute + aValue.ServerMute)
+    muteDurationSort.sort(([aKey, aValue], [bKey, bValue]) => (bValue.SelfMuteMax || 0) - (aValue.SelfMuteMax || 0))
+    deafSort.sort(([aKey, aValue], [bKey, bValue]) => bValue.SelfDeaf + bValue.ServerDeaf - aValue.SelfDeaf + aValue.ServerDeaf)
+    deafDurationSort.sort(([aKey, aValue], [bKey, bValue]) => (bValue.SelfDeafMax || 0) - (aValue.SelfDeafMax || 0))
+    quietestSort.sort(([aKey, aValue], [bKey, bValue]) => bValue.SelfMute + bValue.ServerMute + bValue.SelfDeaf + bValue.ServerDeaf + bValue.Afk - (aValue.SelfMute + aValue.ServerMute + aValue.SelfDeaf + aValue.ServerDeaf + (aValue.Afk || 0)))
+    afkSort.sort(([aKey, aValue], [bKey, bValue]) => (bValue.Afk || 0) - (aValue.Afk || 0))
+    afkDurationSort.sort(([aKey, aValue], [bKey, bValue]) => (bValue.AfkMax || 0) - (aValue.AfkMax || 0))
 
     const fields = [
-      ["Quiet", quietestSort, data => data.selfMute + data.serverMute + data.selfDeaf + data.serverDeaf + (data.afk || 0)],
-      ["Mute", muteSort, data => data.selfMute + data.serverMute],
-      ["Mute ⏲️", muteDurationSort, data => data.selfMuteMax],
-      ["Deaf", deafSort, data => data.selfDeaf + data.serverDeaf],
-      ["Deaf ⏲️", deafDurationSort, data => data.selfDeafMax],
-      ["AFK", afkSort, data => data.afk],
-      ["AFK ⏲️", afkDurationSort, data => data.afkMax],
+      ["Quiet", quietestSort, data => data.SelfMute + data.ServerMute + data.SelfDeaf + data.ServerDeaf + (data.Afk || 0)],
+      ["Mute", muteSort, data => data.SelfMute + data.ServerMute],
+      ["Mute ⏲️", muteDurationSort, data => data.SelfMuteMax],
+      ["Deaf", deafSort, data => data.SelfDeaf + data.ServerDeaf],
+      ["Deaf ⏲️", deafDurationSort, data => data.SelfDeafMax],
+      ["AFK", afkSort, data => data.Afk],
+      ["AFK ⏲️", afkDurationSort, data => data.AfkMax],
     ].reduce((acc, [header, data, getValue]) => {
       for (let i = 0; i < Math.min(keys.length, 3); i++) {
         acc.push({
           name: ":" + ["one", "two", "three"][i] + ": " + header,
-          value: "**[" + this.db.get("users." + data[i][0]).value() + "]** " + humanizeDuration(this.round1000(getValue(data[i][1]))),
+          value: "**[" + currentServer.members.cache.get(data[i][0]).nickname + "]** " + humanizeDuration(this.round1000(getValue(data[i][1]))),
           inline: true,
         })
       }
@@ -252,13 +260,13 @@ class VoiceTracker {
         icon_url: author.avatarURL || "https://cdn.discordapp.com/avatars/676537397311307777/dd60510041b8e9175d7a38d2cd6a3a94.webp?size=128",
       },
       description: [
-        `• ${this.db.get("users." + quietestSort[0][0]).value()} is the quietest person with a total mute & deafen time of ${humanizeDuration(this.round1000(quietestSort[0][1].selfMute + quietestSort[0][1].serverMute + quietestSort[0][1].selfDeaf + quietestSort[0][1].serverDeaf))}`,
-        `• ${this.db.get("users." + muteSort[0][0]).value()} has muted for the longest at ${humanizeDuration(this.round1000(muteSort[0][1].selfMute + muteSort[0][1].serverMute))}`,
-        `• ${this.db.get("users." + muteDurationSort[0][0]).value()} has muted for the longest in one session at ${humanizeDuration(this.round1000(muteDurationSort[0][1].selfMuteMax))}`,
-        `• ${this.db.get("users." + deafSort[0][0]).value()} has deafened for the longest at ${humanizeDuration(this.round1000(deafSort[0][1].selfDeaf + deafSort[0][1].serverDeaf))}`,
-        `• ${this.db.get("users." + deafDurationSort[0][0]).value()} has deafened for the longest in one session at ${humanizeDuration(this.round1000(deafDurationSort[0][1].selfDeafMax))}`,
-        `• ${this.db.get("users." + afkSort[0][0]).value()} has afk'd for the longest at ${humanizeDuration(this.round1000(afkSort[0][1].afk))}`,
-        `• ${this.db.get("users." + afkDurationSort[0][0]).value()} has afk'd for the longest in one session at ${humanizeDuration(this.round1000(afkDurationSort[0][1].afkMax))}`,
+        `• ${currentServer.members.cache.get(this.client.db.runQuery(`SELECT UserId FROM VoiceStats WHERE ServerId = ${serverId} AND UserID = ${quietestSort[0][0]}`)[0].UserId).nickname} is the quietest person with a total mute & deafen time of ${humanizeDuration(this.round1000(quietestSort[0][1].SelfMute + quietestSort[0][1].ServerMute + quietestSort[0][1].SelfDeaf + quietestSort[0][1].ServerDeaf))}`,
+        `• ${currentServer.members.cache.get(this.client.db.runQuery(`SELECT UserId FROM VoiceStats WHERE ServerId = ${serverId} AND UserID = ${muteSort[0][0]}`)[0].UserId).nickname} has muted for the longest at ${humanizeDuration(this.round1000(muteSort[0][1].SelfMute + muteSort[0][1].ServerMute))}`,
+        `• ${currentServer.members.cache.get(this.client.db.runQuery(`SELECT UserId FROM VoiceStats WHERE ServerId = ${serverId} AND UserID = ${muteDurationSort[0][0]}`)[0].UserId).nickname} has muted for the longest in one session at ${humanizeDuration(this.round1000(muteDurationSort[0][1].SelfMuteMax))}`,
+        `• ${currentServer.members.cache.get(this.client.db.runQuery(`SELECT UserId FROM VoiceStats WHERE ServerId = ${serverId} AND UserID = ${deafSort[0][0]}`)[0].UserId).nickname} has deafened for the longest at ${humanizeDuration(this.round1000(deafSort[0][1].SelfDeaf + deafSort[0][1].ServerDeaf))}`,
+        `• ${currentServer.members.cache.get(this.client.db.runQuery(`SELECT UserId FROM VoiceStats WHERE ServerId = ${serverId} AND UserID = ${deafDurationSort[0][0]}`)[0].UserId).nickname} has deafened for the longest in one session at ${humanizeDuration(this.round1000(deafDurationSort[0][1].SelfDeafMax))}`,
+        `• ${currentServer.members.cache.get(this.client.db.runQuery(`SELECT UserId FROM VoiceStats WHERE ServerId = ${serverId} AND UserID = ${afkSort[0][0]}`)[0].UserId).nickname} has afk'd for the longest at ${humanizeDuration(this.round1000(afkSort[0][1].Afk))}`,
+        `• ${currentServer.members.cache.get(this.client.db.runQuery(`SELECT UserId FROM VoiceStats WHERE ServerId = ${serverId} AND UserID = ${afkDurationSort[0][0]}`)[0].UserId).nickname} has afk'd for the longest in one session at ${humanizeDuration(this.round1000(afkDurationSort[0][1].AfkMax))}`,
       ].join("\n"),
       fields,
       footer: {
