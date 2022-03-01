@@ -5,7 +5,7 @@ class VoiceTracker {
   constructor (client) {
     this.client = client
     this.monitor = {}
-    this.initClient()
+    // this.initClient()
   }
 
   initVoiceStats () {
@@ -25,40 +25,29 @@ class VoiceTracker {
         PRIMARY KEY (ServerId, UserId)
       )
     `)
-    try {
-      this.db.exec(`SELECT Active FROM VoiceStats`)
-    }
-    catch (error) {
-      this.db.exec(`ALTER TABLE VoiceStats ADD COLUMN Active INTEGER DEFAULT 0`)
-    }
   }
 
   initClient () {
     this.client.once("ready", () => {
-      this.client.guilds.cache.forEach(serverId => {
-        serverId.members.cache.forEach(mem => {
-          this.voiceStateUpdate(mem, mem)
-        })
-      })
-      // setInterval(() => {
-      //   const d = new Date()
-      //   if (d.getHours() === 19 && d.getMinutes() === 0) {
-      //     const servers = Object.keys(this.db.get("servers").value())
+      setInterval(() => {
+        const d = new Date()
+        if (d.getHours() === 19 && d.getMinutes() === 0) {
+          const servers = Object.keys(this.db.get("servers").value())
 
-      //     servers.forEach(serverId => {
-      //       const server = this.client.guilds.cache.find(guild => guild.id === serverId)
-      //       if (server && server.systemChannel) {
-      //         const leaderboard = this.getLeaderboard(serverId)
+          servers.forEach(serverId => {
+            const server = this.client.guilds.cache.find(guild => guild.id === serverId)
+            if (server && server.systemChannel) {
+              const leaderboard = this.getLeaderboard(serverId)
 
-      //         if (leaderboard) {
-      //           server.systemChannel.send({
-      //             embed: leaderboard,
-      //           }).then(msg => msg.react("🔄"))
-      //         }
-      //       }
-      //     })
-      //   }
-      // }, 60000)
+              if (leaderboard) {
+                server.systemChannel.send({
+                  embed: leaderboard,
+                }).then(msg => msg.react("🔄"))
+              }
+            }
+          })
+        }
+      }, 60000)
     })
 
     this.client.on("voiceStateUpdate", this.voiceStateUpdate.bind(this))
@@ -81,7 +70,6 @@ class VoiceTracker {
       selfMuteMax: 0,
       selfDeafMax: 0,
       afkMax: 0,
-      active: 0,
     }
 
     const trackingFields = ["selfMute", "selfDeaf", "serverMute", "serverDeaf"]
@@ -94,14 +82,6 @@ class VoiceTracker {
       }
       // User joined in another channel
       else {
-        if (this.checkIfActive(newMember, trackingFields)) {
-          mon.active = curTime
-        }
-        if (!this.checkIfActive(newMember, trackingFields)) {
-          const duration = curTime - mon.active
-          delete mon.active
-          changes.active = duration
-        }
         trackingFields.forEach(k => {
           if (newMember[k]) {
             mon[k] = curTime
@@ -121,9 +101,6 @@ class VoiceTracker {
       }
       // User left another voice channel
       else {
-        const duration = curTime - mon.active
-        delete mon.active
-        changes.active = duration
         trackingFields.forEach(k => {
           if (k in mon) {
             const duration = curTime - mon[k]
@@ -142,14 +119,7 @@ class VoiceTracker {
           delete mon.afk
           changes.afk = duration
         }
-        if (this.checkIfActive(newMember, trackingFields)) {
-          mon.active = curTime
-        }
-        if (!this.checkIfActive(newMember, trackingFields)) {
-          const duration = curTime - mon.active
-          delete mon.active
-          changes.active = duration
-        }
+
         // User is no longer in AFK, start tracking other fields again
         trackingFields.forEach(k => {
           if (newMember[k]) {
@@ -160,9 +130,6 @@ class VoiceTracker {
       // Moved to AFK
       else if (newMember.channelID === oldMember.guild.afkChannelID) {
         mon.afk = curTime
-        const duration = curTime - mon.active
-        delete mon.active
-        changes.active = duration
 
         // User is in AFK now, stop tracking other stats
         trackingFields.forEach(k => {
@@ -178,14 +145,6 @@ class VoiceTracker {
     else {
       // Dont care about tracking field updates if user is in AFK
       if (newMember.channelID !== newMember.guild.afkChannelID) {
-        if (this.checkIfActive(newMember, trackingFields)) {
-          mon.active = curTime
-        }
-        if (!this.checkIfActive(newMember, trackingFields)) {
-          const duration = curTime - mon.active
-          delete mon.active
-          changes.active = duration
-        }
         trackingFields.forEach(k => {
           if (oldMember[k] !== newMember[k]) {
             if (newMember[k]) {
@@ -203,12 +162,12 @@ class VoiceTracker {
       }
     }
 
-    if (changes.selfMute > 0 || changes.selfDeaf > 0 || changes.serverMute > 0 || changes.serverDeaf > 0 || changes.afk > 0 || changes.selfMuteMax > 0 || changes.selfDeafMax > 0 || changes.afkMax > 0 || changes.active > 0) {
+    if (changes.selfMute > 0 || changes.selfDeaf > 0 || changes.serverMute > 0 || changes.serverDeaf > 0 || changes.afk > 0 || changes.selfMuteMax > 0 || changes.selfDeafMax > 0 || changes.afkMax > 0) {
       const serverId = oldMember.guild.id
       const userId = oldMember.id
 
       this.client.db.run(`
-        INSERT INTO VoiceStats VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO VoiceStats VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ON CONFLICT(ServerId, UserId) DO UPDATE
         SET
           SelfMute = SelfMute + ?,
@@ -218,31 +177,16 @@ class VoiceTracker {
           Afk = Afk + ?,
           SelfMuteMax = CASE WHEN SelfMute + ? > SelfMuteMax THEN SelfMute + ? ELSE SelfMuteMax END,
           SelfDeafMax = CASE WHEN SelfDeaf + ? > SelfDeafMax THEN SelfDeaf + ? ELSE SelfDeafMax END,
-          AfkMax = CASE WHEN Afk + ? > AfkMax THEN Afk + ? ELSE AfkMax END,
-          Active = Active + ?
+          AfkMax = CASE WHEN Afk + ? > AfkMax THEN Afk + ? ELSE AfkMax END
         WHERE ServerId = ?
           AND UserId = ?
-      `, serverId, userId, changes.selfMute, changes.selfDeaf, changes.serverMute, changes.serverDeaf, changes.afk, changes.selfMute, changes.selfDeaf, changes.afk, changes.active,
-      changes.selfMute, changes.selfDeaf, changes.serverMute, changes.serverDeaf, changes.afk, changes.selfMute, changes.selfMute, changes.selfDeaf, changes.selfDeaf, changes.afk, changes.afk, changes.active, serverId, userId)
+      `, serverId, userId, changes.selfMute, changes.selfDeaf, changes.serverMute, changes.serverDeaf, changes.afk, changes.selfMute, changes.selfDeaf, changes.afk,
+      changes.selfMute, changes.selfDeaf, changes.serverMute, changes.serverDeaf, changes.afk, changes.selfMute, changes.selfMute, changes.selfDeaf, changes.selfDeaf, changes.afk, changes.afk, serverId, userId)
     }
-  }
-
-  checkIfActive (obj, tracking) {
-    let isActive = true
-    tracking.forEach(e => {
-      if (obj[e]) {
-        isActive = false
-      }
-    })
-    return isActive
   }
 
   formatMs (ms) {
     return `${humanizeDuration(this.round1000(ms))}`
-  }
-
-  toObject (arr, key) {
-    return arr.reduce((a, b) => ({ ...a, [b[key]]: b }), {})
   }
 
   async notify (channel, displayName, isServer, method, duration) {
@@ -252,14 +196,13 @@ class VoiceTracker {
     }
   }
 
-  async getLeaderboard (serverId, author = {}, members = {}) {
-    const currentServer = this.client.guilds.cache.get(serverId)
-    let server = this.client.db.runQuery(`SELECT * FROM VoiceStats WHERE ServerId = ${serverId}`)
+  getLeaderboard (serverId, author = {}) {
+    const server = this.db.get("servers." + serverId).value()
     if (!server) {
       return false
     }
-    server = this.toObject(server, "UserId")
-    const keys = Object.entries(server)
+
+    const keys = Object.entries(server.users)
     if (!keys.length) {
       return false
     }
@@ -271,47 +214,34 @@ class VoiceTracker {
     const quietestSort = [...keys]
     const afkSort = [...keys]
     const afkDurationSort = [...keys]
-    const activeSort = [...keys]
 
-    muteSort.sort(([aKey, aValue], [bKey, bValue]) => bValue.SelfMute + bValue.ServerMute - aValue.SelfMute + aValue.ServerMute)
-    muteDurationSort.sort(([aKey, aValue], [bKey, bValue]) => (bValue.SelfMuteMax || 0) - (aValue.SelfMuteMax || 0))
-    deafSort.sort(([aKey, aValue], [bKey, bValue]) => bValue.SelfDeaf + bValue.ServerDeaf - aValue.SelfDeaf + aValue.ServerDeaf)
-    deafDurationSort.sort(([aKey, aValue], [bKey, bValue]) => (bValue.SelfDeafMax || 0) - (aValue.SelfDeafMax || 0))
-    quietestSort.sort(([aKey, aValue], [bKey, bValue]) => bValue.SelfMute + bValue.ServerMute + bValue.SelfDeaf + bValue.ServerDeaf + bValue.Afk - (aValue.SelfMute + aValue.ServerMute + aValue.SelfDeaf + aValue.ServerDeaf + (aValue.Afk || 0)))
-    afkSort.sort(([aKey, aValue], [bKey, bValue]) => (bValue.Afk || 0) - (aValue.Afk || 0))
-    afkDurationSort.sort(([aKey, aValue], [bKey, bValue]) => (bValue.AfkMax || 0) - (aValue.AfkMax || 0))
-    activeSort.sort(([aKey, aValue], [bKey, bValue]) => (bValue.Active || 0) - (aValue.Active || 0))
+    muteSort.sort(([aKey, aValue], [bKey, bValue]) => bValue.selfMute + bValue.serverMute - aValue.selfMute + aValue.serverMute)
+    muteDurationSort.sort(([aKey, aValue], [bKey, bValue]) => (bValue.selfMuteMax || 0) - (aValue.selfMuteMax || 0))
+    deafSort.sort(([aKey, aValue], [bKey, bValue]) => bValue.selfDeaf + bValue.serverDeaf - aValue.selfDeaf + aValue.serverDeaf)
+    deafDurationSort.sort(([aKey, aValue], [bKey, bValue]) => (bValue.selfDeafMax || 0) - (aValue.selfDeafMax || 0))
+    quietestSort.sort(([aKey, aValue], [bKey, bValue]) => bValue.selfMute + bValue.serverMute + bValue.selfDeaf + bValue.serverDeaf + bValue.afk - (aValue.selfMute + aValue.serverMute + aValue.selfDeaf + aValue.serverDeaf + (aValue.afk || 0)))
+    afkSort.sort(([aKey, aValue], [bKey, bValue]) => (bValue.afk || 0) - (aValue.afk || 0))
+    afkDurationSort.sort(([aKey, aValue], [bKey, bValue]) => (bValue.afkMax || 0) - (aValue.afkMax || 0))
 
     const fields = [
-      ["Quiet", quietestSort, data => data.SelfMute + data.ServerMute + data.SelfDeaf + data.ServerDeaf + (data.Afk || 0)],
-      ["Mute", muteSort, data => data.SelfMute + data.ServerMute],
-      ["Mute ⏲️", muteDurationSort, data => data.SelfMuteMax],
-      ["Deaf", deafSort, data => data.SelfDeaf + data.ServerDeaf],
-      ["Deaf ⏲️", deafDurationSort, data => data.SelfDeafMax],
-      ["AFK", afkSort, data => data.Afk],
-      ["AFK ⏲️", afkDurationSort, data => data.AfkMax],
-      ["Active", activeSort, data => data.Active],
+      ["Quiet", quietestSort, data => data.selfMute + data.serverMute + data.selfDeaf + data.serverDeaf + (data.afk || 0)],
+      ["Mute", muteSort, data => data.selfMute + data.serverMute],
+      ["Mute ⏲️", muteDurationSort, data => data.selfMuteMax],
+      ["Deaf", deafSort, data => data.selfDeaf + data.serverDeaf],
+      ["Deaf ⏲️", deafDurationSort, data => data.selfDeafMax],
+      ["AFK", afkSort, data => data.afk],
+      ["AFK ⏲️", afkDurationSort, data => data.afkMax],
     ].reduce((acc, [header, data, getValue]) => {
       for (let i = 0; i < Math.min(keys.length, 3); i++) {
         acc.push({
           name: ":" + ["one", "two", "three"][i] + ": " + header,
-          value: "**[" + currentServer.members.cache.get(data[i][0]).user.username + "]** " + humanizeDuration(this.round1000(getValue(data[i][1]))),
+          value: "**[" + this.db.get("users." + data[i][0]).value() + "]** " + humanizeDuration(this.round1000(getValue(data[i][1]))),
           inline: true,
         })
       }
+
       return acc
     }, [])
-
-    const usersNonCached = {
-      quietestSort: await members.fetch(this.client.db.runQuery(`SELECT UserId from VoiceStats WHERE ServerId = ${serverId} AND UserID = ${quietestSort[0][0]}`)[0].UserId).then(user => user.user.username),
-      muteSort: await members.fetch(this.client.db.runQuery(`SELECT UserId from VoiceStats WHERE ServerId = ${serverId} AND UserID = ${muteSort[0][0]}`)[0].UserId).then(user => user.user.username),
-      muteDurationSort: await members.fetch(this.client.db.runQuery(`SELECT UserId from VoiceStats WHERE ServerId = ${serverId} AND UserID = ${muteDurationSort[0][0]}`)[0].UserId).then(user => user.user.username),
-      deafSort: await members.fetch(this.client.db.runQuery(`SELECT UserId from VoiceStats WHERE ServerId = ${serverId} AND UserID = ${deafSort[0][0]}`)[0].UserId).then(user => user.user.username),
-      deafDurationSort: await members.fetch(this.client.db.runQuery(`SELECT UserId from VoiceStats WHERE ServerId = ${serverId} AND UserID = ${deafDurationSort[0][0]}`)[0].UserId).then(user => user.user.username),
-      afkSort: await members.fetch(this.client.db.runQuery(`SELECT UserId from VoiceStats WHERE ServerId = ${serverId} AND UserID = ${afkSort[0][0]}`)[0].UserId).then(user => user.user.username),
-      afkDurationSort: await members.fetch(this.client.db.runQuery(`SELECT UserId from VoiceStats WHERE ServerId = ${serverId} AND UserID = ${afkDurationSort[0][0]}`)[0].UserId).then(user => user.user.username),
-      activeSort: await members.fetch(this.client.db.runQuery(`SELECT UserId from VoiceStats WHERE ServerId = ${serverId} AND UserID = ${activeSort[0][0]}`)[0].UserId).then(user => user.user.username),
-    }
 
     const embed = {
       color: 0xfacd3b,
@@ -322,14 +252,13 @@ class VoiceTracker {
         icon_url: author.avatarURL || "https://cdn.discordapp.com/avatars/676537397311307777/dd60510041b8e9175d7a38d2cd6a3a94.webp?size=128",
       },
       description: [
-        `• ${usersNonCached.quietestSort} is the quietest person with a total mute & deafen time of ${humanizeDuration(this.round1000(quietestSort[0][1].SelfMute + quietestSort[0][1].ServerMute + quietestSort[0][1].SelfDeaf + quietestSort[0][1].ServerDeaf))}`,
-        `• ${usersNonCached.muteSort} has muted for the longest at ${humanizeDuration(this.round1000(muteSort[0][1].SelfMute + muteSort[0][1].ServerMute))}`,
-        `• ${usersNonCached.muteDurationSort} has muted for the longest in one session at ${humanizeDuration(this.round1000(muteDurationSort[0][1].SelfMuteMax))}`,
-        `• ${usersNonCached.deafSort} has deafened for the longest at ${humanizeDuration(this.round1000(deafSort[0][1].SelfDeaf + deafSort[0][1].ServerDeaf))}`,
-        `• ${usersNonCached.deafDurationSort} has deafened for the longest in one session at ${humanizeDuration(this.round1000(deafDurationSort[0][1].SelfDeafMax))}`,
-        `• ${usersNonCached.afkSort} has afk'd for the longest at ${humanizeDuration(this.round1000(afkSort[0][1].Afk))}`,
-        `• ${usersNonCached.afkDurationSort} has afk'd for the longest in one session at ${humanizeDuration(this.round1000(afkDurationSort[0][1].AfkMax))}`,
-        `• ${usersNonCached.activeSort} has been active for the longest at ${humanizeDuration(this.round1000(activeSort[0][1].Active))}`,
+        `• ${this.db.get("users." + quietestSort[0][0]).value()} is the quietest person with a total mute & deafen time of ${humanizeDuration(this.round1000(quietestSort[0][1].selfMute + quietestSort[0][1].serverMute + quietestSort[0][1].selfDeaf + quietestSort[0][1].serverDeaf))}`,
+        `• ${this.db.get("users." + muteSort[0][0]).value()} has muted for the longest at ${humanizeDuration(this.round1000(muteSort[0][1].selfMute + muteSort[0][1].serverMute))}`,
+        `• ${this.db.get("users." + muteDurationSort[0][0]).value()} has muted for the longest in one session at ${humanizeDuration(this.round1000(muteDurationSort[0][1].selfMuteMax))}`,
+        `• ${this.db.get("users." + deafSort[0][0]).value()} has deafened for the longest at ${humanizeDuration(this.round1000(deafSort[0][1].selfDeaf + deafSort[0][1].serverDeaf))}`,
+        `• ${this.db.get("users." + deafDurationSort[0][0]).value()} has deafened for the longest in one session at ${humanizeDuration(this.round1000(deafDurationSort[0][1].selfDeafMax))}`,
+        `• ${this.db.get("users." + afkSort[0][0]).value()} has afk'd for the longest at ${humanizeDuration(this.round1000(afkSort[0][1].afk))}`,
+        `• ${this.db.get("users." + afkDurationSort[0][0]).value()} has afk'd for the longest in one session at ${humanizeDuration(this.round1000(afkDurationSort[0][1].afkMax))}`,
       ].join("\n"),
       fields,
       footer: {
