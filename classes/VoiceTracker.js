@@ -5,6 +5,7 @@ class VoiceTracker {
   constructor (client) {
     this.client = client
     this.monitor = {}
+    this.trackingFields = ["selfMute", "selfDeaf", "serverMute", "serverDeaf"]
     this.initClient()
   }
 
@@ -35,42 +36,65 @@ class VoiceTracker {
   }
 
   initClient () {
-    this.client.once("ready", () => {
-      this.client.guilds.cache.forEach(serverId => {
-        serverId.members.cache.forEach(mem => {
-          if (mem.voice.channel) {
-            this.voiceStateUpdate(mem, mem)
+    this.client.once("ready", this.initiateMonitor.bind(this))
+    this.client.on("voiceStateUpdate", this.voiceStateUpdate.bind(this))
+  }
+
+  initiateMonitor () {
+    const curTime = new Date().getTime()
+
+    this.client.guilds.cache.forEach(serverId => {
+      if (serverId.voiceStates.cache) {
+        serverId.voiceStates.cache.forEach(activePeep => {
+          if (activePeep.channelID === activePeep.guild.afkChannelID) {
+            this.monitor = { ...this.monitor, [activePeep.id]: { afk: curTime, serverId: activePeep.guild.id } }
+          }
+          else if (this.checkIfActive(activePeep, this.trackingFields)) {
+            this.monitor = { ...this.monitor, [activePeep.id]: { active: curTime, serverId: activePeep.guild.id } }
+          }
+          else {
+            if (!(activePeep.id in this.monitor)) {
+              this.monitor[activePeep.id] = { serverId: activePeep.guild.id }
+            }
+            const mon = this.monitor[activePeep.id]
+            this.trackingFields.forEach(k => {
+              if (activePeep[k]) {
+                mon[k] = curTime
+              }
+            })
           }
         })
-      })
-
-      // setInterval(() => {
-      //   const d = new Date()
-      //   if (d.getHours() === 19 && d.getMinutes() === 0) {
-      //     const servers = Object.keys(this.db.get("servers").value())
-
-      //     servers.forEach(serverId => {
-      //       const server = this.client.guilds.cache.find(guild => guild.id === serverId)
-      //       if (server && server.systemChannel) {
-      //         const leaderboard = this.getLeaderboard(serverId)
-
-      //         if (leaderboard) {
-      //           server.systemChannel.send({
-      //             embed: leaderboard,
-      //           }).then(msg => msg.react("🔄"))
-      //         }
-      //       }
-      //     })
-      //   }
-      // }, 60000)
+      }
     })
 
-    this.client.on("voiceStateUpdate", this.voiceStateUpdate.bind(this))
+    this.periodicallySave()
+  }
+
+  periodicallySave () {
+    setInterval(() => {
+      const curTime = new Date().getTime()
+      const users = Object.entries(this.monitor)
+
+      for (const [userId, { serverId, active }] of users) {
+        if (active) {
+          const newTime = curTime - active
+          this.client.db.run(`
+            UPDATE VoiceStats
+            SET
+              Active = Active + ?
+            WHERE ServerId = ?
+              AND UserId = ?
+          `, newTime, serverId, userId)
+
+          this.monitor[userId].active = curTime
+        }
+      }
+    }, 1000 * 60 * 60 * 30)
   }
 
   async voiceStateUpdate (oldMember, newMember) {
     if (!(oldMember.id in this.monitor)) {
-      this.monitor[oldMember.id] = {}
+      this.monitor[oldMember.id] = { serverId: oldMember.guild.id }
     }
 
     const mon = this.monitor[oldMember.id]
@@ -88,8 +112,6 @@ class VoiceTracker {
       active: 0,
     }
 
-    const trackingFields = ["selfMute", "selfDeaf", "serverMute", "serverDeaf"]
-
     // User joined the voice channel
     if (oldMember.channelID === null && newMember.channelID !== null) {
       // User joined in AFK
@@ -98,7 +120,7 @@ class VoiceTracker {
       }
       // User joined in another channel
       else {
-        if (this.checkIfActive(newMember, trackingFields)) {
+        if (this.checkIfActive(newMember, this.trackingFields)) {
           mon.active = curTime
         }
         else {
@@ -107,7 +129,7 @@ class VoiceTracker {
           changes.active = duration
         }
 
-        trackingFields.forEach(k => {
+        this.trackingFields.forEach(k => {
           if (newMember[k]) {
             mon[k] = curTime
           }
@@ -129,7 +151,7 @@ class VoiceTracker {
         const duration = curTime - mon.active
         delete mon.active
         changes.active = duration
-        trackingFields.forEach(k => {
+        this.trackingFields.forEach(k => {
           if (k in mon) {
             const duration = curTime - mon[k]
             delete mon[k]
@@ -147,7 +169,7 @@ class VoiceTracker {
           delete mon.afk
           changes.afk = duration
         }
-        if (this.checkIfActive(newMember, trackingFields)) {
+        if (this.checkIfActive(newMember, this.trackingFields)) {
           mon.active = curTime
         }
         else {
@@ -157,7 +179,7 @@ class VoiceTracker {
         }
 
         // User is no longer in AFK, start tracking other fields again
-        trackingFields.forEach(k => {
+        this.trackingFields.forEach(k => {
           if (newMember[k]) {
             mon[k] = curTime
           }
@@ -171,7 +193,7 @@ class VoiceTracker {
         changes.active = duration
 
         // User is in AFK now, stop tracking other stats
-        trackingFields.forEach(k => {
+        this.trackingFields.forEach(k => {
           if (k in mon) {
             const duration = curTime - mon[k]
             delete mon[k]
@@ -184,7 +206,7 @@ class VoiceTracker {
     else {
       // Dont care about tracking field updates if user is in AFK
       if (newMember.channelID !== newMember.guild.afkChannelID) {
-        if (this.checkIfActive(newMember, trackingFields)) {
+        if (this.checkIfActive(newMember, this.trackingFields)) {
           mon.active = curTime
         }
         else {
@@ -193,7 +215,7 @@ class VoiceTracker {
           changes.active = duration
         }
 
-        trackingFields.forEach(k => {
+        this.trackingFields.forEach(k => {
           if (oldMember[k] !== newMember[k]) {
             if (newMember[k]) {
               mon[k] = curTime
