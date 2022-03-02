@@ -38,7 +38,9 @@ class VoiceTracker {
     this.client.once("ready", () => {
       this.client.guilds.cache.forEach(serverId => {
         serverId.members.cache.forEach(mem => {
-          this.voiceStateUpdate(mem, mem)
+          if (mem.voice.channel) {
+            this.voiceStateUpdate(mem, mem)
+          }
         })
       })
 
