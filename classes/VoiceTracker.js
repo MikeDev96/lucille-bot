@@ -89,7 +89,7 @@ class VoiceTracker {
           this.monitor[userId].active = curTime
         }
       }
-    }, 1000 * 60 * 30)
+    }, 5 * 60 * 1e3)
   }
 
   async voiceStateUpdate (oldMember, newMember) {
@@ -319,7 +319,7 @@ class VoiceTracker {
     ].reduce((acc, [header, data, getValue]) => {
       const rows = []
       for (let i = 0; i < Math.min(keys.length, 3); i++) {
-        rows.push(":" + ["one", "two", "three"][i] + ": " + "**[" + currentServer.members.cache.get(data[i].UserId).user.username + "]** " + humanizeDuration(this.round1000(getValue(data[i]))))
+        rows.push(`:${["one", "two", "three"][i]}: **${currentServer.members.cache.get(data[i].UserId).user.username}**\n${"\u00a0".repeat(9)}${shortEnglishHumanizer(this.round1000(getValue(data[i])), { spacer: "" })}`)
       }
       acc.push({
         name: header,
@@ -388,5 +388,21 @@ class VoiceTracker {
     }
   }
 }
+
+const shortEnglishHumanizer = humanizeDuration.humanizer({
+  language: "shortEn",
+  languages: {
+    shortEn: {
+      y: () => "y",
+      mo: () => "mo",
+      w: () => "w",
+      d: () => "d",
+      h: () => "h",
+      m: () => "m",
+      s: () => "s",
+      ms: () => "ms",
+    },
+  },
+})
 
 module.exports = VoiceTracker
