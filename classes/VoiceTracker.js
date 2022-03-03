@@ -319,7 +319,7 @@ class VoiceTracker {
     ].reduce((acc, [header, data, getValue]) => {
       const rows = []
       for (let i = 0; i < Math.min(keys.length, 3); i++) {
-        rows.push(":" + ["one", "two", "three"][i] + ": " + "**[" + currentServer.members.cache.get(data[i][0]).user.username + "]** " + humanizeDuration(this.round1000(getValue(data[i][1]))))
+        rows.push(":" + ["one", "two", "three"][i] + ": " + "**[" + currentServer.members.cache.get(data[i].UserId).user.username + "]** " + humanizeDuration(this.round1000(getValue(data[i]))))
       }
       acc.push({
         name: header,
