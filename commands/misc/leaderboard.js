@@ -34,8 +34,6 @@ module.exports = class extends Command {
 
     const mainUserId = getUserId(msg, args.arg2.toLowerCase())
 
-    console.log(args)
-
     if (msg.client.voiceTracker) {
       if (args.arg1.toLowerCase() === "active") {
         if (mainUserId) {
