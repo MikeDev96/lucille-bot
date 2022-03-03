@@ -38,8 +38,11 @@ module.exports = class extends Command {
 
     if (msg.client.voiceTracker) {
       if (args.arg1.toLowerCase() === "active") {
-        if (args.arg2) {
+        if (mainUserId) {
           msg.reply(args.arg2 + " is active for " + msg.client.voiceTracker.getIndividualUser(msg.guild.id, mainUserId, args.arg1))
+        }
+        else {
+          msg.reply("Invalid User")
         }
       }
       else {
