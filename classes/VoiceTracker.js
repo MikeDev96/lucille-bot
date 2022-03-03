@@ -89,7 +89,7 @@ class VoiceTracker {
           this.monitor[userId].active = curTime
         }
       }
-    }, 1000 * 60 * 60 * 30)
+    }, 1000 * 60 * 30)
   }
 
   async voiceStateUpdate (oldMember, newMember) {
