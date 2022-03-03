@@ -123,7 +123,7 @@ class VoiceTracker {
         if (this.checkIfActive(newMember, this.trackingFields)) {
           mon.active = curTime
         }
-        else {
+        else if (mon.active > 0) {
           const duration = curTime - mon.active
           delete mon.active
           changes.active = duration
@@ -172,7 +172,7 @@ class VoiceTracker {
         if (this.checkIfActive(newMember, this.trackingFields)) {
           mon.active = curTime
         }
-        else {
+        else if (mon.active > 0) {
           const duration = curTime - mon.active
           delete mon.active
           changes.active = duration
@@ -209,7 +209,7 @@ class VoiceTracker {
         if (this.checkIfActive(newMember, this.trackingFields)) {
           mon.active = curTime
         }
-        else {
+        else if (mon.active > 0) {
           const duration = curTime - mon.active
           delete mon.active
           changes.active = duration
@@ -237,22 +237,21 @@ class VoiceTracker {
       const userId = oldMember.id
 
       this.client.db.run(`
-        INSERT INTO VoiceStats VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO VoiceStats VALUES (${serverId}, ${userId}, ${changes.selfMute}, ${changes.selfDeaf}, ${changes.serverMute}, ${changes.serverDeaf}, ${changes.afk}, ${changes.selfMute}, ${changes.selfDeaf}, ${changes.afk}, ${changes.active})
         ON CONFLICT(ServerId, UserId) DO UPDATE
         SET
-          SelfMute = SelfMute + ?,
-          SelfDeaf = SelfDeaf + ?,
-          ServerMute = ServerMute + ?,
-          ServerDeaf = ServerDeaf + ?,
-          Afk = Afk + ?,
-          SelfMuteMax = CASE WHEN SelfMute + ? > SelfMuteMax THEN SelfMute + ? ELSE SelfMuteMax END,
-          SelfDeafMax = CASE WHEN SelfDeaf + ? > SelfDeafMax THEN SelfDeaf + ? ELSE SelfDeafMax END,
-          AfkMax = CASE WHEN Afk + ? > AfkMax THEN Afk + ? ELSE AfkMax END,
-          Active = Active + ?
-        WHERE ServerId = ?
-          AND UserId = ?
-      `, serverId, userId, changes.selfMute, changes.selfDeaf, changes.serverMute, changes.serverDeaf, changes.afk, changes.selfMute, changes.selfDeaf, changes.afk, changes.active,
-      changes.selfMute, changes.selfDeaf, changes.serverMute, changes.serverDeaf, changes.afk, changes.selfMute, changes.selfMute, changes.selfDeaf, changes.selfDeaf, changes.afk, changes.afk, changes.active, serverId, userId)
+          SelfMute = SelfMute + ${changes.selfMute},
+          SelfDeaf = SelfDeaf + ${changes.selfDeaf},
+          ServerMute = ServerMute + ${changes.serverMute},
+          ServerDeaf = ServerDeaf + ${changes.serverDeaf},
+          Afk = Afk + ${changes.afk},
+          SelfMuteMax = CASE WHEN SelfMute + ${changes.selfMute} > SelfMuteMax THEN SelfMute + ${changes.selfMute} ELSE SelfMuteMax END,
+          SelfDeafMax = CASE WHEN SelfDeaf + ${changes.selfDeaf} > SelfDeafMax THEN SelfDeaf + ${changes.selfDeaf} ELSE SelfDeafMax END,
+          AfkMax = CASE WHEN Afk + ${changes.afk} > AfkMax THEN Afk + ${changes.afk} ELSE AfkMax END,
+          Active = Active + ${changes.active}
+        WHERE ServerId = ${serverId}
+          AND UserId = ${userId}
+      `)
     }
   }
 
