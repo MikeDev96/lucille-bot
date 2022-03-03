@@ -148,9 +148,11 @@ class VoiceTracker {
       }
       // User left another voice channel
       else {
-        const duration = curTime - mon.active
-        delete mon.active
-        changes.active = duration
+        if (mon.active > 0) {
+          const duration = curTime - mon.active
+          delete mon.active
+          changes.active = duration
+        }
         this.trackingFields.forEach(k => {
           if (k in mon) {
             const duration = curTime - mon[k]
@@ -188,9 +190,11 @@ class VoiceTracker {
       // Moved to AFK
       else if (newMember.channelID === oldMember.guild.afkChannelID) {
         mon.afk = curTime
-        const duration = curTime - mon.active
-        delete mon.active
-        changes.active = duration
+        if (mon.active > 0) {
+          const duration = curTime - mon.active
+          delete mon.active
+          changes.active = duration
+        }
 
         // User is in AFK now, stop tracking other stats
         this.trackingFields.forEach(k => {
@@ -371,6 +375,13 @@ class VoiceTracker {
     }
 
     return embed
+  }
+
+  getIndividualUser (serverId, userId, statType) {
+    const response = this.client.db.runQuery(`
+    SELECT ${statType} FROM VoiceStats WHERE ServerId = ? AND UserId = ?
+    `, serverId, userId)
+    return humanizeDuration(this.round1000(response[0].Active))
   }
 
   round1000 (num) {
