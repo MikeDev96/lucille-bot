@@ -237,22 +237,22 @@ class VoiceTracker {
       const userId = oldMember.id
 
       this.client.db.run(`
-      INSERT INTO VoiceStats VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        ON CONFLICT(ServerId, UserId) DO UPDATE
-        SET
-        SelfMute = SelfMute + ?,
-        SelfDeaf = SelfDeaf + ?,
-        ServerMute = ServerMute + ?,
-        ServerDeaf = ServerDeaf + ?,
-        Afk = Afk + ?,
-        SelfMuteMax = CASE WHEN SelfMute + ? > SelfMuteMax THEN SelfMute + ? ELSE SelfMuteMax END,
-        SelfDeafMax = CASE WHEN SelfDeaf + ? > SelfDeafMax THEN SelfDeaf + ? ELSE SelfDeafMax END,
-        AfkMax = CASE WHEN Afk + ? > AfkMax THEN Afk + ? ELSE AfkMax END,
-        Active = Active + ?
-      WHERE ServerId = ?
-        AND UserId = ?
-    `, serverId, userId, changes.selfMute, changes.selfDeaf, changes.serverMute, changes.serverDeaf, changes.afk, changes.selfMute, changes.selfDeaf, changes.afk, changes.active,
-      changes.selfMute, changes.selfDeaf, changes.serverMute, changes.serverDeaf, changes.afk, changes.selfMute, changes.selfMute, changes.selfDeaf, changes.selfDeaf, changes.afk, changes.afk, changes.active, serverId, userId)
+        INSERT INTO VoiceStats VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+          ON CONFLICT(ServerId, UserId) DO UPDATE
+          SET
+          SelfMute = SelfMute + ?,
+          SelfDeaf = SelfDeaf + ?,
+          ServerMute = ServerMute + ?,
+          ServerDeaf = ServerDeaf + ?,
+          Afk = Afk + ?,
+          SelfMuteMax = CASE WHEN SelfMute + ? > SelfMuteMax THEN SelfMute + ? ELSE SelfMuteMax END,
+          SelfDeafMax = CASE WHEN SelfDeaf + ? > SelfDeafMax THEN SelfDeaf + ? ELSE SelfDeafMax END,
+          AfkMax = CASE WHEN Afk + ? > AfkMax THEN Afk + ? ELSE AfkMax END,
+          Active = Active + ?
+        WHERE ServerId = ?
+          AND UserId = ?
+      `, serverId, userId, changes.selfMute, changes.selfDeaf, changes.serverMute, changes.serverDeaf, changes.afk, changes.selfMute, changes.selfDeaf, changes.afk, changes.active,
+        changes.selfMute, changes.selfDeaf, changes.serverMute, changes.serverDeaf, changes.afk, changes.selfMute, changes.selfMute, changes.selfDeaf, changes.selfDeaf, changes.afk, changes.afk, changes.active, serverId, userId)
     }
   }
 
