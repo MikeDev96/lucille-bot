@@ -238,8 +238,8 @@ class VoiceTracker {
 
       this.client.db.run(`
         INSERT INTO VoiceStats VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-          ON CONFLICT(ServerId, UserId) DO UPDATE
-          SET
+        ON CONFLICT(ServerId, UserId) DO UPDATE
+        SET
           SelfMute = SelfMute + ?,
           SelfDeaf = SelfDeaf + ?,
           ServerMute = ServerMute + ?,
@@ -252,7 +252,7 @@ class VoiceTracker {
         WHERE ServerId = ?
           AND UserId = ?
       `, serverId, userId, changes.selfMute, changes.selfDeaf, changes.serverMute, changes.serverDeaf, changes.afk, changes.selfMute, changes.selfDeaf, changes.afk, changes.active,
-        changes.selfMute, changes.selfDeaf, changes.serverMute, changes.serverDeaf, changes.afk, changes.selfMute, changes.selfMute, changes.selfDeaf, changes.selfDeaf, changes.afk, changes.afk, changes.active, serverId, userId)
+      changes.selfMute, changes.selfDeaf, changes.serverMute, changes.serverDeaf, changes.afk, changes.selfMute, changes.selfMute, changes.selfDeaf, changes.selfDeaf, changes.afk, changes.afk, changes.active, serverId, userId)
     }
   }
 
