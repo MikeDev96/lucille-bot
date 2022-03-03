@@ -317,15 +317,23 @@ class VoiceTracker {
       ["AFK ⏲️", afkDurationSort, data => data.AfkMax],
       ["Active", activeSort, data => data.Active],
     ].reduce((acc, [header, data, getValue]) => {
+      const rows = []
       for (let i = 0; i < Math.min(keys.length, 3); i++) {
-        acc.push({
-          name: ":" + ["one", "two", "three"][i] + ": " + header,
-          value: "**[" + currentServer.members.cache.get(data[i].UserId).user.username + "]** " + humanizeDuration(this.round1000(getValue(data[i]))),
-          inline: true,
-        })
+        rows.push(":" + ["one", "two", "three"][i] + ": " + "**[" + currentServer.members.cache.get(data[i][0]).user.username + "]** " + humanizeDuration(this.round1000(getValue(data[i][1]))))
       }
+      acc.push({
+        name: header,
+        value: rows.join("\n"),
+        inline: true,
+      })
       return acc
     }, [])
+
+    fields.push({
+      name: "\u200b",
+      value: "\u200b",
+      inline: true,
+    })
 
     const usersNonCached = {
       quietestSort: (await members.fetch(quietestSort[0].UserId)).user.username,
