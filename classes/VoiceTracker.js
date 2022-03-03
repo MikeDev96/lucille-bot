@@ -349,7 +349,6 @@ class VoiceTracker {
     const embed = {
       color: 0xfacd3b,
       title: "Bar of Mute Leaderboard",
-      url: "https://discord.js.org",
       author: {
         name: author.username || "Automatic Daily Message",
         icon_url: author.avatarURL || "https://cdn.discordapp.com/avatars/676537397311307777/dd60510041b8e9175d7a38d2cd6a3a94.webp?size=128",
