@@ -123,7 +123,7 @@ class VoiceTracker {
         if (this.checkIfActive(newMember, this.trackingFields)) {
           mon.active = curTime
         }
-        else {
+        else if (mon.active > 0) {
           const duration = curTime - mon.active
           delete mon.active
           changes.active = duration
@@ -172,7 +172,7 @@ class VoiceTracker {
         if (this.checkIfActive(newMember, this.trackingFields)) {
           mon.active = curTime
         }
-        else {
+        else if (mon.active > 0) {
           const duration = curTime - mon.active
           delete mon.active
           changes.active = duration
@@ -209,7 +209,7 @@ class VoiceTracker {
         if (this.checkIfActive(newMember, this.trackingFields)) {
           mon.active = curTime
         }
-        else {
+        else if (mon.active > 0) {
           const duration = curTime - mon.active
           delete mon.active
           changes.active = duration
