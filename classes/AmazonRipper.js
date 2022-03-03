@@ -190,7 +190,7 @@ const AmazonRipper = class {
         },
       })
 
-      const price = dom.querySelector("#apex_desktop .a-price.apexPriceToPay > span:not(.a-offscreen), #apex_desktop .a-price.priceToPay > span:not(.a-offscreen)").textContent
+      const price = (dom.querySelector("#priceblock_ourprice, #priceblock_dealprice, #priceblock_saleprice, #apex_desktop .a-price.apexPriceToPay > span:not(.a-offscreen), #apex_desktop .a-price.priceToPay > span:not(.a-offscreen)") || {}).textContent || ""
 
       const overview = dom.querySelectorAll("[data-feature-name='productOverview'] tr").map(el => {
         const [key, value] = el.querySelectorAll("td").map(el => el.textContent.trim())
@@ -198,7 +198,7 @@ const AmazonRipper = class {
       })
 
       const features = dom.querySelectorAll("#feature-bullets > ul.a-unordered-list > li:not(.aok-hidden) > span.a-list-item").map(el => el.textContent.trim())
-      const rating = dom.querySelector("span[data-hook='rating-out-of-text']").textContent
+      const rating = (dom.querySelector("span[data-hook='rating-out-of-text']") || {}).textContent || ""
 
       const images = this.getImages(html, data)
 
