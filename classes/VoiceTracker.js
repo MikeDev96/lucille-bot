@@ -96,6 +96,9 @@ class VoiceTracker {
     if (!(oldMember.id in this.monitor)) {
       this.monitor[oldMember.id] = { serverId: oldMember.guild.id }
     }
+    else if (oldMember.guild.id !== this.monitor[oldMember.id].serverId) {
+      this.monitor[oldMember.id].serverId = oldMember.guild.id
+    }
 
     const mon = this.monitor[oldMember.id]
     const curTime = new Date().getTime()
