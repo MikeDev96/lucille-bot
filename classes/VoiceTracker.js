@@ -381,10 +381,21 @@ class VoiceTracker {
   }
 
   getIndividualUser (serverId, userId, statType) {
-    const response = this.client.db.runQuery(`
-    SELECT ${statType} FROM VoiceStats WHERE ServerId = ? AND UserId = ?
-    `, serverId, userId)
-    return humanizeDuration(this.round1000(response[0].Active))
+    let response
+    if (userId) {
+      response = this.client.db.runQuery(`
+        SELECT ${statType} FROM VoiceStats WHERE ServerId = ? AND UserId = ?
+      `, serverId, userId)
+    }
+    else {
+      response = this.client.db.runQuery(`
+        SELECT ${statType}, UserId FROM VoiceStats WHERE ServerId = ?
+      `, serverId)
+    }
+    if (!response.length) {
+      response = [{ [statType]: 0, UserId: "None" }]
+    }
+    return response
   }
 
   round1000 (num) {
