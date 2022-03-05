@@ -96,6 +96,9 @@ class VoiceTracker {
     if (!(oldMember.id in this.monitor)) {
       this.monitor[oldMember.id] = { serverId: oldMember.guild.id }
     }
+    else if (oldMember.guild.id !== this.monitor[oldMember.id].serverId) {
+      this.monitor[oldMember.id].serverId = oldMember.guild.id
+    }
 
     const mon = this.monitor[oldMember.id]
     const curTime = new Date().getTime()
@@ -148,9 +151,11 @@ class VoiceTracker {
       }
       // User left another voice channel
       else {
-        const duration = curTime - mon.active
-        delete mon.active
-        changes.active = duration
+        if (mon.active > 0) {
+          const duration = curTime - mon.active
+          delete mon.active
+          changes.active = duration
+        }
         this.trackingFields.forEach(k => {
           if (k in mon) {
             const duration = curTime - mon[k]
@@ -188,9 +193,11 @@ class VoiceTracker {
       // Moved to AFK
       else if (newMember.channelID === oldMember.guild.afkChannelID) {
         mon.afk = curTime
-        const duration = curTime - mon.active
-        delete mon.active
-        changes.active = duration
+        if (mon.active > 0) {
+          const duration = curTime - mon.active
+          delete mon.active
+          changes.active = duration
+        }
 
         // User is in AFK now, stop tracking other stats
         this.trackingFields.forEach(k => {
@@ -371,6 +378,24 @@ class VoiceTracker {
     }
 
     return embed
+  }
+
+  getIndividualUser (serverId, userId, statType) {
+    let response
+    if (userId) {
+      response = this.client.db.runQuery(`
+        SELECT ${statType} FROM VoiceStats WHERE ServerId = ? AND UserId = ?
+      `, serverId, userId)
+    }
+    else {
+      response = this.client.db.runQuery(`
+        SELECT ${statType}, UserId FROM VoiceStats WHERE ServerId = ?
+      `, serverId)
+    }
+    if (!response.length) {
+      response = [{ [statType]: 0, UserId: "None" }]
+    }
+    return response
   }
 
   round1000 (num) {
