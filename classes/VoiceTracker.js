@@ -245,9 +245,9 @@ class VoiceTracker {
           ServerMute = ServerMute + ?,
           ServerDeaf = ServerDeaf + ?,
           Afk = Afk + ?,
-          SelfMuteMax = CASE WHEN SelfMute + ? > SelfMuteMax THEN SelfMute + ? ELSE SelfMuteMax END,
-          SelfDeafMax = CASE WHEN SelfDeaf + ? > SelfDeafMax THEN SelfDeaf + ? ELSE SelfDeafMax END,
-          AfkMax = CASE WHEN Afk + ? > AfkMax THEN Afk + ? ELSE AfkMax END,
+          SelfMuteMax = CASE WHEN ? > SelfMuteMax THEN ? ELSE SelfMuteMax END,
+          SelfDeafMax = CASE WHEN ? > SelfDeafMax THEN ? ELSE SelfDeafMax END,
+          AfkMax = CASE WHEN ? > AfkMax THEN ? ELSE AfkMax END,
           Active = Active + ?
         WHERE ServerId = ?
           AND UserId = ?
