@@ -5,7 +5,7 @@ const { Util } = require("discord.js")
 const humanizeDuration = require("humanize-duration")
 
 module.exports = class extends Command {
-  constructor(client) {
+  constructor (client) {
     super(client, {
       name: "leaderboard",
       aliases: ["lb"],
@@ -30,7 +30,7 @@ module.exports = class extends Command {
     })
   }
 
-  getHelpMessage(prefix) {
+  getHelpMessage (prefix) {
     return `
 __**${prefix}lb command:**__    
 \`${prefix}lb\` - Display top 3 leaders for each category
@@ -41,7 +41,7 @@ __**${prefix}lb command:**__
 \`${prefix}lb\` \`off\` - Set your status to off to reset times, hide from the leaderboard and stop recording times`
   }
 
-  async run(msg, args) {
+  async run (msg, args) {
     msg.react("🏆")
 
     const mainUserId = getUserId(msg, args.arg2.toLowerCase())
@@ -49,12 +49,14 @@ __**${prefix}lb command:**__
     if (msg.client.voiceTracker) {
       if (args.arg1.toLowerCase() === "show" || args.arg1.toLowerCase() === "off" || args.arg1.toLowerCase() === "hide") {
         await msg.client.voiceTracker.updateStatus(msg.guild.id, msg, args.arg1.toLowerCase(), msg.author.id)
-      } else {
+      }
+      else {
         if (mainUserId) {
           const status = msg.client.voiceTracker.getStatus(msg.guild.id, mainUserId)
           if (status === "off") {
             return msg.reply(findUsernameFromId(mainUserId) + " has turned off their tracking")
-          } else if (status === "hide") {
+          }
+          else if (status === "hide") {
             return msg.reply(findUsernameFromId(mainUserId) + " has hidden their tracking")
           }
         }
@@ -134,7 +136,8 @@ __**${prefix}lb command:**__
         else {
           if (args.arg1 || args.arg2) {
             msg.reply(this.getHelpMessage(msg.client.commandPrefix))
-          } else {
+          }
+          else {
             const leaderboard = await msg.client.voiceTracker.getLeaderboard(msg.guild.id, { username: msg.author.displayName, avatarURL: msg.author.displayAvatarURL() }, msg.guild.members)
             if (leaderboard) {
               msg.reply({ embed: leaderboard })
@@ -144,7 +147,7 @@ __**${prefix}lb command:**__
       }
     }
 
-    function getUserId(msg, user) {
+    function getUserId (msg, user) {
       let userId
       msg.guild.members.cache.forEach(mem => {
         if (mem.nickname) {
@@ -159,7 +162,7 @@ __**${prefix}lb command:**__
       return userId
     }
 
-    function findUsernameFromId(userId) {
+    function findUsernameFromId (userId) {
       if (msg.guild.members.cache.has(userId)) {
         const greg = msg.guild.members.cache.get(userId)
         if (greg.nickname) {
@@ -174,7 +177,7 @@ __**${prefix}lb command:**__
       }
     }
 
-    function formatDbData(data, statType) {
+    function formatDbData (data, statType) {
       data.sort((a, b) => b[statType] - a[statType])
       return Util.splitMessage(data.map((obj, index) => (index + 1) + ". " + Util.escapeMarkdown(findUsernameFromId(obj.UserId) + " has been  " + statType + " for " + humanizeDuration(round1000(obj[statType])))), { maxLength: 1024 }).map((str, idx) => ({
         name: `${statType} Lb ${idx + 1}`,
@@ -182,14 +185,14 @@ __**${prefix}lb command:**__
       }))
     }
 
-    function round1000(num) {
+    function round1000 (num) {
       if (num < 1000) {
         return Math.ceil(num / 100) * 100
       }
       return Math.round(num / 1000) * 1000
     }
 
-    function cusEmbed(statType) {
+    function cusEmbed (statType) {
       return {
         embed: {
           color: 0x0099ff,
