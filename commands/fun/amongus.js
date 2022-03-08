@@ -7,7 +7,7 @@ module.exports = class extends Command {
     super(client, {
       name: "amongus",
       aliases: ["a"],
-      group: "fun",
+      group: "fun",//test
       memberName: "amongus",
       description: "Among Us - hats, pets & skins",
       args: [
