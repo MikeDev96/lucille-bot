@@ -23,14 +23,23 @@ class VoiceTracker {
         SelfMuteMax INTEGER,
         SelfDeafMax INTEGER,
         AfkMax      INTEGER,
+        Active      INTEGER,
+        Status      STRING,
         PRIMARY KEY (ServerId, UserId)
       )
     `)
 
     try {
-      this.db.exec(`SELECT Active FROM VoiceStats`)
+      this.db.exec(`SELECT Status FROM VoiceStats`)
     }
     catch {
+      this.db.exec(`ALTER TABLE VoiceStats ADD COLUMN Status STRING DEFAULT 'show'`)
+    }
+
+    try {
+      this.db.exec(`SELECT Active FROM VoiceStats`)
+    }
+    catch (error) {
       this.db.exec(`ALTER TABLE VoiceStats ADD COLUMN Active INTEGER DEFAULT 0`)
     }
   }
@@ -244,7 +253,7 @@ class VoiceTracker {
       const userId = oldMember.id
 
       this.client.db.run(`
-        INSERT INTO VoiceStats VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO VoiceStats VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ON CONFLICT(ServerId, UserId) DO UPDATE
         SET
           SelfMute = SelfMute + ?,
@@ -258,7 +267,7 @@ class VoiceTracker {
           Active = Active + ?
         WHERE ServerId = ?
           AND UserId = ?
-      `, serverId, userId, changes.selfMute, changes.selfDeaf, changes.serverMute, changes.serverDeaf, changes.afk, changes.selfMute, changes.selfDeaf, changes.afk, changes.active,
+      `, serverId, userId, changes.selfMute, changes.selfDeaf, changes.serverMute, changes.serverDeaf, changes.afk, changes.selfMute, changes.selfDeaf, changes.afk, changes.active, "show",
       changes.selfMute, changes.selfDeaf, changes.serverMute, changes.serverDeaf, changes.afk, changes.selfMute, changes.selfMute, changes.selfDeaf, changes.selfDeaf, changes.afk, changes.afk, changes.active, serverId, userId)
     }
   }
@@ -284,9 +293,56 @@ class VoiceTracker {
     }
   }
 
+  async updateStatus (serverId, msg, status, userId) {
+    try {
+      if (status === "off") {
+        this.client.db.run(`UPDATE VoiceStats
+          SET
+            SelfMute = NULL,
+            SelfDeaf = NULL,
+            ServerMute = NULL,
+            ServerDeaf = NULL,
+            Afk = NULL,
+            SelfMuteMax = NULL,
+            SelfDeafMax = NULL,
+            AfkMax = NULL,
+            Active = NULL
+          WHERE ServerId = ${serverId} AND UserId = ${userId}`)
+      }
+      else {
+        const response = this.client.db.runQuery(`
+        SELECT Status FROM VoiceStats WHERE ServerId = ? AND UserId = ?
+      `, serverId, userId)
+
+        if (response[0].Status === "off") {
+          this.client.db.run(`UPDATE VoiceStats
+            SET
+              SelfMute = 0,
+              SelfDeaf = 0,
+              ServerMute = 0,
+              ServerDeaf = 0,
+              Afk = 0,
+              SelfMuteMax = 0,
+              SelfDeafMax = 0,
+              AfkMax = 0,
+              Active = 0
+            WHERE ServerId = ? AND UserId = ?
+          `, serverId, userId)
+        }
+      }
+
+      this.client.db.run(`UPDATE VoiceStats SET Status='${status}' WHERE ServerId = ${serverId} AND UserId = ${userId}`)
+      msg.reply(`Your status has been updated to ${status}`)
+    }
+    catch (error) {
+      console.log(error)
+      msg.reply("Unable to update status")
+    }
+  }
+
   async getLeaderboard (serverId, author = {}, members = {}) {
     const currentServer = this.client.guilds.cache.get(serverId)
-    const server = this.client.db.runQuery(`SELECT * FROM VoiceStats WHERE ServerId = ${serverId}`)
+    const server = this.client.db.runQuery(`SELECT * FROM VoiceStats WHERE ServerId = ${serverId} AND Status='show'`)
     if (!server) {
       return false
     }
@@ -389,13 +445,26 @@ class VoiceTracker {
     }
     else {
       response = this.client.db.runQuery(`
-        SELECT ${statType}, UserId FROM VoiceStats WHERE ServerId = ?
+        SELECT ${statType}, UserId FROM VoiceStats WHERE ServerId = ? AND Status = 'show' AND ${statType} IS NOT NULL
       `, serverId)
     }
     if (!response.length) {
-      response = [{ [statType]: 0, UserId: "None" }]
+      response = [{ [statType]: 0, UserId: "None", Status: null }]
     }
+
     return response
+  }
+
+  getStatus (serverId, userId) {
+    let response = this.client.db.runQuery(`
+        SELECT Status FROM VoiceStats WHERE ServerId = ? AND UserId = ?
+      `, serverId, userId)
+
+    if (!response.length) {
+      response = [{ Status: null }]
+    }
+
+    return response[0].Status
   }
 
   round1000 (num) {

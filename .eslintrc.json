@@ -32,10 +32,6 @@
       "error",
       "never"
     ],
-    "linebreak-style": [
-      "error",
-      "windows"
-    ], 
     "indent": ["error", 2]
   }
 }
