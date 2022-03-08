@@ -2,14 +2,14 @@ const humanizeDuration = require("humanize-duration")
 const config = require("../config.json")
 
 class VoiceTracker {
-  constructor (client) {
+  constructor(client) {
     this.client = client
     this.monitor = {}
     this.trackingFields = ["selfMute", "selfDeaf", "serverMute", "serverDeaf"]
     this.initClient()
   }
 
-  initVoiceStats () {
+  initVoiceStats() {
     this.db.exec(`
       CREATE TABLE IF NOT EXISTS VoiceStats
       (
@@ -23,24 +23,32 @@ class VoiceTracker {
         SelfMuteMax INTEGER,
         SelfDeafMax INTEGER,
         AfkMax      INTEGER,
+        Active      INTEGER,
+        Status      STRING,
         PRIMARY KEY (ServerId, UserId)
       )
     `)
 
     try {
-      this.db.exec(`SELECT Active FROM VoiceStats`)
+      this.db.exec(`SELECT Status FROM VoiceStats`)
     }
     catch {
+      this.db.exec(`ALTER TABLE VoiceStats ADD COLUMN Status STRING DEFAULT 'show'`)
+    }
+
+    try {
+      this.db.exec(`SELECT Active FROM VoiceStats`)
+    } catch (error) {
       this.db.exec(`ALTER TABLE VoiceStats ADD COLUMN Active INTEGER DEFAULT 0`)
     }
   }
 
-  initClient () {
+  initClient() {
     this.client.once("ready", this.initiateMonitor.bind(this))
     this.client.on("voiceStateUpdate", this.voiceStateUpdate.bind(this))
   }
 
-  initiateMonitor () {
+  initiateMonitor() {
     const curTime = new Date().getTime()
 
     this.client.guilds.cache.forEach(serverId => {
@@ -70,7 +78,7 @@ class VoiceTracker {
     this.periodicallySave()
   }
 
-  periodicallySave () {
+  periodicallySave() {
     setInterval(() => {
       const curTime = new Date().getTime()
       const users = Object.entries(this.monitor)
@@ -92,7 +100,7 @@ class VoiceTracker {
     }, 5 * 60 * 1e3)
   }
 
-  async voiceStateUpdate (oldMember, newMember) {
+  async voiceStateUpdate(oldMember, newMember) {
     if (!(oldMember.id in this.monitor)) {
       this.monitor[oldMember.id] = { serverId: oldMember.guild.id }
     }
@@ -112,7 +120,7 @@ class VoiceTracker {
       selfMuteMax: 0,
       selfDeafMax: 0,
       afkMax: 0,
-      active: 0,
+      active: 0
     }
 
     // User joined the voice channel
@@ -244,7 +252,7 @@ class VoiceTracker {
       const userId = oldMember.id
 
       this.client.db.run(`
-        INSERT INTO VoiceStats VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO VoiceStats VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ON CONFLICT(ServerId, UserId) DO UPDATE
         SET
           SelfMute = SelfMute + ?,
@@ -258,12 +266,12 @@ class VoiceTracker {
           Active = Active + ?
         WHERE ServerId = ?
           AND UserId = ?
-      `, serverId, userId, changes.selfMute, changes.selfDeaf, changes.serverMute, changes.serverDeaf, changes.afk, changes.selfMute, changes.selfDeaf, changes.afk, changes.active,
-      changes.selfMute, changes.selfDeaf, changes.serverMute, changes.serverDeaf, changes.afk, changes.selfMute, changes.selfMute, changes.selfDeaf, changes.selfDeaf, changes.afk, changes.afk, changes.active, serverId, userId)
+      `, serverId, userId, changes.selfMute, changes.selfDeaf, changes.serverMute, changes.serverDeaf, changes.afk, changes.selfMute, changes.selfDeaf, changes.afk, changes.active, "show",
+        changes.selfMute, changes.selfDeaf, changes.serverMute, changes.serverDeaf, changes.afk, changes.selfMute, changes.selfMute, changes.selfDeaf, changes.selfDeaf, changes.afk, changes.afk, changes.active, serverId, userId)
     }
   }
 
-  checkIfActive (obj, tracking) {
+  checkIfActive(obj, tracking) {
     let isActive = true
     tracking.forEach(e => {
       if (obj[e]) {
@@ -273,20 +281,65 @@ class VoiceTracker {
     return isActive
   }
 
-  formatMs (ms) {
+  formatMs(ms) {
     return `${humanizeDuration(this.round1000(ms))}`
   }
 
-  async notify (channel, displayName, isServer, method, duration) {
+  async notify(channel, displayName, isServer, method, duration) {
     const replyMsg = await channel.send(`\`${displayName}\` was ${isServer ? "server " : ""}${method} for ${this.formatMs(duration)}`)
     if (replyMsg === 0) {
       replyMsg.react("🏆")
     }
   }
 
-  async getLeaderboard (serverId, author = {}, members = {}) {
+  async updateStatus(serverId, msg, status, userId) {
+    try {
+      if (status === "off") {
+        this.client.db.run(`UPDATE VoiceStats
+          SET
+            SelfMute = NULL,
+            SelfDeaf = NULL,
+            ServerMute = NULL,
+            ServerDeaf = NULL,
+            Afk = NULL,
+            SelfMuteMax = NULL,
+            SelfDeafMax = NULL,
+            AfkMax = NULL,
+            Active = NULL
+          WHERE ServerId = ${serverId} AND UserId = ${userId}`)
+      } else {
+        const response = this.client.db.runQuery(`
+        SELECT Status FROM VoiceStats WHERE ServerId = ? AND UserId = ?
+      `, serverId, userId)
+
+        if (response[0].Status === "off") {
+          this.client.db.run(`UPDATE VoiceStats
+            SET
+              SelfMute = 0,
+              SelfDeaf = 0,
+              ServerMute = 0,
+              ServerDeaf = 0,
+              Afk = 0,
+              SelfMuteMax = 0,
+              SelfDeafMax = 0,
+              AfkMax = 0,
+              Active = 0
+            WHERE ServerId = ? AND UserId = ?
+          `, serverId, userId)
+        }
+      }
+
+      this.client.db.run(`UPDATE VoiceStats SET Status='${status}' WHERE ServerId = ${serverId} AND UserId = ${userId}`)
+      msg.reply(`Your status has been updated to ${status}`)
+    } catch (error) {
+      console.log(error)
+      msg.reply("Unable to update status")
+    }
+  }
+
+  async getLeaderboard(serverId, author = {}, members = {}) {
     const currentServer = this.client.guilds.cache.get(serverId)
-    const server = this.client.db.runQuery(`SELECT * FROM VoiceStats WHERE ServerId = ${serverId}`)
+    const server = this.client.db.runQuery(`SELECT * FROM VoiceStats WHERE ServerId = ${serverId} AND Status='show'`)
     if (!server) {
       return false
     }
@@ -380,7 +433,7 @@ class VoiceTracker {
     return embed
   }
 
-  getIndividualUser (serverId, userId, statType) {
+  getIndividualUser(serverId, userId, statType) {
     let response
     if (userId) {
       response = this.client.db.runQuery(`
@@ -389,16 +442,29 @@ class VoiceTracker {
     }
     else {
       response = this.client.db.runQuery(`
-        SELECT ${statType}, UserId FROM VoiceStats WHERE ServerId = ?
+        SELECT ${statType}, UserId FROM VoiceStats WHERE ServerId = ? AND Status = 'show' AND ${statType} IS NOT NULL
       `, serverId)
     }
     if (!response.length) {
-      response = [{ [statType]: 0, UserId: "None" }]
+      response = [{ [statType]: 0, UserId: "None", Status: null }]
     }
+
     return response
   }
 
-  round1000 (num) {
+  getStatus(serverId, userId) {
+    let response = this.client.db.runQuery(`
+        SELECT Status FROM VoiceStats WHERE ServerId = ? AND UserId = ?
+      `, serverId, userId)
+
+    if (!response.length) {
+      response = [{ Status: null }]
+    }
+
+    return response[0].Status
+  }
+
+  round1000(num) {
     if (num < 1000) {
       return Math.ceil(num / 100) * 100
     }
@@ -406,7 +472,7 @@ class VoiceTracker {
     return Math.round(num / 1000) * 1000
   }
 
-  static applyToClass (structure) {
+  static applyToClass(structure) {
     for (const prop of Object.getOwnPropertyNames(VoiceTracker.prototype).slice(1)) {
       Object.defineProperty(structure.prototype, prop, Object.getOwnPropertyDescriptor(VoiceTracker.prototype, prop))
     }
