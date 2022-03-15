@@ -1,5 +1,7 @@
+const { Speaking } = require("discord.js")
 const humanizeDuration = require("humanize-duration")
 const config = require("../config.json")
+const VoiceStateAdapter = require("./VoiceStateAdapter")
 
 class VoiceTracker {
   constructor (client) {
@@ -25,6 +27,8 @@ class VoiceTracker {
         AfkMax      INTEGER,
         Active      INTEGER,
         Status      STRING,
+        Speaking    INTEGER,
+        SpeakingMax INTEGER,
         PRIMARY KEY (ServerId, UserId)
       )
     `)
@@ -42,11 +46,26 @@ class VoiceTracker {
     catch (error) {
       this.db.exec(`ALTER TABLE VoiceStats ADD COLUMN Active INTEGER DEFAULT 0`)
     }
+
+    try {
+      this.db.exec(`SELECT Speaking FROM VoiceStats`)
+    }
+    catch (error) {
+      this.db.exec(`ALTER TABLE VoiceStats ADD COLUMN Speaking INTEGER DEFAULT 0`)
+    }
+
+    try {
+      this.db.exec(`SELECT SpeakingMax FROM VoiceStats`)
+    }
+    catch (error) {
+      this.db.exec(`ALTER TABLE VoiceStats ADD COLUMN SpeakingMax INTEGER DEFAULT 0`)
+    }
   }
 
   initClient () {
     this.client.once("ready", this.initiateMonitor.bind(this))
     this.client.on("voiceStateUpdate", this.voiceStateUpdate.bind(this))
+    this.initSpeechTracking()
   }
 
   initiateMonitor () {
@@ -253,7 +272,7 @@ class VoiceTracker {
       const userId = oldMember.id
 
       this.client.db.run(`
-        INSERT INTO VoiceStats VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO VoiceStats VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ON CONFLICT(ServerId, UserId) DO UPDATE
         SET
           SelfMute = SelfMute + ?,
@@ -267,7 +286,7 @@ class VoiceTracker {
           Active = Active + ?
         WHERE ServerId = ?
           AND UserId = ?
-      `, serverId, userId, changes.selfMute, changes.selfDeaf, changes.serverMute, changes.serverDeaf, changes.afk, changes.selfMute, changes.selfDeaf, changes.afk, changes.active, "show",
+      `, serverId, userId, changes.selfMute, changes.selfDeaf, changes.serverMute, changes.serverDeaf, changes.afk, changes.selfMute, changes.selfDeaf, changes.afk, changes.active, "show", 0, 0,
       changes.selfMute, changes.selfDeaf, changes.serverMute, changes.serverDeaf, changes.afk, changes.selfMute, changes.selfMute, changes.selfDeaf, changes.selfDeaf, changes.afk, changes.afk, changes.active, serverId, userId)
     }
   }
@@ -306,7 +325,9 @@ class VoiceTracker {
             SelfMuteMax = NULL,
             SelfDeafMax = NULL,
             AfkMax = NULL,
-            Active = NULL
+            Active = NULL,
+            Speaking = NULL,
+            SpeakingMax = NULL
           WHERE ServerId = ${serverId} AND UserId = ${userId}`)
       }
       else {
@@ -325,7 +346,9 @@ class VoiceTracker {
               SelfMuteMax = 0,
               SelfDeafMax = 0,
               AfkMax = 0,
-              Active = 0
+              Active = 0,
+              Speaking = 0,
+              SpeakingMax = 0
             WHERE ServerId = ? AND UserId = ?
           `, serverId, userId)
         }
@@ -342,7 +365,7 @@ class VoiceTracker {
 
   async getLeaderboard (serverId, author = {}, members = {}) {
     const currentServer = this.client.guilds.cache.get(serverId)
-    const server = this.client.db.runQuery(`SELECT * FROM VoiceStats WHERE ServerId = ${serverId} AND Status='show'`)
+    const server = this.client.db.runQuery(`SELECT * FROM VoiceStats WHERE ServerId = ${serverId} AND Status = 'show'`)
     if (!server) {
       return false
     }
@@ -360,6 +383,8 @@ class VoiceTracker {
     const afkSort = [...keys]
     const afkDurationSort = [...keys]
     const activeSort = [...keys]
+    const speakingSort = [...keys]
+    const speakingMaxSort = [...keys]
 
     muteSort.sort((aValue, bValue) => bValue.SelfMute + bValue.ServerMute - aValue.SelfMute + aValue.ServerMute)
     muteDurationSort.sort((aValue, bValue) => (bValue.SelfMuteMax || 0) - (aValue.SelfMuteMax || 0))
@@ -369,6 +394,8 @@ class VoiceTracker {
     afkSort.sort((aValue, bValue) => (bValue.Afk || 0) - (aValue.Afk || 0))
     afkDurationSort.sort((aValue, bValue) => (bValue.AfkMax || 0) - (aValue.AfkMax || 0))
     activeSort.sort((aValue, bValue) => (bValue.Active || 0) - (aValue.Active || 0))
+    speakingSort.sort((aValue, bValue) => bValue.Speaking - aValue.Speaking)
+    speakingMaxSort.sort((aValue, bValue) => bValue.SpeakingMax - aValue.SpeakingMax)
 
     const fields = [
       ["Quiet", quietestSort, data => data.SelfMute + data.ServerMute + data.SelfDeaf + data.ServerDeaf + (data.Afk || 0)],
@@ -379,6 +406,8 @@ class VoiceTracker {
       ["AFK", afkSort, data => data.Afk],
       ["AFK ⏲️", afkDurationSort, data => data.AfkMax],
       ["Active", activeSort, data => data.Active],
+      ["Speaking", speakingSort, data => data.Speaking],
+      ["Speaking ⏲️", speakingMaxSort, data => data.SpeakingMax],
     ].reduce((acc, [header, data, getValue]) => {
       const rows = []
       for (let i = 0; i < Math.min(keys.length, 3); i++) {
@@ -398,6 +427,12 @@ class VoiceTracker {
       inline: true,
     })
 
+    fields.push({
+      name: "\u200b",
+      value: "\u200b",
+      inline: true,
+    })
+
     const usersNonCached = {
       quietestSort: (await members.fetch(quietestSort[0].UserId)).user.username,
       muteSort: (await members.fetch(muteSort[0].UserId)).user.username,
@@ -407,6 +442,8 @@ class VoiceTracker {
       afkSort: (await members.fetch(afkSort[0].UserId)).user.username,
       afkDurationSort: (await members.fetch(afkDurationSort[0].UserId)).user.username,
       activeSort: (await members.fetch(activeSort[0].UserId)).user.username,
+      speakingSort: (await members.fetch(speakingSort[0].UserId)).user.username,
+      speakingMaxSort: (await members.fetch(speakingMaxSort[0].UserId)).user.username,
     }
 
     const embed = {
@@ -425,6 +462,8 @@ class VoiceTracker {
         `• ${usersNonCached.afkSort} has afk'd for the longest at ${humanizeDuration(this.round1000(afkSort[0].Afk))}`,
         `• ${usersNonCached.afkDurationSort} has afk'd for the longest in one session at ${humanizeDuration(this.round1000(afkDurationSort[0].AfkMax))}`,
         `• ${usersNonCached.activeSort} has been active for the longest at ${humanizeDuration(this.round1000(activeSort[0].Active))}`,
+        `• ${usersNonCached.speakingSort} has spoken the most at ${humanizeDuration(this.round1000(speakingSort[0].Speaking))}`,
+        `• ${usersNonCached.speakingMaxSort} has spoken for the longest time at ${humanizeDuration(this.round1000(speakingMaxSort[0].SpeakingMax))}`,
       ].join("\n"),
       fields,
       footer: {
@@ -473,6 +512,48 @@ class VoiceTracker {
     }
 
     return Math.round(num / 1000) * 1000
+  }
+
+  initSpeechTracking () {
+    const vsa = new VoiceStateAdapter(this.client)
+    const monitor = new Map()
+
+    const joinCallback = ({ voiceState }) => {
+      if (voiceState.id === this.client.user.id) {
+        const guildId = voiceState.guild.id
+        voiceState.connection.on("speaking", (user, speaking) => {
+          if (user.bot) return
+
+          if (speaking.has(Speaking.FLAGS.SPEAKING)) {
+            monitor.set(user.id, Date.now())
+          }
+          else {
+            if (monitor.has(user.id)) {
+              const duration = Date.now() - monitor.get(user.id)
+              monitor.delete(user.id)
+
+              this.updateSpeech(guildId, user.id, duration)
+            }
+          }
+        })
+      }
+    }
+
+    vsa.on("join", joinCallback.bind(this))
+    vsa.on("move", joinCallback.bind(this))
+  }
+
+  updateSpeech (guild, user, duration) {
+    this.client.db.run(`
+      INSERT INTO VoiceStats VALUES (?, ?, 0, 0, 0, 0, 0, 0, 0, 0, 0, 'show', ?, ?)
+      ON CONFLICT(ServerId, UserId) DO UPDATE
+      SET
+        Speaking = Speaking + ?,
+        SpeakingMax = CASE WHEN ? > SpeakingMax THEN ? ELSE SpeakingMax END
+      WHERE ServerId = ?
+        AND UserId = ?
+        AND Status != 'off'
+    `, guild, user, duration, duration, duration, duration, duration, guild, user)
   }
 
   static applyToClass (structure) {

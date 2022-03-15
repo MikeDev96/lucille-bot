@@ -133,6 +133,22 @@ __**${prefix}lb command:**__
             paginatedEmbed(msg, cusEmbed("AfkMax"), formatDbData(msg.client.voiceTracker.getIndividualUser(msg.guild.id, null, "AfkMax"), "AfkMax"))
           }
         }
+        else if (["speaking", "selfspeaking"].includes(args.arg1.toLowerCase())) {
+          if (mainUserId) {
+            msg.reply(findUsernameFromId(mainUserId) + " is Speaking for " + humanizeDuration(msg.client.voiceTracker.getIndividualUser(msg.guild.id, mainUserId, "Speaking")[0].Speaking))
+          }
+          else {
+            paginatedEmbed(msg, cusEmbed("Speaking"), formatDbData(msg.client.voiceTracker.getIndividualUser(msg.guild.id, null, "Speaking"), "Speaking"))
+          }
+        }
+        else if (["speakingmax", "selfspeakingmax"].includes(args.arg1.toLowerCase())) {
+          if (mainUserId) {
+            msg.reply(findUsernameFromId(mainUserId) + " is SpeakingMax for " + humanizeDuration(msg.client.voiceTracker.getIndividualUser(msg.guild.id, mainUserId, "SpeakingMax")[0].SpeakingMax))
+          }
+          else {
+            paginatedEmbed(msg, cusEmbed("SpeakingMax"), formatDbData(msg.client.voiceTracker.getIndividualUser(msg.guild.id, null, "SpeakingMax"), "SpeakingMax"))
+          }
+        }
         else {
           if (args.arg1 || args.arg2) {
             msg.reply(this.getHelpMessage(msg.client.commandPrefix))
