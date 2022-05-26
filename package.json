@@ -23,7 +23,7 @@
     "discord.js": "^12.5.3",
     "discord.js-commando": "^0.11.1",
     "dotenv": "^8.6.0",
-    "eventsource": "^1.1.0",
+    "eventsource": "^2.0.2",
     "express": "^4.17.1",
     "fast-speedtest-api": "^0.3.2",
     "ffmpeg-static": "^4.4.0",
