@@ -9,7 +9,6 @@ const fs = require("fs")
 const { RadioMetadata } = require("./RadioMetadata")
 const axios = require("axios")
 const MusicToX = require("./MusicToX")
-const RadioAdBlock = require("./RadioAdBlock")
 const { searchYouTube } = require("../helpers")
 const { getStream, getFfmpegStream } = require("./YouTubeToStream")
 const MusicState = require("./MusicState")
@@ -34,7 +33,6 @@ module.exports = class Music extends MusicState {
       volume: 100,
       playedConnectSound: false,
       repeat: "off",
-      radioAdBlock: new RadioAdBlock(),
       summoned: false,
       embedId: "",
     })
@@ -45,10 +43,6 @@ module.exports = class Music extends MusicState {
     this.progressHandle = null
     this.listenTimeHandle = null
     this.streamTimeCache = 0
-
-    this.state.radioAdBlock.on("volume", volume => {
-      this.setVolume(volume, true)
-    })
 
     guild.client.once("ready", async () => {
       // If an embed exists from the previous instance, delete it
@@ -470,14 +464,10 @@ module.exports = class Music extends MusicState {
     this.updateEmbed()
   }
 
-  setVolume (volume, isRadioAdBlock = false) {
+  setVolume (volume) {
     this.setState({ volume })
     this.dispatcherExec(d => d.setVolumeLogarithmic(volume / 100))
     this.updateEmbed()
-
-    if (!isRadioAdBlock) {
-      this.state.radioAdBlock.setVolume(volume)
-    }
   }
 
   cleanProgress () {
@@ -503,7 +493,6 @@ module.exports = class Music extends MusicState {
       instance.on("data", async info => {
         item.setRadioMetadata(info)
         item.setRadioMusicToX(null)
-        this.state.radioAdBlock.toggle(!info.artist && !info.title)
 
         this.updateEmbed(true)
         await this.radioMusicToX(item)
@@ -517,7 +506,6 @@ module.exports = class Music extends MusicState {
       item.setRadioInstance(null)
       item.setRadioMetadata(null)
       item.setRadioMusicToX(null)
-      this.state.radioAdBlock.toggle(false)
     }
   }
 
@@ -648,11 +636,6 @@ module.exports = class Music extends MusicState {
           ...this.state.repeat !== "off" ? [{
             name: "Repeat",
             value: mapRepeatTypeToEmoji(this.state.repeat),
-            inline: true,
-          }] : [],
-          ...currentlyPlaying.platform === PLATFORM_RADIO && !this.state.radioAdBlock.isMethod(RadioAdBlock.METHOD_OFF) ? [{
-            name: "Radio AdBlock",
-            value: (this.state.radioAdBlock.isMethod(RadioAdBlock.METHOD_LOWER) ? "🔉" : "🔈") + (this.state.radioAdBlock.isBlocking() ? "🟢" : "🔴"),
             inline: true,
           }] : [],
           ...currentlyPlaying.duration > 0 ? [{
