@@ -277,18 +277,19 @@ module.exports = class Music extends MusicState {
       this.updateEmbed()
     }
 
-    const stream = await this.getMediaStream(item)
-    if (!stream) {
+    const streamData = await this.getMediaStream(item)
+    if (!streamData) {
       return
     }
 
+    const { stream, type } = streamData
     this.stream = stream
 
     // Using on readable makes the transition smoother when restarting the stream.
     // i.e. when changing the bass boost
     // TODO: Handle the error event
     stream.once("readable", () => {
-      const dispatcher = this.state.voiceConnection.play(stream, { type: "opus" })
+      const dispatcher = this.state.voiceConnection.play(stream, { type })
       dispatcher.setVolumeLogarithmic([TrackExtractor.PLATFORM_CONNECT, TrackExtractor.PLATFORM_DISCONNECT].includes(item.platform) ? 3 : this.state.volume / 100)
 
       dispatcher.on("start", () => {
@@ -369,7 +370,7 @@ module.exports = class Music extends MusicState {
 
           item.setRequestStream(res)
 
-          return getFfmpegStream(res.data, { startTime: 0, filters: this.getAudioFilters() })
+          return { stream: getFfmpegStream(res.data, { startTime: 0, filters: this.getAudioFilters() }), type: "opus" }
         }
         catch (err) {
           console.log("Error occured when getting radio stream")
@@ -378,7 +379,7 @@ module.exports = class Music extends MusicState {
       }
     }
 
-    return getFfmpegStream(item.link, { startTime: 0, filters: this.getAudioFilters() })
+    return { stream: getFfmpegStream(item.link, { startTime: 0, filters: this.getAudioFilters() }), type: "opus" }
   }
 
   syncTime (ms = 0) {

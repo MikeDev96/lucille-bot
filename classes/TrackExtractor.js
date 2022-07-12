@@ -1,12 +1,12 @@
 const SpotifyWebApi = require("spotify-web-api-node")
 const config = require("../config.json")
 const axios = require("axios")
-const ytdl = require("ytdl-core")
 const Track = require("./Track")
 const queryString = require("query-string")
 const parseDuration = require("parse-duration")
 const ytpl = require("ytpl")
 const parseTime = require("m3u8stream/dist/parse-time")
+const youtubei = require("youtubei")
 
 const PLATFORM_SPOTIFY = "spotify"
 const PLATFORM_TIDAL = "tidal"
@@ -271,19 +271,18 @@ module.exports = class {
   async getYouTube (type, id, startTime) {
     try {
       if (type === "track") {
-        const info = await ytdl.getBasicInfo(`https://youtube.com/watch?v=${id}`)
-        return [
-          new Track(
-            info.videoDetails.author.name,
-            info.videoDetails.title,
-            info.videoDetails.thumbnails[info.videoDetails.thumbnails.length - 1].url,
-          ).setPlatform(PLATFORM_YOUTUBE)
-            .setLink(info.videoDetails.video_url)
-            .setYouTubeId(info.videoDetails.videoId)
-            .setYouTubeTitle(info.videoDetails.title)
-            .setDuration(parseInt(info.videoDetails.lengthSeconds))
-            .setStartTime(startTime),
-        ]
+        const video = await new youtubei.Client().getVideo(id)
+        if (video) {
+          return [
+            new Track(video.channel.name, video.title, video.thumbnails[video.thumbnails.length - 1].url)
+              .setPlatform(PLATFORM_YOUTUBE)
+              .setLink(`https://www.youtube.com/watch?v=${video.id}`)
+              .setYouTubeId(video.id)
+              .setYouTubeTitle(video.title)
+              .setDuration(video instanceof youtubei.Video ? video.duration : 0)
+              .setStartTime(startTime ?? 0),
+          ]
+        }
       }
       else if (type === "playlist") {
         const res = await ytpl(id, { limit: Infinity })
