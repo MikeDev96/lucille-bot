@@ -24,14 +24,18 @@ module.exports = Structures.extend("Guild", Guild => {
             fs.readFile(emoji.path, (err, data) => {
               if (!err) {
                 this.emojis.create(data, emoji.name, { roles: [botRole], reason: "Used by Lucille" })
+                  .then(guildEmoji => {
+                    this.customEmojis[emoji.name] = guildEmoji.toString()
+                  })
               }
               else {
                 console.log(err)
               }
             })
           }
-
+          else {
           this.customEmojis[emoji.name] = this.emojis.cache.find(e => e.name === emoji.name).toString()
+          }
         })
       }
       else {
