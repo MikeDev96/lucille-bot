@@ -1,9 +1,12 @@
-const { throttle } = require("lodash")
-const Track = require("./Track")
-const radios = require("../radios.json")
-const Requestee = require("./Requestee")
+import { throttle } from "lodash-es"
+import Track from "./Track.js"
+import Requestee from "./Requestee.js"
+import { createRequire } from "module"
 
-module.exports = class MusicState {
+const require = createRequire(import.meta.url)
+const radios = require("../radios.json")
+
+export default class MusicState {
   constructor (guild, initialState) {
     this.guild = guild
     this.state = initialState

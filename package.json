@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
+  "type": "module",
   "scripts": {
     "start": "npx eslint --fix **/*.js & node index.js",
     "test": "echo \"Error: no test specified\" && exit 1",
@@ -32,7 +33,7 @@
     "gtts": "^0.2.1",
     "he": "^1.2.0",
     "humanize-duration": "^3.27.0",
-    "lodash": "^4.17.21",
+    "lodash-es": "^4.17.21",
     "luxon": "^1.27.0",
     "node-fetch": "^2.6.7",
     "node-html-parser": "^5.2.0",
@@ -46,8 +47,7 @@
     "tenorjs": "^1.0.8",
     "tiktok-scraper": "^1.4.32",
     "ws": "^7.5.0",
-    "youtubei": "^0.0.1-rc.27",
-    "ytpl": "^1.0.1"
+    "youtubei": "^1.0.0-rc.2"
   },
   "devDependencies": {
     "eslint": "^7.29.0",

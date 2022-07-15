@@ -1,6 +1,7 @@
-const { Command } = require("discord.js-commando")
+import Commando from "discord.js-commando"
+const { Command } = Commando
 
-module.exports = class PlayCommand extends Command {
+export default class PlayCommand extends Command {
   constructor (client) {
     super(client, {
       name: "voteskip",

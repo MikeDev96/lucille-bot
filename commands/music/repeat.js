@@ -1,7 +1,8 @@
-const { Command } = require("discord.js-commando")
-const { mapRepeatTypeToEmoji } = require("../../classes/Music")
+import Commando from "discord.js-commando"
+import { mapRepeatTypeToEmoji } from "../../classes/Music.js"
+const { Command } = Commando
 
-module.exports = class PlayCommand extends Command {
+export default class PlayCommand extends Command {
   constructor (client) {
     super(client, {
       name: "repeat",

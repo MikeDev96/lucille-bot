@@ -1,7 +1,8 @@
-const { Command } = require("discord.js-commando")
-const { exec } = require("child_process")
+import Commando from "discord.js-commando"
+import { exec } from "child_process"
+const { Command } = Commando
 
-module.exports = class extends Command {
+export default class extends Command {
   constructor (client) {
     super(client, {
       name: "restart",

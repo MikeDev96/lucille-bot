@@ -1,9 +1,8 @@
-const { PLATFORM_SPOTIFY, PLATFORM_TIDAL, PLATFORM_APPLE, PLATFORM_RADIO } = require("./TrackExtractor")
-const axios = require("axios")
-const SpotifyWebApi = require("spotify-web-api-node")
-const config = require("../config.json")
+import { PLATFORM_SPOTIFY, PLATFORM_TIDAL, PLATFORM_APPLE, PLATFORM_RADIO } from "./TrackExtractor.js"
+import axios from "axios"
+import SpotifyWebApi from "spotify-web-api-node"
 
-module.exports = class {
+export default class {
   constructor (music) {
     this.music = music
   }
@@ -12,8 +11,8 @@ module.exports = class {
     if (this.music.platform === PLATFORM_SPOTIFY) {
       const spotifyRes = await this.getSpotify()
       if (spotifyRes) {
-        const tidalRes = this.music.type !== "playlist" && await this.searchTidal(spotifyRes.artists, spotifyRes.title)
-        const appleRes = this.music.type !== "playlist" && await this.searchApple(spotifyRes.artists, spotifyRes.title)
+        const tidalRes = this.music.type !== "playlist" && (await this.searchTidal(spotifyRes.artists, spotifyRes.title))
+        const appleRes = this.music.type !== "playlist" && (await this.searchApple(spotifyRes.artists, spotifyRes.title))
         return {
           spotifyId: this.music.id,
           tidalId: (tidalRes || {}).id,
@@ -208,7 +207,7 @@ module.exports = class {
     try {
       const res = await axios.get(`https://api.tidal.com/v1/${this.music.type}s/${this.music.id}?limit=1&countryCode=GB`, {
         headers: {
-          "X-Tidal-Token": config.tidal.token,
+          "X-Tidal-Token": process.env.TIDAL_TOKEN,
         },
       })
 
@@ -264,7 +263,7 @@ module.exports = class {
       const withoutFeat = query.replace(/(?<=\b)feat(?=\b)/gi, "")
       const res = await axios.get(`https://api.tidal.com/v1/search/${this.music.type}s?query=${encodeURIComponent(withoutFeat)}&limit=1&countryCode=GB`, {
         headers: {
-          "X-Tidal-Token": config.tidal.token,
+          "X-Tidal-Token": process.env.TIDAL_TOKEN,
         },
       })
 
@@ -379,8 +378,8 @@ module.exports = class {
 
   async spotifyApiFactory () {
     const spotifyApi = new SpotifyWebApi({
-      clientId: config.spotify.clientId,
-      clientSecret: config.spotify.clientSecret,
+      clientId: process.env.SPOTIFY_CLIENTID,
+      clientSecret: process.env.SPOTIFY_CLIENTSECRET,
     })
 
     try {

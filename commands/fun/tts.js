@@ -1,5 +1,6 @@
-const { Command } = require("discord.js-commando")
-const { textToStream } = require("../../helpers")
+import Commando from "discord.js-commando"
+import { textToStream } from "../../helpers.js"
+const { Command } = Commando
 
 class TtsCommand extends Command {
   constructor (client) {
@@ -62,4 +63,4 @@ class TtsCommand extends Command {
   }
 }
 
-module.exports = TtsCommand
+export default TtsCommand

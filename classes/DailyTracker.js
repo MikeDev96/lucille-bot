@@ -1,5 +1,5 @@
-const EventEmitter = require("events")
-const { DateTime } = require("luxon")
+import EventEmitter from "events"
+import { DateTime } from "luxon"
 
 const timeValidationRegex = /(?:[0-1]\d|2[0-3]):(?:[0-5]\d)(?::(?:[0-5]\d))?/
 
@@ -43,4 +43,4 @@ class DailyTracker extends EventEmitter {
   }
 }
 
-module.exports = DailyTracker
+export default DailyTracker

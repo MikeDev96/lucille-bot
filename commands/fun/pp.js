@@ -1,8 +1,8 @@
-const { Command } = require("discord.js-commando")
-const { isEmpty } = require("lodash")
-const { discord } = require("../../config")
+import Commando from "discord.js-commando"
+import { isEmpty } from "lodash-es"
+const { Command } = Commando
 
-module.exports = class extends Command {
+export default class extends Command {
   constructor (client) {
     super(client, {
       name: "pp",
@@ -128,7 +128,7 @@ ${client.commandPrefix}pp perm \`lb\` gets the pp leaderboard, see whose rocking
           },
         ],
         footer: {
-          text: discord.footer,
+          text: process.env.DISCORD_FOOTER,
         },
       },
     }
@@ -143,58 +143,58 @@ __**${prefix}PP command:**__
 \`${prefix}pp\` \`perm\` \`lb\` - Leaderboard for permanent pp.
 \`${prefix}pp\` \`daily\` \`lb\` - Leaderboard for the current daily pp.`
   }
+}
 
-  static ppResetDaily (client, guild) {
-    const all = client.db.getAllPenisSize(guild.id)
+export const ppResetDaily = (client, guild) => {
+  const all = client.db.getAllPenisSize(guild.id)
 
-    const groupedBySize = all.reduce((acc, cur) => {
-      if (!acc.has(cur.DailyPP)) {
-        acc.set(cur.DailyPP, [])
-      }
+  const groupedBySize = all.reduce((acc, cur) => {
+    if (!acc.has(cur.DailyPP)) {
+      acc.set(cur.DailyPP, [])
+    }
 
-      acc.get(cur.DailyPP).push(cur)
-      return acc
-    }, new Map())
+    acc.get(cur.DailyPP).push(cur)
+    return acc
+  }, new Map())
 
-    const medals = ["🥇", "🥈", "🥉"]
-    const fields = Array.from(groupedBySize.keys())
-      .filter(val => val !== -1)
-      .sort((val1, val2) => val2 - val1)
-      .map((val1, idx) =>
-        `${medals[idx] || ""} ${groupedBySize.get(val1).map(user => "`" + (user.DisplayName !== null ? user.DisplayName : guild.users.cache.find(user => user.id === user.UserId).username) + "`").join(" & ")}
+  const medals = ["🥇", "🥈", "🥉"]
+  const fields = Array.from(groupedBySize.keys())
+    .filter(val => val !== -1)
+    .sort((val1, val2) => val2 - val1)
+    .map((val1, idx) =>
+      `${medals[idx] || ""} ${groupedBySize.get(val1).map(user => "`" + (user.DisplayName !== null ? user.DisplayName : guild.users.cache.find(user => user.id === user.UserId).username) + "`").join(" & ")}
 8${"=".repeat(val1)}D${val1 === 15 ? " ~ ~ ~" : ""}\r\n`,
-      )
+    )
 
-    if (!fields.length) {
-      return
-    }
-
-    const dailyEmbed = {
-      embed: {
-        title: `PP Daily Leaderboard`,
-        description: "The daily reset is here and now its time to see where you placed!",
-        color: 4187927,
-        author: {
-          name: "PP Daily Message",
-          icon_url: client.user.displayAvatarURL(),
-        },
-
-        fields: [
-          {
-            name: "Daily PP",
-            value: fields,
-          },
-        ],
-        footer: {
-          text: discord.footer,
-        },
-      },
-    }
-
-    const firstGuildChannel = guild.channels.cache.filter(channel => channel.type === "text").first()
-
-    firstGuildChannel.send(dailyEmbed)
-
-    client.db.resetDailyPPSize(guild.id)
+  if (!fields.length) {
+    return
   }
+
+  const dailyEmbed = {
+    embed: {
+      title: `PP Daily Leaderboard`,
+      description: "The daily reset is here and now its time to see where you placed!",
+      color: 4187927,
+      author: {
+        name: "PP Daily Message",
+        icon_url: client.user.displayAvatarURL(),
+      },
+
+      fields: [
+        {
+          name: "Daily PP",
+          value: fields,
+        },
+      ],
+      footer: {
+        text: process.env.DISCORD_FOOTER,
+      },
+    },
+  }
+
+  const firstGuildChannel = guild.channels.cache.filter(channel => channel.type === "text").first()
+
+  firstGuildChannel.send(dailyEmbed)
+
+  client.db.resetDailyPPSize(guild.id)
 }

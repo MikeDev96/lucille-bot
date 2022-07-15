@@ -1,9 +1,10 @@
-const { Command } = require("discord.js-commando")
-const axios = require("axios")
+import Commando from "discord.js-commando"
+import axios from "axios"
+const { Command } = Commando
 
 const YOUTUBE_REGEX_PATTERN = /(?:https?:\/\/www.)?youtu(?:be.com\/watch\?v=|.be\/)([\w-]+)/
 
-module.exports = class extends Command {
+export default class extends Command {
   constructor (client) {
     super(client, {
       name: "yousync",

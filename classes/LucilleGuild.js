@@ -1,8 +1,8 @@
-const { Structures } = require("discord.js")
-const Music = require("./Music")
-const fs = require("fs")
+import { Structures } from "discord.js"
+import Music from "./Music.js"
+import fs from "fs"
 
-module.exports = Structures.extend("Guild", Guild => {
+export default Structures.extend("Guild", Guild => {
   class LucilleGuild extends Guild {
     constructor (client, data) {
       super(client, data)
@@ -34,7 +34,7 @@ module.exports = Structures.extend("Guild", Guild => {
             })
           }
           else {
-          this.customEmojis[emoji.name] = this.emojis.cache.find(e => e.name === emoji.name).toString()
+            this.customEmojis[emoji.name] = this.emojis.cache.find(e => e.name === emoji.name).toString()
           }
         })
       }

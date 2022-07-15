@@ -1,9 +1,10 @@
-const { Command } = require("discord.js-commando")
-const fetch = require("node-fetch")
-const { sleep } = require("../../helpers")
-const TtsCommand = require("./tts")
+import Commando from "discord.js-commando"
+import fetch from "node-fetch"
+import { sleep } from "../../helpers.js"
+import TtsCommand from "./tts.js"
+const { Command } = Commando
 
-module.exports = class extends Command {
+export default class extends Command {
   constructor (client) {
     super(client, {
       name: "joke",

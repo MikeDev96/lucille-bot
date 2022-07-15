@@ -1,9 +1,9 @@
-const SQLite = require("better-sqlite3")
-const CalendarDb = require("../db/CalendarDb")
-const AliasTracker = require("./AliasTracker")
-const BangaTracker = require("./BangaTracker")
-const StocksPortfolio = require("./StocksPortfolio")
-const VoiceTracker = require("./VoiceTracker")
+import SQLite from "better-sqlite3"
+import CalendarDb from "../db/CalendarDb.js"
+import AliasTracker from "./AliasTracker.js"
+import BangaTracker from "./BangaTracker.js"
+import StocksPortfolio from "./StocksPortfolio.js"
+import VoiceTracker from "./VoiceTracker.js"
 
 class MasterDatabase {
   constructor () {
@@ -322,4 +322,4 @@ VoiceTracker.applyToClass(MasterDatabase)
 StocksPortfolio.applyToClass(MasterDatabase)
 CalendarDb.applyToClass(MasterDatabase)
 
-module.exports = MasterDatabase
+export default MasterDatabase

@@ -1,4 +1,3 @@
-
 class TicTacToe {
   constructor (msg, playerOneId, playerTwoId) {
     this.playerIds = [playerOneId, playerTwoId]
@@ -95,4 +94,4 @@ class TicTacToe {
   }
 }
 
-module.exports = TicTacToe
+export default TicTacToe

@@ -1,7 +1,8 @@
-const { Command } = require("discord.js-commando")
-const { commandConfig, run } = require("./play")
+import Commando from "discord.js-commando"
+import { commandConfig, run } from "./play.js"
+const { Command } = Commando
 
-module.exports = class PlayCommand extends Command {
+export default class PlayCommand extends Command {
   constructor (client) {
     super(client, {
       ...commandConfig,

@@ -1,12 +1,12 @@
-const { EventEmitter } = require("events")
-const WebSocket = require("ws")
-const { debounce } = require("lodash")
-const axios = require("axios")
-const EventSource = require("eventsource")
-const io = require("socket.io-client")
-const fetch = require("node-fetch")
+import { EventEmitter } from "events"
+import WebSocket from "ws"
+import { debounce } from "lodash-es"
+import axios from "axios"
+import EventSource from "eventsource"
+import io from "socket.io-client"
+import fetch from "node-fetch"
 
-const RadioMetadata = class extends EventEmitter {
+export default class RadioMetadata extends EventEmitter {
   constructor ({ type, url, summon, provider, payload }, stream) {
     super()
 
@@ -240,8 +240,4 @@ const RadioMetadata = class extends EventEmitter {
       }
     }
   }
-}
-
-module.exports = {
-  RadioMetadata,
 }

@@ -1,15 +1,15 @@
-const { Command } = require("discord.js-commando")
-const axios = require("axios")
-const fs = require("fs")
-const { getAudioDurationInSeconds } = require("get-audio-duration")
-const config = require("../../config.json")
-const { getRequestee, getVoiceChannel } = require("../../helpers")
-const Track = require("../../classes/Track")
-const { PLATFORM_OTHER } = require("../../classes/TrackExtractor")
-const { Util, MessageAttachment } = require("discord.js")
-const AdmZip = require("adm-zip")
+import Commando from "discord.js-commando"
+import axios from "axios"
+import fs from "fs"
+import { getAudioDurationInSeconds } from "get-audio-duration"
+import { getRequestee, getVoiceChannel } from "../../helpers.js"
+import Track from "../../classes/Track.js"
+import { PLATFORM_OTHER } from "../../classes/TrackExtractor.js"
+import { Util, MessageAttachment } from "discord.js"
+import AdmZip from "adm-zip"
+const { Command } = Commando
 
-module.exports = class extends Command {
+export default class extends Command {
   constructor (client) {
     super(client, {
       name: "sound",
@@ -208,8 +208,8 @@ module.exports = class extends Command {
                 value: str,
               })),
               footer: {
-                text: config.discord.footer,
-                icon_url: config.discord.authorAvatarUrl,
+                text: process.env.DISCORD_FOOTER,
+                icon_url: process.env.DISCORD_AUTHORAVATARURL,
               },
             },
           })

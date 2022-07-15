@@ -1,22 +1,19 @@
-const { Util } = require("discord.js")
-const config = require("../config.json")
-const TopMostMessagePump = require("./TopMostMessagePump")
-const { safeJoin, msToTimestamp, selectRandom, escapeMarkdown } = require("../helpers")
-const TrackExtractor = require("./TrackExtractor")
-const { PLATFORM_YOUTUBE, PLATFORM_RADIO, PLATFORM_SPOTIFY, PLATFORM_TIDAL, PLATFORM_APPLE, PLATFORM_DISCONNECT } = require("./TrackExtractor")
-const Track = require("./Track")
-const fs = require("fs")
-const { RadioMetadata } = require("./RadioMetadata")
-const axios = require("axios")
-const MusicToX = require("./MusicToX")
-const { searchYouTube } = require("../helpers")
-const { getStream, getFfmpegStream } = require("./YouTubeToStream")
-const MusicState = require("./MusicState")
-const Requestee = require("./Requestee")
+import { Util } from "discord.js"
+import TopMostMessagePump from "./TopMostMessagePump.js"
+import { safeJoin, msToTimestamp, selectRandom, escapeMarkdown, searchYouTube } from "../helpers.js"
+import TrackExtractor, { PLATFORM_YOUTUBE, PLATFORM_RADIO, PLATFORM_SPOTIFY, PLATFORM_TIDAL, PLATFORM_APPLE, PLATFORM_DISCONNECT } from "./TrackExtractor.js"
+import Track from "./Track.js"
+import fs from "fs"
+import RadioMetadata from "./RadioMetadata.js"
+import axios from "axios"
+import MusicToX from "./MusicToX.js"
+import { getStream, getFfmpegStream } from "./YouTubeToStream.js"
+import MusicState from "./MusicState.js"
+import Requestee from "./Requestee.js"
 
 const PLATFORMS_REQUIRE_YT_SEARCH = [PLATFORM_SPOTIFY, PLATFORM_TIDAL, PLATFORM_APPLE, PLATFORM_YOUTUBE, "search"]
 
-module.exports = class Music extends MusicState {
+export default class Music extends MusicState {
   constructor (guild) {
     super(guild, {
       joinState: 0,
@@ -606,47 +603,47 @@ module.exports = class Music extends MusicState {
             value: nowPlaying,
             inline: true,
           },
-          ...queue.length > 0 ? [{
+          ...(queue.length > 0 ? [{
             name: "Up Next",
             value: top10[0],
-          }] : [],
-          ...remainingCount > 0 ? [{
+          }] : []),
+          ...(remainingCount > 0 ? [{
             name: "Up Next",
             value: `${remainingCount} more song(s)...`,
-          }] : [],
-          ...this.state.voiceConnection && this.state.voiceConnection.dispatcher && this.state.voiceConnection.dispatcher.paused ? [{
+          }] : []),
+          ...(this.state.voiceConnection && this.state.voiceConnection.dispatcher && this.state.voiceConnection.dispatcher.paused ? [{
             name: "Paused By",
             value: `<@${this.state.pauser}>`,
             inline: true,
-          }] : [],
-          ...this.state.bassBoost > 0 ? [{
+          }] : []),
+          ...(this.state.bassBoost > 0 ? [{
             name: "Bass Boost",
             value: `${amountToBassBoostMap[this.state.bassBoost]}`,
             inline: true,
-          }] : [],
-          ...this.state.tempo !== 1 ? [{
+          }] : []),
+          ...(this.state.tempo !== 1 ? [{
             name: "Speed",
             value: `${this.state.tempo}`,
             inline: true,
-          }] : [],
-          ...this.state.volume !== 100 ? [{
+          }] : []),
+          ...(this.state.volume !== 100 ? [{
             name: "Volume",
             value: `${this.state.volume}`,
             inline: true,
-          }] : [],
-          ...this.state.repeat !== "off" ? [{
+          }] : []),
+          ...(this.state.repeat !== "off" ? [{
             name: "Repeat",
             value: mapRepeatTypeToEmoji(this.state.repeat),
             inline: true,
-          }] : [],
-          ...currentlyPlaying.duration > 0 ? [{
+          }] : []),
+          ...(currentlyPlaying.duration > 0 ? [{
             name: "Progress",
             value: "`" + msToTimestamp((currentlyPlaying.duration * 1000) * progressPerc) + "` " + ("▬".repeat(blocks)) + "🔵" + ("▬".repeat(Math.max(0, 20 - blocks))) + " `" + msToTimestamp(currentlyPlaying.duration * 1000) + "`",
-          }] : [],
+          }] : []),
         ],
         footer: {
-          text: config.discord.footer,
-          icon_url: config.discord.authorAvatarUrl,
+          text: process.env.DISCORD_FOOTER,
+          icon_url: process.env.DISCORD_AUTHORAVATARURL,
         },
       },
     }
@@ -697,7 +694,7 @@ const amountToBassBoostMap = {
   50: "WTFBBQ",
 }
 
-const mapRepeatTypeToEmoji = type => {
+export const mapRepeatTypeToEmoji = type => {
   switch (type) {
   case "off":
     return "⏭️"
@@ -709,5 +706,3 @@ const mapRepeatTypeToEmoji = type => {
     return ""
   }
 }
-
-module.exports.mapRepeatTypeToEmoji = mapRepeatTypeToEmoji

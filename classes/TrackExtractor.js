@@ -1,24 +1,21 @@
-const SpotifyWebApi = require("spotify-web-api-node")
-const config = require("../config.json")
-const axios = require("axios")
-const Track = require("./Track")
-const queryString = require("query-string")
-const parseDuration = require("parse-duration")
-const ytpl = require("ytpl")
-const parseTime = require("m3u8stream/dist/parse-time")
-const youtubei = require("youtubei")
+import SpotifyWebApi from "spotify-web-api-node"
+import axios from "axios"
+import Track from "./Track.js"
+import queryString from "query-string"
+import parseDuration from "parse-duration"
+import youtubei from "youtubei"
 
-const PLATFORM_SPOTIFY = "spotify"
-const PLATFORM_TIDAL = "tidal"
-const PLATFORM_APPLE = "apple"
-const PLATFORM_YOUTUBE = "youtube"
-const PLATFORM_SOUNDCLOUD = "soundcloud"
-const PLATFORM_OTHER = "other"
-const PLATFORM_RADIO = "radio"
-const PLATFORM_CONNECT = "connect"
-const PLATFORM_DISCONNECT = "disconnect"
+export const PLATFORM_SPOTIFY = "spotify"
+export const PLATFORM_TIDAL = "tidal"
+export const PLATFORM_APPLE = "apple"
+export const PLATFORM_YOUTUBE = "youtube"
+export const PLATFORM_SOUNDCLOUD = "soundcloud"
+export const PLATFORM_OTHER = "other"
+export const PLATFORM_RADIO = "radio"
+export const PLATFORM_CONNECT = "connect"
+export const PLATFORM_DISCONNECT = "disconnect"
 
-module.exports = class {
+export default class TrackExtractor {
   constructor (input) {
     this.input = input
   }
@@ -76,10 +73,8 @@ module.exports = class {
     let youtubePlaylistMatch
     while ((youtubePlaylistMatch = youtubePlaylistPattern.exec(input))) {
       const [, id] = youtubePlaylistMatch
-      if (ytpl.validateID(id)) {
-        const link = { platform: "youtube", type: "playlist", id }
-        this.links.push(link)
-      }
+      const link = { platform: "youtube", type: "playlist", id }
+      this.links.push(link)
     }
 
     input = input.replace(youtubePlaylistPattern, "")
@@ -207,8 +202,8 @@ module.exports = class {
 
   async spotifyApiFactory () {
     const spotifyApi = new SpotifyWebApi({
-      clientId: config.spotify.clientId,
-      clientSecret: config.spotify.clientSecret,
+      clientId: process.env.SPOTIFY_CLIENTID,
+      clientSecret: process.env.SPOTIFY_CLIENTSECRET,
     })
 
     try {
@@ -228,7 +223,7 @@ module.exports = class {
     try {
       const res = await axios.get(`https://api.tidal.com/v1/${type}s/${id}${["playlist", "album"].includes(type) ? "/tracks" : type === "artist" ? "/toptracks" : ""}?limit=10000&countryCode=GB`, {
         headers: {
-          "x-tidal-token": config.tidal.token,
+          "x-tidal-token": process.env.TIDAL_TOKEN,
         },
       })
 
@@ -285,14 +280,16 @@ module.exports = class {
         }
       }
       else if (type === "playlist") {
-        const res = await ytpl(id, { limit: Infinity })
-        return res.items.map(item =>
-          new Track(item.author.name, item.title, item.thumbnail)
+        const playlist = await new youtubei.Client().getPlaylist(id)
+        await playlist.videos.next(0)
+
+        return playlist.videos.items.map(item =>
+          new Track(item.channel.name, item.title, item.thumbnails[0].url)
             .setPlatform(PLATFORM_YOUTUBE)
-            .setLink(item.url_simple)
-            .setYouTubeId(item.videoId)
+            .setLink(`https://www.youtube.com/watch?v=${item.id}`)
+            .setYouTubeId(item.id)
             .setYouTubeTitle(item.title)
-            .setDuration(Math.floor(parseTime.humanStr(item.duration) / 1000)),
+            .setDuration(item.duration),
         )
       }
     }
@@ -306,7 +303,7 @@ module.exports = class {
 
   async getSoundCloud (type, id) {
     try {
-      const res = await axios.get(`https://api-v2.soundcloud.com/resolve?url=${encodeURIComponent(`https://soundcloud.com/${id}`)}&client_id=${config.soundCloud.clientId}`)
+      const res = await axios.get(`https://api-v2.soundcloud.com/resolve?url=${encodeURIComponent(`https://soundcloud.com/${id}`)}&client_id=${process.env.SOUNDCLOUD_CLIENTID}`)
 
       if (res.data) {
         const tracks = res.data.kind === "track" ? [res.data] : res.data.tracks
@@ -336,7 +333,7 @@ module.exports = class {
       const transcoding = transcodings[0]
       if (transcoding) {
         const parsedUrl = queryString.parseUrl(transcoding.url)
-        const audioCdnUrl = queryString.stringifyUrl({ url: parsedUrl.url, query: { ...parsedUrl.query, client_id: config.soundCloud.clientId } })
+        const audioCdnUrl = queryString.stringifyUrl({ url: parsedUrl.url, query: { ...parsedUrl.query, client_id: process.env.SOUNDCLOUD_CLIENTID } })
         const res = await axios.get(audioCdnUrl)
 
         if (res.data) {
@@ -373,13 +370,3 @@ module.exports = class {
     return []
   }
 }
-
-module.exports.PLATFORM_SPOTIFY = "spotify"
-module.exports.PLATFORM_TIDAL = "tidal"
-module.exports.PLATFORM_APPLE = "apple"
-module.exports.PLATFORM_YOUTUBE = "youtube"
-module.exports.PLATFORM_SOUNDCLOUD = "soundcloud"
-module.exports.PLATFORM_RADIO = PLATFORM_RADIO
-module.exports.PLATFORM_OTHER = PLATFORM_OTHER
-module.exports.PLATFORM_CONNECT = PLATFORM_CONNECT
-module.exports.PLATFORM_DISCONNECT = PLATFORM_DISCONNECT

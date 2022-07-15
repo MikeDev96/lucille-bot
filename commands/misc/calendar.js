@@ -1,12 +1,13 @@
-const { MessageEmbed } = require("discord.js")
-const { Command } = require("discord.js-commando")
-const { DateTime } = require("luxon")
-const { RRule } = require("rrule")
-const config = require("../../config.json")
-const humanizeDuration = require("humanize-duration")
-const chrono = require("chrono-node")
+import { MessageEmbed } from "discord.js"
+import Commando from "discord.js-commando"
+import { DateTime } from "luxon"
+import rrule from "rrule"
+import humanizeDuration from "humanize-duration"
+import chrono from "chrono-node"
+const { RRule } = rrule
+const { Command } = Commando
 
-module.exports = class extends Command {
+export default class extends Command {
   constructor (client) {
     super(client, {
       name: "calendar",
@@ -17,7 +18,7 @@ module.exports = class extends Command {
       args: [
         {
           key: "arg1",
-          prompt: `Possible options are \`add\` \`remove\` \`list\` \`help\`, run \`${config.discord.prefix}cal help\` for more help`,
+          prompt: `Possible options are \`add\` \`remove\` \`list\` \`help\`, run \`${process.env.DISCORD_PREFIX}cal help\` for more help`,
           type: "string",
         },
         {
@@ -174,24 +175,24 @@ module.exports = class extends Command {
           name: `${d.event}`,
           value: `${DateTime.fromJSDate(d.occurence).toLocal().toLocaleString(DateTime.DATETIME_MED)}\n\`${d.distance}\``,
         })))
-        .setFooter(config.discord.footer)
+        .setFooter(process.env.DISCORD_FOOTER)
 
       msg.reply(embed)
     }
     else if (args.arg1 === "help") {
       msg.reply(`
 Usage:
-  ${config.discord.prefix}cal add once \`<start date>\` \`<event>\`
-  ${config.discord.prefix}cal add recur \`<start date>\` \`<recurrence rule>\` \`<event>\`
-  ${config.discord.prefix}cal remove|rm|rem \`<event>\`
-  ${config.discord.prefix}cal list|ls
-  ${config.discord.prefix}cal help
+  ${process.env.DISCORD_PREFIX}cal add once \`<start date>\` \`<event>\`
+  ${process.env.DISCORD_PREFIX}cal add recur \`<start date>\` \`<recurrence rule>\` \`<event>\`
+  ${process.env.DISCORD_PREFIX}cal remove|rm|rem \`<event>\`
+  ${process.env.DISCORD_PREFIX}cal list|ls
+  ${process.env.DISCORD_PREFIX}cal help
 
 Examples:
-  ${config.discord.prefix}cal add once "tomorrow at 1pm" "This is an example event"
-  ${config.discord.prefix}cal add recur "21 Nov 1996" "every year" "Mike's Birthday"
-  ${config.discord.prefix}cal add recur "today" "Every month on the 2nd last Friday for 7 times" "Advanced example"
-  ${config.discord.prefix}cal rm "Mike's Birthday"`)
+  ${process.env.DISCORD_PREFIX}cal add once "tomorrow at 1pm" "This is an example event"
+  ${process.env.DISCORD_PREFIX}cal add recur "21 Nov 1996" "every year" "Mike's Birthday"
+  ${process.env.DISCORD_PREFIX}cal add recur "today" "Every month on the 2nd last Friday for 7 times" "Advanced example"
+  ${process.env.DISCORD_PREFIX}cal rm "Mike's Birthday"`)
     }
   }
 

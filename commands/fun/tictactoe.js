@@ -1,8 +1,8 @@
-const { Command } = require("discord.js-commando")
-const TicTacToe = require("../../classes/TicTacToe")
-const { discord } = require("../../config.json")
+import Commando from "discord.js-commando"
+import TicTacToe from "../../classes/TicTacToe.js"
+const { Command } = Commando
 
-module.exports = class extends Command {
+export default class extends Command {
   constructor (client) {
     super(client, {
       name: "tictactoe",
@@ -28,7 +28,7 @@ module.exports = class extends Command {
     }
     else {
       try {
-      // does player exist in game
+        // does player exist in game
         const member = this.getMemberFromArg(msg.guild, args.player)
 
         if (!member) {
@@ -44,7 +44,7 @@ module.exports = class extends Command {
           return
         }
 
-        if (!await this.sendChallenge(msg, playerTwoId)) {
+        if (!(await this.sendChallenge(msg, playerTwoId))) {
           msg.react("👎")
           return
         }
@@ -144,7 +144,7 @@ module.exports = class extends Command {
 
         fields: [...fields],
         footer: {
-          text: discord.footer,
+          text: process.env.DISCORD_FOOTER,
         },
       },
     }

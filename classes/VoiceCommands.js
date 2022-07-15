@@ -1,11 +1,10 @@
-const { debounce } = require("lodash")
-const { createStream } = require("./DiscordJSHelpers")
-const HotwordDetector = require("./HotwordDetector")
-const SpeechToText = require("./SpeechToText")
-const VoiceStateAdapter = require("./VoiceStateAdapter")
-const { PassThrough } = require("stream")
-const { proxyCommand } = require("./DiscordJSHelpers")
-const { GuildMember } = require("discord.js")
+import { debounce } from "lodash-es"
+import { createStream, proxyCommand } from "./DiscordJSHelpers.js"
+import HotwordDetector from "./HotwordDetector.js"
+import SpeechToText from "./SpeechToText.js"
+import VoiceStateAdapter from "./VoiceStateAdapter.js"
+import { PassThrough } from "stream"
+import { GuildMember } from "discord.js"
 
 class VoiceCommands {
   constructor (client) {
@@ -193,4 +192,4 @@ class VoiceCommands {
   }
 }
 
-module.exports = VoiceCommands
+export default VoiceCommands

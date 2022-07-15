@@ -36,4 +36,4 @@ class CalendarDb {
   }
 }
 
-module.exports = CalendarDb
+export default CalendarDb

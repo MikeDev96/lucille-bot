@@ -1,21 +1,23 @@
-const { CommandoClient } = require("discord.js-commando")
-const VoiceTracker = require("./VoiceTracker")
-const VoiceStateAdapter = require("./VoiceStateAdapter")
-const MusicTracker = require("./MusicTracker")
-const BangaTracker = require("./BangaTracker")
-const AliasTracker = require("./AliasTracker")
-const DailyTracker = require("./DailyTracker")
-const MasterDatabase = require("./MasterDatabase")
-const RedditRipper = require("./RedditRipper")
-const MessageInterceptor = require("./MessageInterceptor")
-const AmazonRipper = require("./AmazonRipper")
-const TikTokRipper = require("./TikTokRipper")
-const { ppResetDaily } = require("../commands/fun/pp")
-const TextToSpeech = require("./TextToSpeech")
-const StocksPortfolio = require("./StocksPortfolio")
-const VoiceCommands = require("./VoiceCommands")
+import Commando from "discord.js-commando"
+import VoiceTracker from "./VoiceTracker.js"
+import VoiceStateAdapter from "./VoiceStateAdapter.js"
+import MusicTracker from "./MusicTracker.js"
+import BangaTracker from "./BangaTracker.js"
+import AliasTracker from "./AliasTracker.js"
+import DailyTracker from "./DailyTracker.js"
+import MasterDatabase from "./MasterDatabase.js"
+import RedditRipper from "./RedditRipper.js"
+import MessageInterceptor from "./MessageInterceptor.js"
+import AmazonRipper from "./AmazonRipper.js"
+import TikTokRipper from "./TikTokRipper.js"
+import { ppResetDaily } from "../commands/fun/pp.js"
+import TextToSpeech from "./TextToSpeech.js"
+import StocksPortfolio from "./StocksPortfolio.js"
+import VoiceCommands from "./VoiceCommands.js"
+import globby from "globby"
+const { CommandoClient } = Commando
 
-module.exports = class LucilleClient extends CommandoClient {
+export default class LucilleClient extends CommandoClient {
   constructor (options) {
     super(options)
 
@@ -91,6 +93,18 @@ module.exports = class LucilleClient extends CommandoClient {
       setTimeout(async () => {
         await this.connect(token)
       }, 5000)
+    }
+  }
+
+  async importCommands () {
+    try {
+      const commandFilenames = await globby("./commands/**/*.js", { absolute: true })
+      const commands = await Promise.all(commandFilenames.map(l => import(`file://${l}`)))
+      this.registry.registerCommands(commands)
+    }
+    catch (err) {
+      console.error(`Failed to import commands\n${err.toString()}`)
+      return []
     }
   }
 }

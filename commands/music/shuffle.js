@@ -1,7 +1,8 @@
-const { Command } = require("discord.js-commando")
-const { shuffle } = require("../../helpers")
+import Commando from "discord.js-commando"
+import { shuffle } from "../../helpers.js"
+const { Command } = Commando
 
-module.exports = class extends Command {
+export default class extends Command {
   constructor (client) {
     super(client, {
       name: "shuffle",

@@ -1,6 +1,6 @@
-const speech = require("@google-cloud/speech")
-const { throttle } = require("lodash")
-const EventEmitter = require("events")
+import speech from "@google-cloud/speech"
+import { throttle } from "lodash-es"
+import EventEmitter from "events"
 
 const request = {
   config: {
@@ -60,4 +60,4 @@ class SpeechToText extends EventEmitter {
   }
 }
 
-module.exports = SpeechToText
+export default SpeechToText

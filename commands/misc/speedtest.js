@@ -1,8 +1,8 @@
-const { Command } = require("discord.js-commando")
-const FastSpeedtest = require("fast-speedtest-api")
-const config = require("../../config.json")
+import Commando from "discord.js-commando"
+import FastSpeedtest from "fast-speedtest-api"
+const { Command } = Commando
 
-module.exports = class extends Command {
+export default class extends Command {
   constructor (client) {
     super(client, {
       name: "speedtest",
@@ -17,7 +17,7 @@ module.exports = class extends Command {
 
   async run (msg, _args) {
     const speedtest = new FastSpeedtest({
-      token: config.speedTest.token, // required
+      token: process.env.SPEEDTEST_TOKEN, // required
       verbose: false, // default: false
       timeout: 10000, // default: 5000
       https: true, // default: true

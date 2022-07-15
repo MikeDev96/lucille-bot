@@ -1,11 +1,11 @@
-const { Command } = require("discord.js-commando")
-const config = require("../../config.json")
-const { getRequestee, getVoiceChannel, shuffle, paginatedEmbed } = require("../../helpers")
-const Track = require("../../classes/Track")
-const { MessageAttachment, Util } = require("discord.js")
-const AWS = require("aws-sdk")
+import Commando from "discord.js-commando"
+import { getRequestee, getVoiceChannel, shuffle, paginatedEmbed } from "../../helpers.js"
+import Track from "../../classes/Track.js"
+import { MessageAttachment, Util } from "discord.js"
+import AWS from "aws-sdk"
+const { Command } = Commando
 
-module.exports = class extends Command {
+export default class extends Command {
   constructor (client) {
     super(client, {
       name: "banga",
@@ -51,7 +51,7 @@ module.exports = class extends Command {
             icon_url: msg.author.displayAvatarURL(),
           },
           footer: {
-            text: config.discord.footer,
+            text: process.env.DISCORD_FOOTER,
           },
         },
       }, this.list(bangas, nickname))
@@ -235,10 +235,10 @@ module.exports = class extends Command {
   exportBangas (msg) {
     AWS.config.update({
       credentials: {
-        accessKeyId: config.aws.accessKeyId,
-        secretAccessKey: config.aws.secretAccessKey,
+        accessKeyId: process.env.AWS_ACCESSKEYID,
+        secretAccessKey: process.env.AWS_SECRETACCESSKEY,
       },
-      region: config.aws.region,
+      region: process.env.AWS_REGION,
     })
 
     const DynamoDB = new AWS.DynamoDB.DocumentClient()
@@ -273,18 +273,18 @@ module.exports = class extends Command {
           fields: [
             {
               name: "Spotify Exporter Link",
-              value: `Visit [this link](${config.export.url}/${UserId}) and authorise with Spotify`,
+              value: `Visit [this link](${process.env.EXPORT_URL}/${UserId}) and authorise with Spotify`,
             },
           ],
           footer: {
-            text: config.discord.footer,
-            icon_url: config.discord.authorAvatarUrl,
+            text: process.env.DISCORD_FOOTER,
+            icon_url: process.env.DISCORD_AUTHORAVATARURL,
           },
         },
       })
 
       var params = {
-        TableName: config.export.tableName,
+        TableName: process.env.EXPORT_TABLENAME,
         Item: {
           discordID: UserId,
           SongsURIs: SongsArr,

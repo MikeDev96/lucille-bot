@@ -1,10 +1,10 @@
-const { textToStream } = require("../helpers")
+import { textToStream } from "../helpers.js"
 /*
 * TODO:
 * Queue messages ie 2 people join at once
 * Random voice each time
 */
-module.exports = class TextToSpeech {
+export default class TextToSpeech {
   constructor (client) {
     this.client = client
   }

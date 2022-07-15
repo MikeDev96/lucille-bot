@@ -1,15 +1,14 @@
-const fsp = require("fs").promises
-const fs = require("fs")
-const fetch = require("node-fetch")
-const ffmpegStatic = require("ffmpeg-static")
-const { spawn } = require("child_process")
-const sanitise = require("sanitize-filename")
-const path = require("path")
-const globby = require("globby")
-const express = require("express")
-const { MessageAttachment } = require("discord.js")
+import fs, { promises as fsp } from "fs"
+import fetch from "node-fetch"
+import ffmpegStatic from "ffmpeg-static"
+import { spawn } from "child_process"
+import sanitise from "sanitize-filename"
+import path from "path"
+import globby from "globby"
+import express from "express"
+import { MessageAttachment } from "discord.js"
 
-const router = express.Router()
+export const router = express.Router()
 
 router.get("/reddit/video/:videoId", async (req, res) => {
   const paths = await globby(`${VIDEOS_PATH}/* ${req.params.videoId}.mp4`)
@@ -50,7 +49,7 @@ router.get("/reddit/video/:videoId", async (req, res) => {
 
 const VIDEOS_PATH = "assets/videos/reddit"
 
-const RedditRipper = class {
+export default class RedditRipper {
   constructor () {
     this.processing = {}
   }
@@ -214,6 +213,3 @@ const RedditRipper = class {
     })
   }
 }
-
-module.exports = RedditRipper
-module.exports.router = router

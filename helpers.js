@@ -1,19 +1,18 @@
-const { Util } = require("discord.js")
-const GTTS = require("gtts")
-const { PassThrough } = require("stream")
-const Requestee = require("./classes/Requestee")
-const config = require("./config.json")
-const fetch = require("node-fetch")
-const { Duration } = require("luxon")
-const { Client } = require("youtubei")
+import { Util } from "discord.js"
+import GTTS from "gtts"
+import { PassThrough } from "stream"
+import Requestee from "./classes/Requestee.js"
+import fetch from "node-fetch"
+import { Duration } from "luxon"
+import youtubei from "youtubei"
 
-const noop = () => { }
+export const noop = () => { }
 
-const safeJoin = (array, seperator) => {
+export const safeJoin = (array, seperator) => {
   return array.filter(s => s.trim()).join(seperator)
 }
 
-const shuffle = (a) => {
+export const shuffle = (a) => {
   for (let i = a.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
     [a[i], a[j]] = [a[j], a[i]]
@@ -21,11 +20,11 @@ const shuffle = (a) => {
   return a
 }
 
-const sleep = ms => {
+export const sleep = ms => {
   return new Promise(resolve => setTimeout(resolve, ms))
 }
 
-const msToTimestamp = (duration, { ms = false } = {}) => {
+export const msToTimestamp = (duration, { ms = false } = {}) => {
   const milliseconds = duration % 1000
   const seconds = Math.floor((duration / 1000) % 60)
   const minutes = Math.floor((duration / (1000 * 60)) % 60)
@@ -50,19 +49,19 @@ const msToTimestamp = (duration, { ms = false } = {}) => {
   return out
 }
 
-const selectRandom = array => {
+export const selectRandom = array => {
   return array[Math.floor(Math.random() * array.length)]
 }
 
-const escapeMarkdown = text => {
+export const escapeMarkdown = text => {
   return Util.escapeMarkdown(text || "")
 }
 
-const getEmoji = (guild, emoji) => {
+export const getEmoji = (guild, emoji) => {
   return (guild.emojis.cache.find(e => e.name === emoji) || "").toString()
 }
 
-const textToStream = text => {
+export const textToStream = text => {
   return new Promise((resolve, reject) => {
     const gtts = new GTTS(text, "en-uk")
     const passThrough = new PassThrough()
@@ -76,19 +75,19 @@ const textToStream = text => {
   })
 }
 
-const getRequestee = msg => {
+export const getRequestee = msg => {
   return new Requestee(msg.member.displayName, msg.author.displayAvatarURL(), msg.author.id)
 }
 
-const getVoiceChannel = msg => {
+export const getVoiceChannel = msg => {
   return msg.member.voice.channel || msg.guild.channels.cache.find(c => c.type === "voice")
 }
 
-const isInBotsVoiceChannel = msg => {
-  return msg.author.id === config.discord.owner || (msg.guild.voice && msg.guild.voice.channelID && msg.guild.voice.channelID === msg.member.voice.channelID) || msg.member.voice.deaf
+export const isInBotsVoiceChannel = msg => {
+  return msg.author.id === process.env.DISCORD_OWNER || (msg.guild.voice && msg.guild.voice.channelID && msg.guild.voice.channelID === msg.member.voice.channelID) || msg.member.voice.deaf
 }
 
-const paginatedEmbed = async (msg, embedTemplate, embedList, emojiList = ["⏪", "◀️", "▶️", "⏩"], timeout = 120000) => {
+export const paginatedEmbed = async (msg, embedTemplate, embedList, emojiList = ["⏪", "◀️", "▶️", "⏩"], timeout = 120000) => {
   if (!msg || !msg.channel || !embedList || emojiList.length !== 4) return
 
   let embedIndex = 0
@@ -117,14 +116,14 @@ const paginatedEmbed = async (msg, embedTemplate, embedList, emojiList = ["⏪",
   return currentEmbed
 }
 
-const padInlineFields = fields => [
+export const padInlineFields = fields => [
   ...fields,
   Array(3 - (((fields.length) % 3) || 3)).fill(0).map(() => ({ name: "\u200b", value: "\u200b", inline: true })),
 ]
 
-const youtube = new Client()
+const youtube = new youtubei.Client()
 
-const searchYouTube = async query => {
+export const searchYouTube = async query => {
   const t = process.hrtime()
 
   if (process.env.YOUTUBE_DATA_API_V3_KEY) {
@@ -161,24 +160,7 @@ const searchYouTube = async query => {
   }
 }
 
-const getHRTimeDiff = time => {
+export const getHRTimeDiff = time => {
   const elapsed2 = process.hrtime(time)
   return elapsed2[0] + (elapsed2[1] / 1e9)
 }
-
-module.exports.noop = noop
-module.exports.safeJoin = safeJoin
-module.exports.shuffle = shuffle
-module.exports.sleep = sleep
-module.exports.msToTimestamp = msToTimestamp
-module.exports.selectRandom = selectRandom
-module.exports.escapeMarkdown = escapeMarkdown
-module.exports.getEmoji = getEmoji
-module.exports.textToStream = textToStream
-module.exports.getRequestee = getRequestee
-module.exports.getVoiceChannel = getVoiceChannel
-module.exports.isInBotsVoiceChannel = isInBotsVoiceChannel
-module.exports.paginatedEmbed = paginatedEmbed
-module.exports.padInlineFields = padInlineFields
-module.exports.searchYouTube = searchYouTube
-module.exports.getHRTimeDiff = getHRTimeDiff

@@ -1,4 +1,4 @@
-module.exports = class Track {
+export default class Track {
   constructor (artists, title, thumbnail) {
     this.artists = artists || ""
     this.title = title || ""
@@ -145,4 +145,4 @@ module.exports = class Track {
       .setTracked(false)
       .setFinished(false)
   }
-}
+};

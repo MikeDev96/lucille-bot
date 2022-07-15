@@ -1,9 +1,10 @@
-const { Command } = require("discord.js-commando")
-const config = require("../../config.json")
-const { proxyCommand } = require("../../classes/DiscordJSHelpers")
-const { Util } = require("discord.js")
-const { paginatedEmbed } = require("../../helpers.js")
-module.exports = class Alias extends Command {
+import Commando from "discord.js-commando"
+import { proxyCommand } from "../../classes/DiscordJSHelpers.js"
+import { Util } from "discord.js"
+import { paginatedEmbed } from "../../helpers.js"
+const { Command } = Commando
+
+export default class Alias extends Command {
   constructor (client) {
     super(client, {
       name: "alias",
@@ -68,8 +69,8 @@ module.exports = class Alias extends Command {
             color: 0x0099ff,
             title: "Lucille Alias Commands",
             footer: {
-              text: config.discord.footer,
-              icon_url: config.discord.authorAvatarUrl,
+              text: process.env.DISCORD_FOOTER,
+              icon_url: process.env.DISCORD_AUTHORAVATARURL,
             },
           },
         }, embedHandler(List))

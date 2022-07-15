@@ -1,6 +1,7 @@
-const { Command } = require("discord.js-commando")
+import Commando from "discord.js-commando"
+const { Command } = Commando
 
-module.exports = class extends Command {
+export default class extends Command {
   constructor (client) {
     super(client, {
       name: "teams",
@@ -52,7 +53,7 @@ module.exports = class extends Command {
       })
     }
     else {
-      if (!await this.askParticipants(msg)) {}
+      if (!(await this.askParticipants(msg))) { }
     }
   }
 
@@ -98,21 +99,3 @@ module.exports = class extends Command {
   \`${prefix}teams\` \`NUMBER_OF_TEAMS\` \`CHANNEL_NAME\` - Splits channel participants into teams.`
   }
 }
-
-// const join = (arr) => {
-//   if (arr.length === 0) {
-//     return ""
-//   }
-
-//   const newArr = arr.map(str => `\`${str}\``)
-//   const lastItem = newArr.pop()
-//   const outArr = []
-
-//   if (newArr.length) {
-//     outArr.push(newArr.join(", "))
-//   }
-
-//   outArr.push(lastItem)
-
-//   return `${outArr.join(" & ")} 👋👋👋`
-// }

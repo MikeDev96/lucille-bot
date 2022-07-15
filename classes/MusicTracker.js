@@ -1,10 +1,8 @@
-const config = require("../config.json")
-const TrackExtractor = require("./TrackExtractor")
-const MusicToX = require("./MusicToX")
-const { PLATFORM_SPOTIFY, PLATFORM_TIDAL, PLATFORM_APPLE } = require("./TrackExtractor")
-const { getEmoji } = require("../helpers")
+import TrackExtractor, { PLATFORM_SPOTIFY, PLATFORM_TIDAL, PLATFORM_APPLE } from "./TrackExtractor.js"
+import MusicToX from "./MusicToX.js"
+import { getEmoji } from "../helpers.js"
 
-module.exports = class {
+export default class {
   async run (msg) {
     try {
       const te = new TrackExtractor(msg.content)
@@ -38,8 +36,8 @@ module.exports = class {
                 }
               }),
               footer: {
-                text: config.discord.footer,
-                icon_url: config.discord.authorAvatarUrl,
+                text: process.env.DISCORD_FOOTER,
+                icon_url: process.env.DISCORD_AUTHORAVATARURL,
               },
             },
           }

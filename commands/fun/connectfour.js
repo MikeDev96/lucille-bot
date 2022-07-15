@@ -1,8 +1,8 @@
-const { Command } = require("discord.js-commando")
-const ConnectFour = require("../../classes/ConnectFour")
-const { discord } = require("../../config")
+import Commando from "discord.js-commando"
+import ConnectFour from "../../classes/ConnectFour.js"
+const { Command } = Commando
 
-module.exports = class extends Command {
+export default class extends Command {
   constructor (client) {
     super(client, {
       name: "connect4",
@@ -47,7 +47,7 @@ module.exports = class extends Command {
           return
         }
 
-        if (!await this.sendChallenge(msg, playerTwoId)) {
+        if (!(await this.sendChallenge(msg, playerTwoId))) {
           msg.react("👎")
           return
         }
@@ -230,7 +230,7 @@ module.exports = class extends Command {
 
         fields: [...fields],
         footer: {
-          text: discord.footer,
+          text: process.env.DISCORD_FOOTER,
         },
       },
     }

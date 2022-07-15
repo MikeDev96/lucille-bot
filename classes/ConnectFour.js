@@ -1,4 +1,3 @@
-
 class ConnectFour {
   constructor (client, gameId) {
     this.db = client.db
@@ -70,4 +69,4 @@ class ConnectFour {
   }
 }
 
-module.exports = ConnectFour
+export default ConnectFour

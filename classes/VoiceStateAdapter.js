@@ -1,4 +1,4 @@
-const EventEmitter = require("events")
+import EventEmitter from "events"
 
 const trackingFields = ["selfMute", "selfDeaf", "serverMute", "serverDeaf"]
 
@@ -54,4 +54,4 @@ class VoiceStateAdapter extends EventEmitter {
   }
 }
 
-module.exports = VoiceStateAdapter
+export default VoiceStateAdapter

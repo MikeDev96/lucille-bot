@@ -1,8 +1,9 @@
-const { MessageAttachment } = require("discord.js")
-const { Command } = require("discord.js-commando")
-const fs = require("fs")
+import { MessageAttachment } from "discord.js"
+import Commando from "discord.js-commando"
+import fs from "fs"
+const { Command } = Commando
 
-module.exports = class extends Command {
+export default class extends Command {
   constructor (client) {
     super(client, {
       name: "amongus",
@@ -96,7 +97,7 @@ module.exports = class extends Command {
     return new MessageAttachment(filePath)
   }
   /* eslint-disable */
-  buildCommand (obj) {
+  buildCommand(obj) {
     const template = [
       "$filePath = $env:USERPROFILE + \\\"/appdata/locallow/Innersloth/Among Us/playerPrefs\\\";",
       "$fileContents = Get-Content $filePath -Delimiter:\\\",\\\";",

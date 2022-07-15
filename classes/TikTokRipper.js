@@ -1,14 +1,14 @@
-const fsp = require("fs").promises
-const fs = require("fs")
-const fetch = require("node-fetch")
-const sanitise = require("sanitize-filename")
-const path = require("path")
-const globby = require("globby")
-const express = require("express")
-const { MessageAttachment } = require("discord.js")
-const tts = require("tiktok-scraper")
+import fs, { promises as fsp } from "fs"
 
-const router = express.Router()
+import fetch from "node-fetch"
+import sanitise from "sanitize-filename"
+import path from "path"
+import globby from "globby"
+import express from "express"
+import { MessageAttachment } from "discord.js"
+import tts from "tiktok-scraper"
+
+export const router = express.Router()
 
 router.get("/tiktok/video/:videoId", async (req, res) => {
   const paths = await globby(`${VIDEOS_PATH}/* ${req.params.videoId}.mp4`)
@@ -49,7 +49,7 @@ router.get("/tiktok/video/:videoId", async (req, res) => {
 
 const VIDEOS_PATH = "assets/videos/tiktok"
 
-const TikTokRipper = class {
+export default class TikTokRipper {
   constructor () {
     this.processing = {}
   }
@@ -152,6 +152,3 @@ const TikTokRipper = class {
     }
   }
 }
-
-module.exports = TikTokRipper
-module.exports.router = router

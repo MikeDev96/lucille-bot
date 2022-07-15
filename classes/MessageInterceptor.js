@@ -1,6 +1,6 @@
-const EventEmitter = require("events")
+import EventEmitter from "events"
 
-module.exports = class extends EventEmitter {
+export default class extends EventEmitter {
   constructor (client) {
     super()
 

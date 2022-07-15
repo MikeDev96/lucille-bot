@@ -103,4 +103,4 @@ class BangaTracker {
   }
 }
 
-module.exports = BangaTracker
+export default BangaTracker

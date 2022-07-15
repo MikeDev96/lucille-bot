@@ -1,9 +1,9 @@
-const { Command } = require("discord.js-commando")
-const { getRequestee, getVoiceChannel } = require("../../helpers")
-const { resume } = require("./resume")
-const config = require("../../config.json")
+import Commando from "discord.js-commando"
+import { getRequestee, getVoiceChannel } from "../../helpers.js"
+import { resume } from "./resume.js"
+const { Command } = Commando
 
-const commandConfig = {
+export const commandConfig = {
   name: "play",
   aliases: ["p"],
   group: "music",
@@ -20,7 +20,7 @@ const commandConfig = {
   guildOnly: true,
 }
 
-module.exports = class PlayCommand extends Command {
+export default class PlayCommand extends Command {
   constructor (client) {
     super(client, commandConfig)
   }
@@ -30,10 +30,10 @@ module.exports = class PlayCommand extends Command {
   }
 }
 
-const run = async (msg, args, jump) => {
+export const run = async (msg, args, jump) => {
   const music = msg.guild.music
 
-  if (msg.author.id !== config.discord.owner && (!msg.member.voice.channelID || (msg.guild.voice && msg.guild.voice.channelID && msg.guild.voice.channelID !== msg.member.voice.channelID) || msg.member.voice.deaf)) {
+  if (msg.author.id !== process.env.DISCORD_OWNER && (!msg.member.voice.channelID || (msg.guild.voice && msg.guild.voice.channelID && msg.guild.voice.channelID !== msg.member.voice.channelID) || msg.member.voice.deaf)) {
     msg.react("🖕")
     return
   }
@@ -60,6 +60,3 @@ const run = async (msg, args, jump) => {
     msg.reply("Please provide a link or search term for the song you wish to play")
   }
 }
-
-module.exports.commandConfig = commandConfig
-module.exports.run = run

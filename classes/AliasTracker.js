@@ -82,4 +82,4 @@ class AliasTracker {
   }
 }
 
-module.exports = AliasTracker
+export default AliasTracker

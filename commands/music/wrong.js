@@ -1,9 +1,9 @@
-const { Command } = require("discord.js-commando")
-const { searchYouTube } = require("../../helpers")
-const Track = require("../../classes/Track")
-const { msToTimestamp, escapeMarkdown } = require("../../helpers")
+import Commando from "discord.js-commando"
+import { searchYouTube, msToTimestamp, escapeMarkdown } from "../../helpers.js"
+import Track from "../../classes/Track.js"
+const { Command } = Commando
 
-module.exports = class extends Command {
+export default class extends Command {
   constructor (client) {
     super(client, {
       name: "wrong",

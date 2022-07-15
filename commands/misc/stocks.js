@@ -1,9 +1,9 @@
-const { MessageEmbed, Util } = require("discord.js")
-const { Command } = require("discord.js-commando")
-const fetch = require("node-fetch")
-const config = require("../../config.json")
+import { MessageEmbed, Util } from "discord.js"
+import Commando from "discord.js-commando"
+import fetch from "node-fetch"
+const { Command } = Commando
 
-module.exports = class extends Command {
+export default class extends Command {
   constructor (client) {
     super(client, {
       name: "stocks",
@@ -74,7 +74,7 @@ module.exports = class extends Command {
               },
               fields: tempArr,
               footer: {
-                text: config.discord.footer,
+                text: process.env.DISCORD_FOOTER,
               },
             },
           }
@@ -95,7 +95,7 @@ module.exports = class extends Command {
           return
         }
 
-        msg.guild.stocks = new class {
+        msg.guild.stocks = new (class {
           constructor () {
             this.embedMsg = null
             this.timeoutHandle = 0
@@ -155,7 +155,7 @@ module.exports = class extends Command {
               this.embedMsg.delete()
             }
           }
-        }()
+        })()
       }
       else {
         const prefix = msg.client.commandPrefix

@@ -1,10 +1,14 @@
-const { Command } = require("discord.js-commando")
-const radios = require("../../radios.json")
-const { getRequestee, getVoiceChannel, isInBotsVoiceChannel } = require("../../helpers")
-const { PLATFORM_RADIO } = require("../../classes/TrackExtractor")
-const Track = require("../../classes/Track")
+import Commando from "discord.js-commando"
+import { getRequestee, getVoiceChannel, isInBotsVoiceChannel } from "../../helpers.js"
+import { PLATFORM_RADIO } from "../../classes/TrackExtractor.js"
+import Track from "../../classes/Track.js"
+import { createRequire } from "module"
+const { Command } = Commando
 
-module.exports = class extends Command {
+const require = createRequire(import.meta.url)
+const radios = require("../../radios.json")
+
+export default class extends Command {
   constructor (client) {
     super(client, {
       name: "radio",

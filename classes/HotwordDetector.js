@@ -1,5 +1,5 @@
-const Porcupine = require("@picovoice/porcupine-node")
-const EventEmitter = require("events")
+import Porcupine from "@picovoice/porcupine-node"
+import EventEmitter from "events"
 
 class HotwordDetector extends EventEmitter {
   constructor ({ stream, hotwordFile, sensitivity, accessKey }) {
@@ -48,4 +48,4 @@ class HotwordDetector extends EventEmitter {
   }
 }
 
-module.exports = HotwordDetector
+export default HotwordDetector

@@ -1,6 +1,7 @@
-const { Command } = require("discord.js-commando")
+import Commando from "discord.js-commando"
+const { Command } = Commando
 
-module.exports = class extends Command {
+export default class extends Command {
   constructor (client) {
     super(client, {
       name: "resume",
@@ -17,12 +18,10 @@ module.exports = class extends Command {
   }
 }
 
-const resume = msg => {
+export const resume = msg => {
   const music = msg.guild.music
   music.setState({ pauser: "" })
   music.dispatcherExec(d => d.resume())
   music.updateEmbed()
   msg.react("▶️")
 }
-
-module.exports.resume = resume

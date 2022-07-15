@@ -1,7 +1,7 @@
-const fetch = require("node-fetch")
-const he = require("he")
-const { getEmoji, padInlineFields, getHRTimeDiff } = require("../helpers")
-const { parse } = require("node-html-parser")
+import fetch from "node-fetch"
+import he from "he"
+import { getEmoji, padInlineFields, getHRTimeDiff } from "../helpers.js"
+import { parse } from "node-html-parser"
 
 const AmazonRipper = class {
   constructor (client) {
@@ -93,38 +93,38 @@ const AmazonRipper = class {
           url: msg.content,
           fields: [
             ...padInlineFields([
-              ...info.price ? [
+              ...(info.price ? [
                 {
                   name: "Price",
                   value: info.price,
                   inline: true,
                 },
-              ] : [],
-              ...info.rating ? [
+              ] : []),
+              ...(info.rating ? [
                 {
                   name: "Rating",
                   value: info.rating,
                   inline: true,
                 },
-              ] : [],
+              ] : []),
               ...info.variations.map(v => ({
                 name: v.name,
                 value: v.value,
                 inline: true,
               })),
             ]),
-            ...info.overview.length ? [
+            ...(info.overview.length ? [
               {
                 name: "Overview",
                 value: info.overview.map(({ key, value }) => `${key}: ${value}`).join("\n").substr(0, 1024),
               },
-            ] : [],
-            ...info.features.length ? [
+            ] : []),
+            ...(info.features.length ? [
               {
                 name: "Features",
                 value: info.features.map(feat => `• ${feat}`).join("\n").substr(0, 1024),
               },
-            ] : [],
+            ] : []),
           ],
           author: {
             name: msg.member.displayName,
@@ -133,11 +133,11 @@ const AmazonRipper = class {
           image: {
             url: info.images[0],
           },
-          ...info.images.length > 1 ? {
+          ...(info.images.length > 1 ? {
             footer: {
               text: `Image 1 of ${info.images.length}`,
             },
-          } : {},
+          } : {}),
         },
       })
 
@@ -244,4 +244,4 @@ const AmazonRipper = class {
   }
 }
 
-module.exports = AmazonRipper
+export default AmazonRipper

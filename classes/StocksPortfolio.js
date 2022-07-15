@@ -117,4 +117,4 @@ class StocksPortfolio {
   }
 }
 
-module.exports = StocksPortfolio
+export default StocksPortfolio

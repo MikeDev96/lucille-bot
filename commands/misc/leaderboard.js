@@ -1,10 +1,10 @@
-const { Command } = require("discord.js-commando")
-const { paginatedEmbed } = require("../../helpers")
-const config = require("../../config.json")
-const { Util } = require("discord.js")
-const humanizeDuration = require("humanize-duration")
+import Commando from "discord.js-commando"
+import { paginatedEmbed } from "../../helpers.js"
+import { Util } from "discord.js"
+import humanizeDuration from "humanize-duration"
+const { Command } = Commando
 
-module.exports = class extends Command {
+export default class extends Command {
   constructor (client) {
     super(client, {
       name: "leaderboard",
@@ -218,7 +218,7 @@ __**${prefix}lb command:**__
             icon_url: msg.author.displayAvatarURL(),
           },
           footer: {
-            text: config.discord.footer,
+            text: process.env.DISCORD_FOOTER,
           },
         },
       }

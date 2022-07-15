@@ -1,8 +1,9 @@
-const { Command } = require("discord.js-commando")
-const parse = require("parse-duration")
-const { msToTimestamp } = require("../../helpers")
+import Commando from "discord.js-commando"
+import parse from "parse-duration"
+import { msToTimestamp } from "../../helpers.js"
+const { Command } = Commando
 
-module.exports = class extends Command {
+export default class extends Command {
   constructor (client) {
     super(client, {
       name: "timer",

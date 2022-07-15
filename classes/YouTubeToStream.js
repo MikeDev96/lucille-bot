@@ -1,9 +1,9 @@
-const prism = require("prism-media")
-const { msToTimestamp } = require("../helpers")
-const { Readable, PassThrough } = require("stream")
-const { stream } = require("play-dl")
+import prism from "prism-media"
+import { msToTimestamp } from "../helpers.js"
+import { Readable, PassThrough } from "stream"
+import { stream } from "play-dl"
 
-const getFfmpegStream = (url, { startTime, filters = {} } = {}) => {
+export const getFfmpegStream = (url, { startTime, filters = {} } = {}) => {
   console.log("Using ffmpeg")
   const isStream = url instanceof Readable
   const transcoder = new prism.FFmpeg({
@@ -32,9 +32,7 @@ const getFfmpegStream = (url, { startTime, filters = {} } = {}) => {
   return stream
 }
 
-exports.getStream = async (url, options) => {
+export const getStream = async (url, options) => {
   const s = await stream(url, { seek: options.startTime / 1000 })
   return s
 }
-
-exports.getFfmpegStream = getFfmpegStream

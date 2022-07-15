@@ -1,17 +1,15 @@
-const path = require("path")
-const config = require("./config.json")
-const express = require("express")
-const dotenv = require("dotenv")
-const { router: redditRoutes } = require("./classes/RedditRipper")
-const { router: tiktokRoutes } = require("./classes/TikTokRipper")
-const LucilleClient = require("./classes/LucilleClient")
-require("./classes/LucilleGuild")
+import express from "express"
+import dotenv from "dotenv"
+import { router as redditRoutes } from "./classes/RedditRipper.js"
+import { router as tiktokRoutes } from "./classes/TikTokRipper.js"
+import LucilleClient from "./classes/LucilleClient.js"
+import "./classes/LucilleGuild.js"
 
 dotenv.config()
 
 const client = new LucilleClient({
-  owner: config.discord.owner,
-  commandPrefix: config.discord.prefix,
+  owner: process.env.DISCORD_OWNER,
+  commandPrefix: process.env.DISCORD_PREFIX,
   partials: ["USER", "REACTION", "MESSAGE"],
 })
 
@@ -21,10 +19,10 @@ client.registry
   .registerGroup("misc", "Miscellaneous")
   .registerGroup("fun", "Fun")
   .registerDefaults()
-  .registerCommandsIn(path.join(__dirname, "commands"))
 
+client.importCommands()
 client.once("ready", () => console.log("Discord client ready"))
-client.connect(config.discord.token)
+client.connect(process.env.DISCORD_TOKEN)
 
 express()
   .use("/", redditRoutes)

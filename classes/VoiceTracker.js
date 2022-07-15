@@ -1,7 +1,6 @@
-const { Speaking } = require("discord.js")
-const humanizeDuration = require("humanize-duration")
-const config = require("../config.json")
-const VoiceStateAdapter = require("./VoiceStateAdapter")
+import { Speaking } from "discord.js"
+import humanizeDuration from "humanize-duration"
+import VoiceStateAdapter from "./VoiceStateAdapter.js"
 
 class VoiceTracker {
   constructor (client) {
@@ -467,8 +466,8 @@ class VoiceTracker {
       ].join("\n"),
       fields,
       footer: {
-        text: config.discord.footer,
-        icon_url: config.discord.authorAvatarUrl,
+        text: process.env.DISCORD_FOOTER,
+        icon_url: process.env.DISCORD_AUTHORAVATARURL,
       },
     }
 
@@ -579,4 +578,4 @@ const shortEnglishHumanizer = humanizeDuration.humanizer({
   },
 })
 
-module.exports = VoiceTracker
+export default VoiceTracker

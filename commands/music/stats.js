@@ -1,8 +1,8 @@
-const { Command } = require("discord.js-commando")
-const { escapeMarkdown } = require("../../helpers")
-const config = require("../../config.json")
+import Commando from "discord.js-commando"
+import { escapeMarkdown } from "../../helpers.js"
+const { Command } = Commando
 
-module.exports = class extends Command {
+export default class extends Command {
   constructor (client) {
     super(client, {
       name: "stats",
@@ -65,8 +65,8 @@ module.exports = class extends Command {
             },
           ],
           footer: {
-            text: config.discord.footer,
-            icon_url: config.discord.authorAvatarUrl,
+            text: process.env.DISCORD_FOOTER,
+            icon_url: process.env.DISCORD_AUTHORAVATARURL,
           },
         },
       })
