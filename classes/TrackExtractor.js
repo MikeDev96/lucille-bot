@@ -14,6 +14,7 @@ export const PLATFORM_OTHER = "other"
 export const PLATFORM_RADIO = "radio"
 export const PLATFORM_CONNECT = "connect"
 export const PLATFORM_DISCONNECT = "disconnect"
+export const PLATFORM_TTS = "tts"
 
 export default class TrackExtractor {
   constructor (input) {
@@ -275,7 +276,7 @@ export default class TrackExtractor {
               .setYouTubeId(video.id)
               .setYouTubeTitle(video.title)
               .setDuration(video instanceof youtubei.Video ? video.duration : 0)
-              .setStartTime(startTime ?? 0),
+              .setStartTime(startTime || 0),
           ]
         }
       }

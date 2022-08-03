@@ -1,4 +1,6 @@
-import { textToStream } from "../helpers.js"
+import Requestee from "./Requestee.js"
+import Track from "./Track.js"
+import { PLATFORM_TTS } from "./TrackExtractor.js"
 /*
 * TODO:
 * Queue messages ie 2 people join at once
@@ -29,22 +31,15 @@ export default class TextToSpeech {
       .then(async res => {
         const user = this.validUsername(res.displayName) ? res.displayName : "User"
         const channel = event === "move" ? voiceObj.toChannel.name : voiceState.channel.name
-        const output = await textToStream(this.getMessage(event, user, channel))
         const music = voiceState.guild.music
 
-        if (music.state.queue.length === 0) {
-          this.playGTTSStream(voiceState, output)
-        }
-        else {
-          music.syncTime()
-          await this.playGTTSStream(voiceState, output)
-          music.play("resume")
-        }
+        var requestee = new Requestee(voiceState.guild.me.displayName, voiceState.guild, voiceState.guild.client.user.id)
+        const track = TextToSpeech.getTtsTrack(requestee, this.getMessage(event, user, channel))
+        music.add([track], requestee, voiceState.channel, false, voiceState.guild.systemChannel)
       })
   }
 
   getMessage (event, user, channel) {
-    user = user.toLowerCase()
     switch (event) {
     case "join": return `${user} has joined ${channel}`
     case "leave": return `${user} has left ${channel}`
@@ -60,14 +55,12 @@ export default class TextToSpeech {
     return true
   }
 
-  playGTTSStream (voiceState, stream) {
-    return new Promise((resolve) => {
-      const dispatcher = this.client.voice.connections
-        .get(voiceState.guild.id)
-        .play(stream)
-      dispatcher.setVolumeLogarithmic(3)
-      dispatcher.once("close", () => stream.destroy())
-      dispatcher.once("finish", () => resolve())
-    })
+  static getTtsTrack (requestee, text) {
+    return new Track()
+      .setRequestee(requestee)
+      .setPlatform(PLATFORM_TTS)
+      .setQuery(text)
+      .setLink("LINK")
+      .setTitle(`TTS - ${text}`)
   }
 }

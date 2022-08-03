@@ -1,5 +1,6 @@
 import Commando from "discord.js-commando"
-import { textToStream } from "../../helpers.js"
+import TextToSpeech from "../../classes/TextToSpeech.js"
+import { getRequestee } from "../../helpers.js"
 const { Command } = Commando
 
 class TtsCommand extends Command {
@@ -27,21 +28,9 @@ class TtsCommand extends Command {
         msg.react("🎙️")
 
         const music = msg.guild.music
-        music.syncTime()
+        const track = TextToSpeech.getTtsTrack(getRequestee(msg), args.text)
 
-        const notInVoice = !msg.guild.voice || !msg.guild.voice.channel
-        if (notInVoice) {
-          await msg.member.voice.channel.join()
-        }
-
-        await TtsCommand.speak(msg, args.text)
-
-        if (notInVoice) {
-          msg.member.voice.channel.leave()
-        }
-        else {
-          music.play()
-        }
+        music.add([track], track.requestee, msg.member.voice.channel, false, msg.guild.systemChannel)
       }
       else {
         msg.react("🖕")
@@ -50,16 +39,6 @@ class TtsCommand extends Command {
     catch (err) {
       msg.reply(err.message)
     }
-  }
-
-  static async speak (msg, text) {
-    const stream = await textToStream(text)
-
-    return new Promise((resolve, reject) => {
-      const dispatcher = msg.guild.voice.connection.play(stream, { volume: 5 })
-      dispatcher.on("finish", () => resolve())
-      dispatcher.on("error", err => reject(err))
-    })
   }
 }
 

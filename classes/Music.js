@@ -1,7 +1,7 @@
 import { Util } from "discord.js"
 import TopMostMessagePump from "./TopMostMessagePump.js"
-import { safeJoin, msToTimestamp, selectRandom, escapeMarkdown, searchYouTube } from "../helpers.js"
-import TrackExtractor, { PLATFORM_YOUTUBE, PLATFORM_RADIO, PLATFORM_SPOTIFY, PLATFORM_TIDAL, PLATFORM_APPLE, PLATFORM_CONNECT, PLATFORM_DISCONNECT } from "./TrackExtractor.js"
+import { safeJoin, msToTimestamp, selectRandom, escapeMarkdown, searchYouTube, textToStream } from "../helpers.js"
+import TrackExtractor, { PLATFORM_YOUTUBE, PLATFORM_RADIO, PLATFORM_SPOTIFY, PLATFORM_TIDAL, PLATFORM_APPLE, PLATFORM_CONNECT, PLATFORM_DISCONNECT, PLATFORM_TTS } from "./TrackExtractor.js"
 import Track from "./Track.js"
 import fs from "fs"
 import RadioMetadata from "./RadioMetadata.js"
@@ -152,7 +152,12 @@ export default class Music extends MusicState {
     const newRadios = tracks.filter(t => t.platform === PLATFORM_RADIO)
 
     // If the queue is empty, i.e. only a radio playing then happily handles inserting at 1 in an empty array.
-    queueTracks.splice(jump ? 1 : queueTracks.length, 0, ...newTracks)
+    if (tracks.some(t => t.platform === PLATFORM_TTS)) {
+      queueTracks.unshift(...newTracks)
+    }
+    else {
+      queueTracks.splice(jump ? 1 : queueTracks.length, 0, ...newTracks)
+    }
 
     const radios = newRadios.concat(queueRadios)
     if (radios.length) {
@@ -198,7 +203,9 @@ export default class Music extends MusicState {
 
       // If there's nothing playing, get the ball rolling
       const notStreaming = this.guild.voice && this.guild.voice.connection && !this.guild.voice.connection.dispatcher
-      if (notStreaming || wasRadio) {
+      const isTts = this.state.queue[0] && this.state.queue[0].platform === PLATFORM_TTS
+
+      if (notStreaming || wasRadio || isTts) {
         await this.searchAndPlay()
       }
       else {
@@ -374,6 +381,10 @@ export default class Music extends MusicState {
           console.log(err)
         }
       }
+    }
+    else if (item.platform === PLATFORM_TTS) {
+      const output = await textToStream(item.query)
+      return { stream: getFfmpegStream(output, { startTime: 0, filters: this.getAudioFilters() }), type: "opus" }
     }
 
     return { stream: getFfmpegStream(item.link, { startTime: 0, filters: this.getAudioFilters() }), type: "opus" }
