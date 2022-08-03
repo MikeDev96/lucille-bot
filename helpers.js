@@ -1,10 +1,10 @@
 import { Util } from "discord.js"
-import GTTS from "gtts"
-import { PassThrough } from "stream"
+import { Readable } from "stream"
 import Requestee from "./classes/Requestee.js"
 import fetch from "node-fetch"
 import { Duration } from "luxon"
 import youtubei from "youtubei"
+import gtts from "google-tts-api"
 
 export const noop = () => { }
 
@@ -62,17 +62,9 @@ export const getEmoji = (guild, emoji) => {
 }
 
 export const textToStream = text => {
-  return new Promise((resolve, reject) => {
-    const gtts = new GTTS(text, "en-uk")
-    const passThrough = new PassThrough()
-    const stream = gtts.stream()
-    const output = stream.pipe(passThrough)
-
-    stream.on("close", () => passThrough.destroy())
-    stream.on("error", err => reject(err))
-
-    return resolve(output)
-  })
+  return gtts
+    .getAudioBase64(text, { lang: "en", slow: false, host: "https://translate.google.com", timeout: 10000 })
+    .then(data => Readable.from(Buffer.from(data, "base64")))
 }
 
 export const getRequestee = msg => {

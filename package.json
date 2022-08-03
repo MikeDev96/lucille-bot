@@ -29,7 +29,7 @@
     "ffmpeg-static": "^4.4.0",
     "get-audio-duration": "^2.0.3",
     "globby": "^11.0.4",
-    "gtts": "^0.2.1",
+    "google-tts-api": "^2.0.2",
     "he": "^1.2.0",
     "humanize-duration": "^3.27.0",
     "lodash-es": "^4.17.21",
