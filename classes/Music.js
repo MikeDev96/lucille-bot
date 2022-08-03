@@ -1,7 +1,7 @@
 import { Util } from "discord.js"
 import TopMostMessagePump from "./TopMostMessagePump.js"
 import { safeJoin, msToTimestamp, selectRandom, escapeMarkdown, searchYouTube } from "../helpers.js"
-import TrackExtractor, { PLATFORM_YOUTUBE, PLATFORM_RADIO, PLATFORM_SPOTIFY, PLATFORM_TIDAL, PLATFORM_APPLE, PLATFORM_DISCONNECT } from "./TrackExtractor.js"
+import TrackExtractor, { PLATFORM_YOUTUBE, PLATFORM_RADIO, PLATFORM_SPOTIFY, PLATFORM_TIDAL, PLATFORM_APPLE, PLATFORM_CONNECT, PLATFORM_DISCONNECT } from "./TrackExtractor.js"
 import Track from "./Track.js"
 import fs from "fs"
 import RadioMetadata from "./RadioMetadata.js"
@@ -176,13 +176,13 @@ export default class Music extends MusicState {
       const requestee = new Requestee(this.guild.me.displayName, this.client.user.displayAvatarURL(), this.client.user.id)
 
       queueTracks.unshift(new Track("", "Random Connect Sound", "")
-        .setPlatform(TrackExtractor.PLATFORM_CONNECT)
+        .setPlatform(PLATFORM_CONNECT)
         .setLink(`${connectPath}/${randomConnectSound}`)
         .setDuration(0)
         .setRequestee(requestee))
 
       queueTracks.push(new Track("", "Random Disconnect Sound", "")
-        .setPlatform(TrackExtractor.PLATFORM_DISCONNECT)
+        .setPlatform(PLATFORM_DISCONNECT)
         .setLink(`${disconnectPath}/${randomDisconnectSound}`)
         .setDuration(0)
         .setRequestee(requestee))
@@ -287,7 +287,7 @@ export default class Music extends MusicState {
     // TODO: Handle the error event
     stream.once("readable", () => {
       const dispatcher = this.state.voiceConnection.play(stream, { type })
-      dispatcher.setVolumeLogarithmic([TrackExtractor.PLATFORM_CONNECT, TrackExtractor.PLATFORM_DISCONNECT].includes(item.platform) ? 3 : this.state.volume / 100)
+      dispatcher.setVolumeLogarithmic([PLATFORM_CONNECT, PLATFORM_DISCONNECT].includes(item.platform) ? 3 : this.state.volume / 100)
 
       dispatcher.on("start", () => {
         // Fixes a song resuming from its paused state if a TTS message is played
