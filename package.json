@@ -6,8 +6,7 @@
   "type": "module",
   "scripts": {
     "start": "npx eslint --fix **/*.js & node index.js",
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "hooks": "git config core.hookspath .githooks"
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
   "license": "ISC",
