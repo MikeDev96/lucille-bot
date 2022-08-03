@@ -151,7 +151,7 @@ export const searchYouTube = async query => {
 
     console.log(`Searched youtubei for '${query}' in ${getHRTimeDiff(t)}s...`)
 
-    return searchResults.map(v => ({
+    return searchResults.items.map(v => ({
       id: v.id,
       title: v.title,
       thumbnail: v.thumbnails[0].url,
