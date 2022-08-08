@@ -174,23 +174,16 @@ export default class Music extends MusicState {
       const connectPath = "assets/sounds/connect"
       const connectSounds = fs.existsSync(connectPath) && fs.readdirSync(connectPath)
       const randomConnectSound = selectRandom(connectSounds)
-      const disconnectPath = "assets/sounds/disconnect"
-      const disconnectSounds = fs.existsSync(disconnectPath) && fs.readdirSync(disconnectPath)
-      const randomDisconnectSound = selectRandom(disconnectSounds)
 
       const requestee = new Requestee(this.guild.me.displayName, this.client.user.displayAvatarURL(), this.client.user.id)
 
+      if (randomConnectSound) {
       queueTracks.unshift(new Track("", "Random Connect Sound", "")
         .setPlatform(PLATFORM_CONNECT)
         .setLink(`${connectPath}/${randomConnectSound}`)
         .setDuration(0)
         .setRequestee(requestee))
-
-      queueTracks.push(new Track("", "Random Disconnect Sound", "")
-        .setPlatform(PLATFORM_DISCONNECT)
-        .setLink(`${disconnectPath}/${randomDisconnectSound}`)
-        .setDuration(0)
-        .setRequestee(requestee))
+      }
     }
 
     this.setState({ queue: queueTracks })
@@ -440,6 +433,10 @@ export default class Music extends MusicState {
   }
 
   async processQueue () {
+    const disconnectPath = "assets/sounds/disconnect"
+    const disconnectSounds = fs.existsSync(disconnectPath) ? fs.readdirSync(disconnectPath) : []
+    const isDisconnectSound = !disconnectSounds.length || (this.state.queue[0] && this.state.queue[0].platform === PLATFORM_DISCONNECT)
+
     if (this.state.repeat === "all") {
       if (this.state.queue.length > 0) {
         this.state.queue.push(this.state.queue.shift().reset())
@@ -457,13 +454,30 @@ export default class Music extends MusicState {
       this.setState({ queue: this.state.queue })
     }
 
-    if (this.state.queue.length < 1) {
+    if (!this.state.queue[0]) {
+      if (!isDisconnectSound) {
+        const requestee = new Requestee(this.guild.me.displayName, this.client.user.displayAvatarURL(), this.client.user.id)
+        const randomDisconnectSound = selectRandom(disconnectSounds)
+
+        if (randomDisconnectSound) {
+          this.state.queue.push(new Track("", "Random Disconnect Sound", "")
+            .setPlatform(PLATFORM_DISCONNECT)
+            .setLink(`${disconnectPath}/${randomDisconnectSound}`)
+            .setDuration(0)
+            .setRequestee(requestee))
+
+          this.setState({ queue: this.state.queue })
+        }
+      }
+      else {
       if (!this.state.summoned) {
         this.state.voiceConnection.disconnect()
       }
       this.cleanUp()
     }
-    else {
+    }
+
+    if (this.state.queue[0]) {
       await this.searchAndPlay()
     }
   }
