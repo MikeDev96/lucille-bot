@@ -178,11 +178,11 @@ export default class Music extends MusicState {
       const requestee = new Requestee(this.guild.me.displayName, this.client.user.displayAvatarURL(), this.client.user.id)
 
       if (randomConnectSound) {
-      queueTracks.unshift(new Track("", "Random Connect Sound", "")
-        .setPlatform(PLATFORM_CONNECT)
-        .setLink(`${connectPath}/${randomConnectSound}`)
-        .setDuration(0)
-        .setRequestee(requestee))
+        queueTracks.unshift(new Track("", "Random Connect Sound", "")
+          .setPlatform(PLATFORM_CONNECT)
+          .setLink(`${connectPath}/${randomConnectSound}`)
+          .setDuration(0)
+          .setRequestee(requestee))
       }
     }
 
@@ -264,12 +264,6 @@ export default class Music extends MusicState {
 
     const item = this.state.queue[0]
 
-    // Fixes a song resuming from its paused state if its bass boost status is updated
-    if (update === "after" && this.state.pauser !== "") {
-      this.updateEmbed()
-      return
-    }
-
     if (update === "before") {
       this.updateEmbed()
     }
@@ -280,69 +274,77 @@ export default class Music extends MusicState {
     }
 
     const { stream, type } = streamData
-    this.stream = stream
 
     // Using on readable makes the transition smoother when restarting the stream.
     // i.e. when changing the bass boost
     // TODO: Handle the error event
-    stream.once("readable", () => {
+    console.time("readable")
+    stream.once("readable", async () => {
+      console.timeEnd("readable")
+      const prevPlaying = this.playing
+
+      if (prevPlaying) {
+        this.syncTime(0, prevPlaying.item)
+
+        prevPlaying.stream.destroy()
+
+        await this.cleanItem(prevPlaying.item, false)
+      }
+
+      this.playing = { stream, type, item }
+
       const dispatcher = this.state.voiceConnection.play(stream, { type })
       dispatcher.setVolumeLogarithmic([PLATFORM_CONNECT, PLATFORM_DISCONNECT].includes(item.platform) ? 3 : this.state.volume / 100)
 
+      if (update === "after") {
+        this.updateEmbed()
+      }
+
       dispatcher.on("start", () => {
-        // Fixes a song resuming from its paused state if a TTS message is played
-        if (update === "resume" && this.state.pauser !== "") {
-          this.dispatcherExec(d => d.pause())
+        if (this.state.pauser && item.platform !== PLATFORM_TTS) {
+          dispatcher.pause()
           this.updateEmbed()
         }
         else {
           console.log("Stream starting...")
-          this.cleanProgress()
-
-          if (item.duration > 0) {
-            this.streamTimeCache = 0
-            this.progressHandle = setInterval(() => {
-              this.syncTime()
-              this.setState({ queue: this.state.queue })
-              this.updateEmbed(true)
-            }, 5000)
-          }
-
+          this.endProgress()
+          this.startProgress(item)
           this.startRadioMetadata(item)
           this.startListenTracking(item)
         }
       })
 
-      // This only fires when a stream finishes or is forcibly ended
+      // This only fires when a stream finishes gracefully or is forcibly ended (.end())
       // Commands like bass boost which just restart the stream will not fire this event
       // so make sure to clean up properly!
-      dispatcher.on("finish", async () => {
-        console.log("Stream finished...")
-
-        item.setFinished()
-        this.updateEmbed(true)
-        await this.processQueue()
-      })
+      dispatcher.on("finish", async () => await this.cleanItem(item, true))
 
       // Discord.js doesn't destroy streams that have been passed in
       // So detect when the opus encoder has been closed and destroy our stream
       dispatcher.streams.opus.once("close", () => {
         stream.destroy()
         console.log("Cleaned up underlying stream")
-
-        this.cleanProgress()
-        this.endRadioMetadata(item)
-        this.endListenTracking(item)
       })
 
       dispatcher.on("error", err => {
         console.log(err)
       })
-
-      if (update === "after") {
-        this.updateEmbed()
-      }
     })
+  }
+
+  async cleanItem (item, finished) {
+    this.endProgress()
+    this.endRadioMetadata(item)
+    this.endListenTracking(item)
+    this.playing = null
+
+    if (finished) {
+      console.log("Stream finished...")
+
+      item.setFinished()
+      this.updateEmbed(true)
+      await this.processQueue()
+    }
   }
 
   async getMediaStream (item) {
@@ -383,14 +385,14 @@ export default class Music extends MusicState {
     return { stream: getFfmpegStream(item.link, { startTime: 0, filters: this.getAudioFilters() }), type: "opus" }
   }
 
-  syncTime (ms = 0) {
+  syncTime (ms = 0, item) {
     const deltaTime = (this.dispatcherExec(d => d.streamTime) || 0) - this.streamTimeCache
-    const item = this.state.queue[0]
-    if (item) {
-      const newStartTime = item.startTime + deltaTime + ms
-      const newListenTime = item.listenTime + deltaTime
+    const queueItem = item || this.state.queue[0]
+    if (queueItem) {
+      const newStartTime = queueItem.startTime + deltaTime + ms
+      const newListenTime = queueItem.listenTime + deltaTime
 
-      item.setStartTime(newStartTime)
+      queueItem.setStartTime(newStartTime)
         .setListenTime(newListenTime)
 
       // console.log(`Set time to ${newStartTime}, set listen time to ${newListenTime}, delta: ${deltaTime}`)
@@ -470,11 +472,11 @@ export default class Music extends MusicState {
         }
       }
       else {
-      if (!this.state.summoned) {
-        this.state.voiceConnection.disconnect()
+        if (!this.state.summoned) {
+          this.state.voiceConnection.disconnect()
+        }
+        this.cleanUp()
       }
-      this.cleanUp()
-    }
     }
 
     if (this.state.queue[0]) {
@@ -493,7 +495,18 @@ export default class Music extends MusicState {
     this.updateEmbed()
   }
 
-  cleanProgress () {
+  startProgress (item) {
+    if (item.duration > 0) {
+      this.streamTimeCache = 0
+      this.progressHandle = setInterval(() => {
+        this.syncTime(0, item)
+        this.setState({ queue: this.state.queue })
+        this.updateEmbed(true)
+      }, 5000)
+    }
+  }
+
+  endProgress () {
     if (this.progressHandle) {
       clearInterval(this.progressHandle)
     }

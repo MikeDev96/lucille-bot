@@ -1,5 +1,5 @@
 import { Util } from "discord.js"
-import { Readable } from "stream"
+import { PassThrough, Readable } from "stream"
 import Requestee from "./classes/Requestee.js"
 import fetch from "node-fetch"
 import { Duration } from "luxon"
@@ -156,3 +156,17 @@ export const getHRTimeDiff = time => {
   const elapsed2 = process.hrtime(time)
   return elapsed2[0] + (elapsed2[1] / 1e9)
 }
+
+export const playDlDiscord12CompatabilityWrapper = stream => {
+  const wrapperStream = new PassThrough()
+    .on("close", () => stream.stream.destroy())
+
+  stream.stream
+    .on("data", chunk => wrapperStream.push(chunk))
+    .on("finish", () => wrapperStream.push(null))
+    // .on("error", err => wrapperStream.destroy(err))
+
+  return { ...stream, stream: wrapperStream }
+}
+
+export const getEpoch = () => Date.now() / 1000

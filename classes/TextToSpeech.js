@@ -62,5 +62,6 @@ export default class TextToSpeech {
       .setQuery(text)
       .setLink("LINK")
       .setTitle(`TTS - ${text}`)
+      .setDuration(0)
   }
 }

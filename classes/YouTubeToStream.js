@@ -1,7 +1,9 @@
 import prism from "prism-media"
-import { msToTimestamp } from "../helpers.js"
+import { msToTimestamp, playDlDiscord12CompatabilityWrapper } from "../helpers.js"
 import { Readable, PassThrough } from "stream"
-import { stream } from "play-dl"
+import { stream_from_info as streamFromInfo, video_info as videoInfo } from "play-dl"
+
+const playDlCache = new Map()
 
 export const getFfmpegStream = (url, { startTime, filters = {} } = {}) => {
   console.log("Using ffmpeg")
@@ -33,6 +35,19 @@ export const getFfmpegStream = (url, { startTime, filters = {} } = {}) => {
 }
 
 export const getStream = async (url, options) => {
-  const s = await stream(url, { seek: options.startTime / 1000 })
-  return s
+  if (!playDlCache.has(url)) {
+    console.time("play-dl")
+    const info = await videoInfo(url)
+    console.timeEnd("play-dl")
+
+    playDlCache.set(url, info)
+  }
+  else {
+    console.log("Fetched steam info from cache")
+  }
+
+  const info = playDlCache.get(url)
+  const stream = await streamFromInfo(info, { seek: options.startTime / 1000 })
+
+  return playDlDiscord12CompatabilityWrapper(stream)
 }
