@@ -363,7 +363,7 @@ export default class Music extends MusicState {
         try {
           const res = await axios({
             method: "GET",
-            url: item.link,
+            url: item.link.replace(/{CURRENT_TIME}/g, Math.round(new Date().getTime() / 1e3)),
             responseType: "stream",
           })
 

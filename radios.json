@@ -4,6 +4,7 @@
     "url": "https://media-ssl.musicradio.com/CapitalUK",
     "metadata": {
       "type": "ws",
+      "provider": "musicradio",
       "url": "wss://metadata.musicradio.com/v2/now-playing",
       "summon": {
         "actions": [
@@ -20,6 +21,7 @@
     "url": "https://media-ssl.musicradio.com/CapitalManchester",
     "metadata": {
       "type": "ws",
+      "provider": "musicradio",
       "url": "wss://metadata.musicradio.com/v2/now-playing",
       "summon": {
         "actions": [
@@ -33,29 +35,29 @@
   },
   "kiss": {
     "name": "Kiss",
-    "url": "https://stream-kiss.planetradio.co.uk/kissnational.mp3?aw_0_1st.playerid=BMUK_html5",
+    "url": "https://stream-kiss.planetradio.co.uk/kissnational.aac?aw_0_1st.skey={CURRENT_TIME}",
     "metadata": {
       "type": "sse",
       "url": "https://stream-kiss.planetradio.co.uk/metadata?type=json",
-      "summon": "https://stream-kiss.planetradio.co.uk/kisstory.mp3?aw_0_1st.playerid=BMUK_html5"
+      "summon": "https://stream-kiss.planetradio.co.uk/kisstory.aac?aw_0_1st.skey={CURRENT_TIME}"
     }
   },
   "kisstory": {
     "name": "Kisstory",
-    "url": "https://stream-kiss.planetradio.co.uk/kisstory.mp3?aw_0_1st.playerid=BMUK_html5",
+    "url": "https://stream-kiss.planetradio.co.uk/kisstory.aac?aw_0_1st.skey={CURRENT_TIME}",
     "metadata": {
       "type": "sse",
       "url": "https://stream-kiss.planetradio.co.uk/metadata?type=json",
-      "summon": "https://stream-kiss.planetradio.co.uk/kisstory.mp3?aw_0_1st.playerid=BMUK_html5"
+      "summon": "https://stream-kiss.planetradio.co.uk/kisstory.aac?aw_0_1st.skey={CURRENT_TIME}"
     }
   },
   "kissfresh": {
     "name": "Kiss Fresh",
-    "url": "https://stream-kiss.planetradio.co.uk/kissfresh.mp3?aw_0_1st.playerid=BMUK_html5",
+    "url": "https://stream-kiss.planetradio.co.uk/kissfresh.aac?aw_0_1st.skey={CURRENT_TIME}",
     "metadata": {
       "type": "sse",
       "url": "https://stream-kiss.planetradio.co.uk/metadata?type=json",
-      "summon": "https://stream-kiss.planetradio.co.uk/kisstory.mp3?aw_0_1st.playerid=BMUK_html5"
+      "summon": "https://stream-kiss.planetradio.co.uk/kisstory.aac?aw_0_1st.skey={CURRENT_TIME}"
     }
   },
   "classic": {
@@ -63,6 +65,7 @@
     "url": "https://media-ssl.musicradio.com/ClassicFM",
     "metadata": {
       "type": "ws",
+      "provider": "musicradio",
       "url": "wss://metadata.musicradio.com/v2/now-playing",
       "summon": {
         "actions": [
@@ -79,6 +82,7 @@
     "url": "https://media-ssl.musicradio.com/SmoothUK",
     "metadata": {
       "type": "ws",
+      "provider": "musicradio",
       "url": "wss://metadata.musicradio.com/v2/now-playing",
       "summon": {
         "actions": [
@@ -95,6 +99,7 @@
     "url": "https://media-ssl.musicradio.com/SmoothNorthWest",
     "metadata": {
       "type": "ws",
+      "provider": "musicradio",
       "url": "wss://metadata.musicradio.com/v2/now-playing",
       "summon": {
         "actions": [
@@ -110,18 +115,18 @@
     "name": "Gaydio North West",
     "url": "https://listen-gaydio.sharp-stream.com/gaydionw.mp3",
     "metadata": {
-      "type": "socket.io",
+      "type": "ws",
       "provider": "aiir",
-      "url": "https://push.aiir.net/rf",
-      "payload": {
-        "service": "33",
-        "initUrl": "https://www.gaydio.co.uk/radiofeed_request/?a=init&version=1.4.9&service_id=33"
+      "url": "wss://metadata.aiir.net/now-playing",
+      "summon": {
+        "action": "subscribe",
+        "serviceId": "33"
       }
     }
   },
   "bbcr1": {
     "name": "BBC Radio 1",
-    "url": "http://bbcmedia.ic.llnwd.net/stream/bbcmedia_radio1_mf_p",
+    "url": "http://stream.live.vc.bbcmedia.co.uk/bbc_radio_one",
     "metadata": {
       "type": "poll",
       "url": "https://rms.api.bbc.co.uk/v2/services/bbc_radio_one/segments/latest?limit=1",
@@ -130,7 +135,7 @@
   },
   "bbcr1x": {
     "name": "BBC Radio 1xtra",
-    "url": "http://bbcmedia.ic.llnwd.net/stream/bbcmedia_radio1xtra_mf_p",
+    "url": "http://stream.live.vc.bbcmedia.co.uk/bbc_1xtra",
     "metadata": {
       "type": "poll",
       "url": "https://rms.api.bbc.co.uk/v2/services/bbc_1xtra/segments/latest?limit=1",
@@ -142,6 +147,7 @@
     "url": "https://media-ssl.musicradio.com/HeartXmas",
     "metadata": {
       "type": "ws",
+      "provider": "musicradio",
       "url": "wss://metadata.musicradio.com/v2/now-playing",
       "summon": {
         "actions": [

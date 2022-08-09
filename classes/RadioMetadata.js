@@ -3,8 +3,6 @@ import WebSocket from "ws"
 import { debounce } from "lodash-es"
 import axios from "axios"
 import EventSource from "eventsource"
-import io from "socket.io-client"
-import fetch from "node-fetch"
 
 export default class RadioMetadata extends EventEmitter {
   constructor ({ type, url, summon, provider, payload }, stream) {
@@ -31,11 +29,6 @@ export default class RadioMetadata extends EventEmitter {
     else if (this.state.type === "poll") {
       this.poll()
     }
-    else if (this.state.type === "socket.io") {
-      if (provider === "aiir") {
-        this.aiir(payload)
-      }
-    }
   }
 
   webSocket () {
@@ -47,6 +40,10 @@ export default class RadioMetadata extends EventEmitter {
       }
       else {
         ws.send(JSON.stringify(this.state.summon))
+
+        if (this.provider === "aiir") {
+          this.heartbeatHandle = setInterval(() => ws.send(JSON.stringify({ action: "heartbeat" })), 12e4)
+        }
       }
     })
 
@@ -56,31 +53,61 @@ export default class RadioMetadata extends EventEmitter {
 
     ws.on("message", (json) => {
       const data = JSON.parse(json)
-      const nowPlaying = data.now_playing
 
-      if (nowPlaying.type === "track") {
-        emitInfo({
-          artist: nowPlaying.artist,
-          title: nowPlaying.title,
-        })
+      if (this.provider === "musicradio") {
+        const nowPlaying = data.now_playing
+
+        if (nowPlaying.type === "track") {
+          emitInfo({
+            artist: nowPlaying.artist,
+            title: nowPlaying.title,
+          })
+        }
+        else if (nowPlaying.type === "show") {
+          emitInfo({
+            artist: "",
+            title: nowPlaying.name,
+          })
+        }
+        else {
+          emitInfo({
+            artist: "",
+            title: "",
+          })
+        }
       }
-      else if (nowPlaying.type === "show") {
-        emitInfo({
-          artist: "",
-          title: nowPlaying.name,
-        })
-      }
-      else {
-        emitInfo({
-          artist: "",
-          title: "",
-        })
+      else if (this.provider === "aiir") {
+        if (data && data.nowPlaying && data.nowPlaying.artist && data.nowPlaying.title) {
+          this.emit("data", {
+            artist: data.nowPlaying.artist,
+            title: data.nowPlaying.title,
+          })
+        }
+        else if (data && data.nowProgramme && data.nowProgramme.name && data.nowProgramme.description) {
+          this.emit("data", {
+            artist: "",
+            title: `${data.nowProgramme.name} ${data.nowProgramme.description}`,
+          })
+        }
+        else {
+          this.emit("data", {
+            artist: "",
+            title: "",
+          })
+        }
       }
     })
 
     ws.on("error", err => {
       console.log("Error when grabbing radio metadata via ws")
       console.log(err)
+    })
+
+    ws.on("close", () => {
+      if (this.heartbeatHandle) {
+        clearInterval(this.heartbeatHandle)
+        this.heartbeatHandle = null
+      }
     })
 
     this.ws = ws
@@ -180,41 +207,6 @@ export default class RadioMetadata extends EventEmitter {
     fire()
   }
 
-  aiir ({ service, initUrl }) {
-    const handleData = e => {
-      if (e && (!e.type || e.type === "new-item") && e.feed && e.feed.items && e.feed.items[0]) {
-        const item = e.feed.items[0]
-        if (item.type === "song") {
-          this.emit("data", {
-            artist: item.title,
-            title: item.desc,
-          })
-        }
-        else if (item.type === "onair") {
-          this.emit("data", {
-            artist: "",
-            title: `${item.name} ${item.caption}`,
-          })
-        }
-      }
-      else {
-        this.emit("data", {
-          artist: "",
-          title: "",
-        })
-      }
-    }
-
-    const sock = io(this.state.url)
-      .on("connect", () => {
-        sock.emit("subscribe", service)
-        fetch(initUrl).then(res => res.json()).then(handleData)
-      })
-      .on("message", handleData)
-
-    this.socket = sock
-  }
-
   destroy () {
     this.state.disposed = true
     this.stream = null
@@ -232,12 +224,6 @@ export default class RadioMetadata extends EventEmitter {
     }
     else if (this.state.type === "poll") {
       clearInterval(this.poll)
-    }
-    else if (this.state.type === "socket.io") {
-      if (this.socket) {
-        this.socket.close()
-        this.socket = null
-      }
     }
   }
 }
