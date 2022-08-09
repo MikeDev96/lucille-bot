@@ -20,7 +20,7 @@ export default class Alias extends Command {
             if (val.length > 10) {
               return "Alias length needs to be 10 characters or less"
             }
-            else if (!(RegExp("^[a-zA-Z0-9 ]*$").test(val))) {
+            else if (!/^[a-zA-Z0-9 ]*$/.test(val)) {
               return "Can only contain alphanumerics"
             }
             else {

@@ -164,23 +164,19 @@ export default class extends Command {
   }
 
   checkForUser (user, mess) {
-    let greg = false
-    user[0].users.map(e => {
-      if (e === mess.author.id) greg = true
-    })
-    return greg
+    return !!user[0].users.find(e => e === mess.author.id)
   }
 
   findUsers (banger) {
     const usrArr = []
     let username
     if (banger[0]) {
-      banger[0].users.map(e => {
+      for (const e of banger[0].users) {
         username = this.client.users.cache.get(e)
         if (username) {
           usrArr.push(username.username)
         }
-      })
+      }
     }
     else {
       usrArr.push("No one")
@@ -257,19 +253,16 @@ export default class extends Command {
       return
     }
 
-    let SongsArr = this.client.db.listBangas(UserId)
-
-    SongsArr = SongsArr.map(song => {
+    const songsArr = this.client.db.listBangas(UserId).reduce((acc, song) => {
       if (song.spotifyUri) {
         if (song.spotifyUri.length) {
-          return song.spotifyUri
+          acc.push(song.spotifyUri)
         }
       }
-    })
+      return acc
+    }, [])
 
-    SongsArr = SongsArr.filter(Boolean)
-
-    if (SongsArr.length === 0) {
+    if (songsArr.length === 0) {
       msg.reply("You have 0 bangas with spotify links")
     }
     else {
@@ -295,7 +288,7 @@ export default class extends Command {
         TableName: process.env.EXPORT_TABLENAME,
         Item: {
           discordID: UserId,
-          SongsURIs: SongsArr,
+          SongsURIs: songsArr,
         },
       }
 

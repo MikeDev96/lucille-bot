@@ -49,7 +49,7 @@ export default class TextToSpeech {
   }
 
   validUsername (username) {
-    if (username === null || username.length > 32 || !(RegExp(`^[a-zA-Z0-9 .]*$`).test(username))) {
+    if (username === null || username.length > 32 || !/^[a-zA-Z0-9 .]*$/.test(username)) {
       return false
     }
     return true
