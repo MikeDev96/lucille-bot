@@ -1,5 +1,5 @@
 import Commando from "discord.js-commando"
-import axios from "axios"
+import fetch from "node-fetch"
 import fs from "fs"
 import { getAudioDurationInSeconds } from "get-audio-duration"
 import { getRequestee, getVoiceChannel } from "../../helpers.js"
@@ -48,18 +48,14 @@ export default class extends Command {
         return
       }
 
-      const res = await axios({
-        method: "GET",
-        url: file.url,
-        responseType: "stream",
-      })
+      const res = await fetch(file.url)
 
-      if (res.headers["content-type"] !== "audio/mpeg") {
+      if (res.headers.get("content-type") !== "audio/mpeg") {
         msg.reply("File must be an MPEG audio file")
         return
       }
 
-      if (parseInt(res.headers["content-length"]) > 1024 * 1024) {
+      if (parseInt(res.headers.get("content-length")) > 1024 * 1024) {
         msg.reply("File must be less than 1MB")
         return
       }
@@ -92,7 +88,7 @@ export default class extends Command {
             msg.react("⬆️")
           })
 
-          res.data.pipe(stream)
+          res.body.pipe(stream)
         })
       }
     }

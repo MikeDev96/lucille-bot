@@ -5,7 +5,7 @@ import TrackExtractor, { PLATFORM_YOUTUBE, PLATFORM_RADIO, PLATFORM_SPOTIFY, PLA
 import Track from "./Track.js"
 import fs from "fs"
 import RadioMetadata from "./RadioMetadata.js"
-import axios from "axios"
+import fetch from "node-fetch"
 import MusicToX from "./MusicToX.js"
 import { getStream, getFfmpegStream } from "./YouTubeToStream.js"
 import MusicState from "./MusicState.js"
@@ -353,15 +353,11 @@ export default class Music extends MusicState {
     else if (item.platform === PLATFORM_RADIO) {
       if (item.radio.metadata && item.radio.metadata.type === "sse") {
         try {
-          const res = await axios({
-            method: "GET",
-            url: item.link.replace(/{CURRENT_TIME}/g, Math.round(new Date().getTime() / 1e3)),
-            responseType: "stream",
-          })
+          const res = await fetch(item.link.replace(/{CURRENT_TIME}/g, Math.round(new Date().getTime() / 1e3)))
 
           item.setRequestStream(res)
 
-          return { stream: getFfmpegStream(res.data, { startTime: 0, filters: this.getAudioFilters() }), type: "opus" }
+          return { stream: getFfmpegStream(res.body, { startTime: 0, filters: this.getAudioFilters() }), type: "opus" }
         }
         catch (err) {
           console.log("Error occured when getting radio stream")

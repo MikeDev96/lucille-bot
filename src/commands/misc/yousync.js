@@ -1,5 +1,5 @@
 import Commando from "discord.js-commando"
-import axios from "axios"
+import fetch from "node-fetch"
 const { Command } = Commando
 
 const YOUTUBE_REGEX_PATTERN = /(?:https?:\/\/www.)?youtu(?:be.com\/watch\?v=|.be\/)([\w-]+)/
@@ -74,14 +74,14 @@ export default class extends Command {
     const videoMatch = YOUTUBE_REGEX_PATTERN.exec(args.link)
     const video = videoMatch ? encodeURIComponent(videoMatch[0]) : ""
 
-    const res = await axios({
+    const res = await fetch(`${process.env.YOUSYNC_API_URL}/api/room?username=${this.client.user.username}&video=${video}`, {
       method: "POST",
-      url: `${process.env.YOUSYNC_API_URL}/api/room?username=${this.client.user.username}&video=${video}`,
-      data: categories,
+      body: categories,
     })
 
-    if (res && res.status === 200) {
-      msg.reply(`${process.env.YOUSYNC_URL}/room/${res.data.id}`)
+    if (res.ok) {
+      const data = await res.json()
+      msg.reply(`${process.env.YOUSYNC_URL}/room/${data.id}`)
     }
   }
 

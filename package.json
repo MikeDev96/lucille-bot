@@ -4,9 +4,9 @@
   "description": "",
   "main": "index.js",
   "type": "module",
-  "engines" : {
-    "npm" : ">=8.11.0",
-    "node" : ">=16.16.0"
+  "engines": {
+    "npm": ">=8.11.0",
+    "node": ">=16.16.0"
   },
   "scripts": {
     "start": "npx eslint --fix **/*.js & node src/index.js",
@@ -21,7 +21,6 @@
     "@google-cloud/speech": "^4.10.2",
     "@picovoice/porcupine-node": "^2.1.7",
     "adm-zip": "^0.5.9",
-    "axios": "^0.27.2",
     "better-sqlite3": "^7.6.2",
     "bufferutil": "^4.0.6",
     "chrono-node": "^2.3.9",

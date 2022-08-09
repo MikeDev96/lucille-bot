@@ -1,5 +1,5 @@
 import SpotifyWebApi from "spotify-web-api-node"
-import axios from "axios"
+import fetch from "node-fetch"
 import Track from "./Track.js"
 import parseDuration from "parse-duration"
 import { Client, Video } from "youtubei"
@@ -221,14 +221,16 @@ export default class TrackExtractor {
 
   async getTidal (type, id) {
     try {
-      const res = await axios.get(`https://api.tidal.com/v1/${type}s/${id}${["playlist", "album"].includes(type) ? "/tracks" : type === "artist" ? "/toptracks" : ""}?limit=10000&countryCode=GB`, {
+      const res = await fetch(`https://api.tidal.com/v1/${type}s/${id}${["playlist", "album"].includes(type) ? "/tracks" : type === "artist" ? "/toptracks" : ""}?limit=10000&countryCode=GB`, {
         headers: {
           "x-tidal-token": process.env.TIDAL_TOKEN,
         },
       })
 
-      if (res && res.status === 200) {
-        return [].concat(res.data.items || res.data).map(t => new Track(
+      if (res.ok) {
+        const data = await res.json()
+
+        return [].concat(data.items || data).map(t => new Track(
           t.artists.map(a => a.name).join(", "),
           t.title,
         ).setPlatform(PLATFORM_TIDAL))
@@ -244,10 +246,11 @@ export default class TrackExtractor {
 
   async getApple (type, id) {
     try {
-      const res = await axios.get(`https://itunes.apple.com/lookup?id=${id}&entity=song`)
+      const res = await fetch(`https://itunes.apple.com/lookup?id=${id}&entity=song`)
+      const data = await res.json()
 
-      if (res && res.status === 200 && res.data.resultCount > 0) {
-        return res.data.results.filter(t => t.wrapperType === "track").map(t => new Track(
+      if (res.ok && data.resultCount > 0) {
+        return data.results.filter(t => t.wrapperType === "track").map(t => new Track(
           t.artistName,
           t.trackName,
         ).setPlatform(PLATFORM_APPLE))
@@ -302,10 +305,11 @@ export default class TrackExtractor {
   async getSoundCloud (type, id) {
     try {
       const clientId = await getSoundCloudClientId()
-      const res = await axios.get(`https://api-v2.soundcloud.com/resolve?url=${encodeURIComponent(`https://soundcloud.com/${id}`)}&client_id=${clientId}`)
+      const res = await fetch(`https://api-v2.soundcloud.com/resolve?url=${encodeURIComponent(`https://soundcloud.com/${id}`)}&client_id=${clientId}`)
+      const data = await res.json()
 
-      if (res.data) {
-        const tracks = res.data.kind === "track" ? [res.data] : res.data.tracks
+      if (res.ok && data) {
+        const tracks = data.kind === "track" ? [data] : data.tracks
         const validTracks = tracks.filter(t => t.media && t.media.transcodings)
 
         const audioLinks = (await Promise.all(validTracks.map(t => this.getSoundCloudLink(t.media.transcodings))))
@@ -333,10 +337,11 @@ export default class TrackExtractor {
         const parsedUrl = new URL(transcoding.url)
         parsedUrl.searchParams.set("client_id", await getSoundCloudClientId())
 
-        const res = await axios.get(parsedUrl.href)
+        const res = await fetch(parsedUrl.href)
+        const data = await res.json()
 
-        if (res.data) {
-          return res.data.url
+        if (res.ok && data) {
+          return data.url
         }
       }
     }
@@ -346,13 +351,10 @@ export default class TrackExtractor {
 
   async getOther (id) {
     try {
-      const res = await axios({
-        method: "GET",
-        url: id,
-        responseType: "stream",
-      })
-      const contentType = res.headers["content-type"]
-      if (contentType.startsWith("audio/") || contentType.startsWith("video/")) {
+      const res = await fetch(id)
+      const contentType = res.headers.get("content-type")
+
+      if (contentType && (contentType.startsWith("audio/") || contentType.startsWith("video/"))) {
         const track = new Track("Custom Link", id)
           .setPlatform(PLATFORM_OTHER)
           .setLink(id)

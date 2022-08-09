@@ -1,7 +1,7 @@
 import { EventEmitter } from "events"
 import WebSocket from "ws"
 import { debounce } from "lodash-es"
-import axios from "axios"
+import fetch from "node-fetch"
 import EventSource from "eventsource"
 
 export default class RadioMetadata extends EventEmitter {
@@ -114,7 +114,7 @@ export default class RadioMetadata extends EventEmitter {
   }
 
   sse () {
-    const [setCookie] = this.stream.headers["set-cookie"]
+    const setCookie = this.stream.headers.get("set-cookie")
     const [sessionId] = /(?<=AISSessionId=).+?(?=;)/.exec(setCookie)
 
     const es = new EventSource(this.state.url, {
@@ -148,10 +148,11 @@ export default class RadioMetadata extends EventEmitter {
 
             if (title && url) {
               try {
-                const res = await axios(url)
-                if (res.status === 200 && res.data) {
-                  out.artist = res.data.eventSongArtist
-                  out.title = res.data.eventSongTitle
+                const res = await fetch(url)
+                const data = await res.json()
+                if (res.ok && data) {
+                  out.artist = data.eventSongArtist
+                  out.title = data.eventSongTitle
                 }
               }
               catch (err) {
@@ -180,9 +181,10 @@ export default class RadioMetadata extends EventEmitter {
   poll () {
     const fire = async () => {
       try {
-        const res = await axios(this.state.url)
-        if (res.status === 200 && res.data) {
-          const nowPlaying = res.data.data.find(item => item.type === "segment_item" && item.offset.now_playing)
+        const res = await fetch(this.state.url)
+        const data = await res.json()
+        if (res.ok && data) {
+          const nowPlaying = data.data.find(item => item.type === "segment_item" && item.offset.now_playing)
           if (nowPlaying) {
             this.emit("data", {
               artist: nowPlaying.titles.primary,

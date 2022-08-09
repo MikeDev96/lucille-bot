@@ -1,5 +1,5 @@
 import { PLATFORM_SPOTIFY, PLATFORM_TIDAL, PLATFORM_APPLE, PLATFORM_RADIO } from "./TrackExtractor.js"
-import axios from "axios"
+import fetch from "node-fetch"
 import SpotifyWebApi from "spotify-web-api-node"
 
 export default class {
@@ -195,13 +195,15 @@ export default class {
 
   async getTidal () {
     try {
-      const res = await axios.get(`https://api.tidal.com/v1/${this.music.type}s/${this.music.id}?limit=1&countryCode=GB`, {
+      const res = await fetch(`https://api.tidal.com/v1/${this.music.type}s/${this.music.id}?limit=1&countryCode=GB`, {
         headers: {
           "X-Tidal-Token": process.env.TIDAL_TOKEN,
         },
       })
 
-      if (res && res.status === 200) {
+      const data = await res.json()
+
+      if (res.ok && data) {
         if (this.music.type === "track") {
           return {
             success: true,
@@ -248,14 +250,16 @@ export default class {
     try {
       // Tidal search seems to work a lot better when removing titles with the word 'feat'
       const withoutFeat = query.replace(/(?<=\b)feat(?=\b)/gi, "")
-      const res = await axios.get(`https://api.tidal.com/v1/search/${this.music.type}s?query=${encodeURIComponent(withoutFeat)}&limit=1&countryCode=GB`, {
+      const res = await fetch(`https://api.tidal.com/v1/search/${this.music.type}s?query=${encodeURIComponent(withoutFeat)}&limit=1&countryCode=GB`, {
         headers: {
           "X-Tidal-Token": process.env.TIDAL_TOKEN,
         },
       })
 
-      if (res.status === 200 && res.data.totalNumberOfItems) {
-        const track = res.data.items[0]
+      const data = await res.json()
+
+      if (res.ok && data.totalNumberOfItems) {
+        const track = data.items[0]
         return {
           id: track && track.id,
           artists: (track && (track.artist && [{ name: track.artist.name }])) || [],
@@ -273,10 +277,11 @@ export default class {
 
   async getApple () {
     try {
-      const res = await axios.get(`https://itunes.apple.com/lookup?id=${this.music.id}`)
+      const res = await fetch(`https://itunes.apple.com/lookup?id=${this.music.id}`)
+      const data = await res.json()
 
-      if (res && res.status === 200 && res.data.resultCount > 0) {
-        const item = res.data.results[0]
+      if (res.ok && data.resultCount > 0) {
+        const item = data.results[0]
 
         if (item.wrapperType === "track") {
           return {
@@ -319,10 +324,11 @@ export default class {
     }
 
     try {
-      const res = await axios.get(`https://itunes.apple.com/search?term=${encodeURIComponent(query)}&country=GB&entity=${this.music.type === "track" ? "song" : this.music.type === "album" ? "album" : "musicArtist"}&media=music&limit=1`)
+      const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(query)}&country=GB&entity=${this.music.type === "track" ? "song" : this.music.type === "album" ? "album" : "musicArtist"}&media=music&limit=1`)
+      const data = await res.json()
 
-      if (res && res.status === 200 && !!res.data.resultCount > 0) {
-        const item = res.data.results[0]
+      if (res.ok && !!data.resultCount > 0) {
+        const item = data.results[0]
         const type = item.wrapperType
 
         if (type === "track") {
