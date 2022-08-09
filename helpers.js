@@ -168,3 +168,5 @@ export const playDlDiscord12CompatabilityWrapper = stream => {
 }
 
 export const getEpoch = () => Date.now() / 1000
+
+export const logarithmic = value => Math.pow(value, 1.660964)

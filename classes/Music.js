@@ -1,6 +1,6 @@
 import { Util } from "discord.js"
 import TopMostMessagePump from "./TopMostMessagePump.js"
-import { safeJoin, msToTimestamp, selectRandom, escapeMarkdown, searchYouTube, textToStream } from "../helpers.js"
+import { safeJoin, msToTimestamp, selectRandom, escapeMarkdown, searchYouTube, textToStream, logarithmic } from "../helpers.js"
 import TrackExtractor, { PLATFORM_YOUTUBE, PLATFORM_RADIO, PLATFORM_SPOTIFY, PLATFORM_TIDAL, PLATFORM_APPLE, PLATFORM_CONNECT, PLATFORM_DISCONNECT, PLATFORM_TTS } from "./TrackExtractor.js"
 import Track from "./Track.js"
 import fs from "fs"
@@ -292,8 +292,8 @@ export default class Music extends MusicState {
 
       this.playing = { stream, type, item }
 
-      const dispatcher = this.state.voiceConnection.play(stream, { type })
-      dispatcher.setVolumeLogarithmic([PLATFORM_CONNECT, PLATFORM_DISCONNECT].includes(item.platform) ? 3 : this.state.volume / 100)
+      const volume = [PLATFORM_CONNECT, PLATFORM_DISCONNECT].includes(item.platform) ? 3 : this.state.volume / 100
+      const dispatcher = this.state.voiceConnection.play(stream, { type, volume: volume === 1 ? false : logarithmic(volume) })
 
       if (update === "after") {
         this.updateEmbed()
@@ -489,9 +489,9 @@ export default class Music extends MusicState {
   }
 
   setVolume (volume) {
+    this.syncTime()
     this.setState({ volume })
-    this.dispatcherExec(d => d.setVolumeLogarithmic(volume / 100))
-    this.updateEmbed()
+    this.play("after")
   }
 
   startProgress (item) {
