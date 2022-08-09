@@ -6,7 +6,7 @@ import { createRequire } from "module"
 const { Command } = Commando
 
 const require = createRequire(import.meta.url)
-const radios = require("../../radios.json")
+const radios = require("../../../radios.json")
 
 export default class extends Command {
   constructor (client) {

@@ -4,7 +4,7 @@ import Requestee from "./Requestee.js"
 import { createRequire } from "module"
 
 const require = createRequire(import.meta.url)
-const radios = require("../radios.json")
+const radios = require("../../radios.json")
 
 export default class MusicState {
   constructor (guild, initialState) {

@@ -9,7 +9,7 @@
     "node" : ">=16.16.0"
   },
   "scripts": {
-    "start": "npx eslint --fix **/*.js & node index.js",
+    "start": "npx eslint --fix **/*.js & node src/index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
