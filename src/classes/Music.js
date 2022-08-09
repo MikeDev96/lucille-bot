@@ -1,6 +1,6 @@
 import { Util } from "discord.js"
 import TopMostMessagePump from "./TopMostMessagePump.js"
-import { safeJoin, msToTimestamp, selectRandom, escapeMarkdown, searchYouTube, textToStream, logarithmic } from "../helpers.js"
+import { safeJoin, msToTimestamp, selectRandom, escapeMarkdown, searchYouTube, textToStream, logarithmic, fixDispatcher } from "../helpers.js"
 import TrackExtractor, { PLATFORM_YOUTUBE, PLATFORM_RADIO, PLATFORM_SPOTIFY, PLATFORM_TIDAL, PLATFORM_APPLE, PLATFORM_CONNECT, PLATFORM_DISCONNECT, PLATFORM_TTS } from "./TrackExtractor.js"
 import Track from "./Track.js"
 import fs from "fs"
@@ -273,62 +273,55 @@ export default class Music extends MusicState {
     }
 
     const { stream, type } = streamData
+    const prevPlaying = this.playing
 
-    // Using on readable makes the transition smoother when restarting the stream.
-    // i.e. when changing the bass boost
-    // TODO: Handle the error event
-    console.time("readable")
-    stream.once("readable", async () => {
-      console.timeEnd("readable")
-      const prevPlaying = this.playing
-
-      if (prevPlaying) {
-        this.syncTime(0, prevPlaying.item)
-
-        prevPlaying.stream.destroy()
-
-        await this.cleanItem(prevPlaying.item, false)
+    if (prevPlaying) {
+      // If it's the same item playing then wait for the new stream to become readable
+      // so we can swap them instantly and have a seamless transition.
+      if (prevPlaying.item === item) {
+        console.time("readable")
+        await new Promise((resolve, reject) => {
+          stream.once("readable", resolve)
+          stream.once("error", reject)
+        })
+        console.timeEnd("readable")
       }
 
-      this.playing = { stream, type, item }
+      this.syncTime(0, prevPlaying.item)
 
-      const volume = [PLATFORM_CONNECT, PLATFORM_DISCONNECT].includes(item.platform) ? 3 : this.state.volume / 100
-      const dispatcher = this.state.voiceConnection.play(stream, { type, volume: volume === 1 ? false : logarithmic(volume) })
+      prevPlaying.stream.destroy()
 
-      if (update === "after") {
+      await this.cleanItem(prevPlaying.item, false)
+    }
+
+    this.playing = { stream, type, item }
+
+    const volume = [PLATFORM_CONNECT, PLATFORM_DISCONNECT].includes(item.platform) ? 3 : this.state.volume / 100
+    const dispatcher = fixDispatcher(this.state.voiceConnection.play(stream, { type, volume: volume === 1 ? false : logarithmic(volume) }))
+
+    if (update === "after") {
+      this.updateEmbed()
+    }
+
+    dispatcher.on("start", () => {
+      if (this.state.pauser && item.platform !== PLATFORM_TTS) {
+        dispatcher.pause()
         this.updateEmbed()
       }
-
-      dispatcher.on("start", () => {
-        if (this.state.pauser && item.platform !== PLATFORM_TTS) {
-          dispatcher.pause()
-          this.updateEmbed()
-        }
-        else {
-          console.log("Stream starting...")
-          this.endProgress()
-          this.startProgress(item)
-          this.startRadioMetadata(item)
-          this.startListenTracking(item)
-        }
-      })
-
-      // This only fires when a stream finishes gracefully or is forcibly ended (.end())
-      // Commands like bass boost which just restart the stream will not fire this event
-      // so make sure to clean up properly!
-      dispatcher.on("finish", async () => await this.cleanItem(item, true))
-
-      // Discord.js doesn't destroy streams that have been passed in
-      // So detect when the opus encoder has been closed and destroy our stream
-      dispatcher.streams.opus.once("close", () => {
-        stream.destroy()
-        console.log("Cleaned up underlying stream")
-      })
-
-      dispatcher.on("error", err => {
-        console.log(err)
-      })
+      else {
+        console.log("Stream starting...")
+        this.endProgress()
+        this.startProgress(item)
+        this.startRadioMetadata(item)
+        this.startListenTracking(item)
+      }
     })
+
+    // This only fires when a stream finishes gracefully or is forcibly ended (.end())
+    // Commands like bass boost which just restart the stream will not fire this event
+    // so make sure to clean up properly!
+    dispatcher.on("finish", async () => await this.cleanItem(item, true))
+    dispatcher.on("error", console.log)
   }
 
   async cleanItem (item, finished) {

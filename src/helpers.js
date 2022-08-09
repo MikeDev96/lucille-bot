@@ -170,3 +170,17 @@ export const playDlDiscord12CompatabilityWrapper = stream => {
 export const getEpoch = () => Date.now() / 1000
 
 export const logarithmic = value => Math.pow(value, 1.660964)
+
+export const fixDispatcher = dispatcher => {
+  dispatcher.once("close", () => {
+    // Discord.js only destroys child streams when the finish event fires...
+    // Lets also destroy them when the dispatch gets destroyed.
+    for (const stream in dispatcher.streams) {
+      dispatcher.streams[stream].destroy()
+    }
+
+    console.log("Cleaned up underlying streams")
+  })
+
+  return dispatcher
+}
