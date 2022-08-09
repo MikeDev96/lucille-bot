@@ -93,38 +93,46 @@ const AmazonRipper = class {
           url: msg.content,
           fields: [
             ...padInlineFields([
-              ...(info.price ? [
-                {
-                  name: "Price",
-                  value: info.price,
-                  inline: true,
-                },
-              ] : []),
-              ...(info.rating ? [
-                {
-                  name: "Rating",
-                  value: info.rating,
-                  inline: true,
-                },
-              ] : []),
+              ...(info.price
+                ? [
+                  {
+                    name: "Price",
+                    value: info.price,
+                    inline: true,
+                  },
+                ]
+                : []),
+              ...(info.rating
+                ? [
+                  {
+                    name: "Rating",
+                    value: info.rating,
+                    inline: true,
+                  },
+                ]
+                : []),
               ...info.variations.map(v => ({
                 name: v.name,
                 value: v.value,
                 inline: true,
               })),
             ]),
-            ...(info.overview.length ? [
-              {
-                name: "Overview",
-                value: info.overview.map(({ key, value }) => `${key}: ${value}`).join("\n").substr(0, 1024),
-              },
-            ] : []),
-            ...(info.features.length ? [
-              {
-                name: "Features",
-                value: info.features.map(feat => `• ${feat}`).join("\n").substr(0, 1024),
-              },
-            ] : []),
+            ...(info.overview.length
+              ? [
+                {
+                  name: "Overview",
+                  value: info.overview.map(({ key, value }) => `${key}: ${value}`).join("\n").substr(0, 1024),
+                },
+              ]
+              : []),
+            ...(info.features.length
+              ? [
+                {
+                  name: "Features",
+                  value: info.features.map(feat => `• ${feat}`).join("\n").substr(0, 1024),
+                },
+              ]
+              : []),
           ],
           author: {
             name: msg.member.displayName,
@@ -133,11 +141,13 @@ const AmazonRipper = class {
           image: {
             url: info.images[0],
           },
-          ...(info.images.length > 1 ? {
-            footer: {
-              text: `Image 1 of ${info.images.length}`,
-            },
-          } : {}),
+          ...(info.images.length > 1
+            ? {
+              footer: {
+                text: `Image 1 of ${info.images.length}`,
+              },
+            }
+            : {}),
         },
       })
 

@@ -82,7 +82,7 @@ export default class Music extends MusicState {
 
         this.setState({
           joinState: 2,
-          voiceChannel: voiceChannel,
+          voiceChannel,
           voiceConnection: connection,
           playedConnectSound: false,
         })
@@ -641,43 +641,59 @@ export default class Music extends MusicState {
             value: nowPlaying,
             inline: true,
           },
-          ...(queue.length > 0 ? [{
-            name: "Up Next",
-            value: top10[0],
-          }] : []),
-          ...(remainingCount > 0 ? [{
-            name: "Up Next",
-            value: `${remainingCount} more song(s)...`,
-          }] : []),
-          ...(this.state.voiceConnection && this.state.voiceConnection.dispatcher && this.state.voiceConnection.dispatcher.paused ? [{
-            name: "Paused By",
-            value: `<@${this.state.pauser}>`,
-            inline: true,
-          }] : []),
-          ...(this.state.bassBoost > 0 ? [{
-            name: "Bass Boost",
-            value: `${amountToBassBoostMap[this.state.bassBoost]}`,
-            inline: true,
-          }] : []),
-          ...(this.state.tempo !== 1 ? [{
-            name: "Speed",
-            value: `${this.state.tempo}`,
-            inline: true,
-          }] : []),
-          ...(this.state.volume !== 100 ? [{
-            name: "Volume",
-            value: `${this.state.volume}`,
-            inline: true,
-          }] : []),
-          ...(this.state.repeat !== "off" ? [{
-            name: "Repeat",
-            value: mapRepeatTypeToEmoji(this.state.repeat),
-            inline: true,
-          }] : []),
-          ...(currentlyPlaying.duration > 0 ? [{
-            name: "Progress",
-            value: "`" + msToTimestamp((currentlyPlaying.duration * 1000) * progressPerc) + "` " + ("▬".repeat(blocks)) + "🔵" + ("▬".repeat(Math.max(0, 20 - blocks))) + " `" + msToTimestamp(currentlyPlaying.duration * 1000) + "`",
-          }] : []),
+          ...(queue.length > 0
+            ? [{
+              name: "Up Next",
+              value: top10[0],
+            }]
+            : []),
+          ...(remainingCount > 0
+            ? [{
+              name: "Up Next",
+              value: `${remainingCount} more song(s)...`,
+            }]
+            : []),
+          ...(this.state.voiceConnection && this.state.voiceConnection.dispatcher && this.state.voiceConnection.dispatcher.paused
+            ? [{
+              name: "Paused By",
+              value: `<@${this.state.pauser}>`,
+              inline: true,
+            }]
+            : []),
+          ...(this.state.bassBoost > 0
+            ? [{
+              name: "Bass Boost",
+              value: `${amountToBassBoostMap[this.state.bassBoost]}`,
+              inline: true,
+            }]
+            : []),
+          ...(this.state.tempo !== 1
+            ? [{
+              name: "Speed",
+              value: `${this.state.tempo}`,
+              inline: true,
+            }]
+            : []),
+          ...(this.state.volume !== 100
+            ? [{
+              name: "Volume",
+              value: `${this.state.volume}`,
+              inline: true,
+            }]
+            : []),
+          ...(this.state.repeat !== "off"
+            ? [{
+              name: "Repeat",
+              value: mapRepeatTypeToEmoji(this.state.repeat),
+              inline: true,
+            }]
+            : []),
+          ...(currentlyPlaying.duration > 0
+            ? [{
+              name: "Progress",
+              value: "`" + msToTimestamp((currentlyPlaying.duration * 1000) * progressPerc) + "` " + ("▬".repeat(blocks)) + "🔵" + ("▬".repeat(Math.max(0, 20 - blocks))) + " `" + msToTimestamp(currentlyPlaying.duration * 1000) + "`",
+            }]
+            : []),
         ],
         footer: {
           text: process.env.DISCORD_FOOTER,

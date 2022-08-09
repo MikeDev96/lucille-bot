@@ -14,7 +14,7 @@ import { ppResetDaily } from "../commands/fun/pp.js"
 import TextToSpeech from "./TextToSpeech.js"
 import StocksPortfolio from "./StocksPortfolio.js"
 import VoiceCommands from "./VoiceCommands.js"
-import globby from "globby"
+import { globby } from "globby"
 const { CommandoClient } = Commando
 
 export default class LucilleClient extends CommandoClient {
@@ -62,7 +62,7 @@ export default class LucilleClient extends CommandoClient {
 
   createTTS () {
     const TextToSpeechHandler = (ttsLastHappendTime, method, voiceObj) => {
-      var currentTime = new Date().getTime()
+      const currentTime = new Date().getTime()
       // Rate limit reduced for the time being
       if (ttsLastHappendTime + (5 * 1000) < currentTime || ttsLastHappendTime === undefined) {
         new TextToSpeech(this).run(method, voiceObj)

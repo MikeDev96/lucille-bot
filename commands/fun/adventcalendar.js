@@ -3,10 +3,10 @@ import { DateTime } from "luxon"
 import Tenor from "tenorjs"
 const { Command } = Commando
 
-var gifpairing = {}
+let gifpairing = {}
 let prevDate = DateTime.local().toISODate()
 
-var keywords = ["christmas pudding", "christmas donkey", "christmas elf", "christmas snowman", "christmas present", "christmas dog", "christmas cake", "christmas baby", "christmas jumper", "christmas bauble", "christmas wreath", "christmas stocking", "christmas robin", "santa sleigh", "rudolph", "christmas candle", "christmas tree", "christmas michael buble", "christmas hat", "christmas cookie", "christmas candy cane", "christmas lights", "christmas cracker", "father christmas", "christmas dinner"]
+const keywords = ["christmas pudding", "christmas donkey", "christmas elf", "christmas snowman", "christmas present", "christmas dog", "christmas cake", "christmas baby", "christmas jumper", "christmas bauble", "christmas wreath", "christmas stocking", "christmas robin", "santa sleigh", "rudolph", "christmas candle", "christmas tree", "christmas michael buble", "christmas hat", "christmas cookie", "christmas candy cane", "christmas lights", "christmas cracker", "father christmas", "christmas dinner"]
 
 export default class extends Command {
   constructor (client) {
@@ -24,7 +24,7 @@ export default class extends Command {
   run (msg, args) {
     if (!process.env.TENOR_KEY) return
 
-    var date = String(new Date())
+    const date = String(new Date())
     const month = date.substring(4, 7)
     const day = parseInt(date.substring(8, 10))
     if (month !== "Dec") {
@@ -35,7 +35,7 @@ export default class extends Command {
         msg.reply("you're too late christmas is over :(")
       }
       else {
-        var rdm = Math.floor(Math.random() * 10)
+        const rdm = Math.floor(Math.random() * 10)
         const curDate = DateTime.local()
         if (curDate.toISODate() !== prevDate) {
           prevDate = curDate.toISODate()

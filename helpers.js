@@ -3,7 +3,7 @@ import { PassThrough, Readable } from "stream"
 import Requestee from "./classes/Requestee.js"
 import fetch from "node-fetch"
 import { Duration } from "luxon"
-import youtubei from "youtubei"
+import { Client } from "youtubei"
 import gtts from "google-tts-api"
 
 export const noop = () => { }
@@ -113,7 +113,7 @@ export const padInlineFields = fields => [
   Array(3 - (((fields.length) % 3) || 3)).fill(0).map(() => ({ name: "\u200b", value: "\u200b", inline: true })),
 ]
 
-const youtube = new youtubei.Client()
+const youtube = new Client()
 
 export const searchYouTube = async query => {
   const t = process.hrtime()

@@ -2,7 +2,7 @@ import SpotifyWebApi from "spotify-web-api-node"
 import axios from "axios"
 import Track from "./Track.js"
 import parseDuration from "parse-duration"
-import youtubei from "youtubei"
+import { Client, Video } from "youtubei"
 import { URL } from "url"
 import { getFreeClientID } from "play-dl"
 
@@ -269,7 +269,7 @@ export default class TrackExtractor {
   async getYouTube (type, id, startTime) {
     try {
       if (type === "track") {
-        const video = await new youtubei.Client().getVideo(id)
+        const video = await new Client().getVideo(id)
         if (video) {
           return [
             new Track(video.channel.name, video.title, video.thumbnails[video.thumbnails.length - 1].url)
@@ -277,13 +277,13 @@ export default class TrackExtractor {
               .setLink(`https://www.youtube.com/watch?v=${video.id}`)
               .setYouTubeId(video.id)
               .setYouTubeTitle(video.title)
-              .setDuration(video instanceof youtubei.Video ? video.duration : 0)
+              .setDuration(video instanceof Video ? video.duration : 0)
               .setStartTime(startTime || 0),
           ]
         }
       }
       else if (type === "playlist") {
-        const playlist = await new youtubei.Client().getPlaylist(id)
+        const playlist = await new Client().getPlaylist(id)
         await playlist.videos.next(0)
 
         return playlist.videos.items.map(item =>

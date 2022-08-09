@@ -173,7 +173,7 @@ class MasterDatabase {
   }
 
   getAllPenisSize (serverId) {
-    const rslts = this.runQuery("SELECT * FROM PenisSize ps INNER JOIN UserInfo ui ON ps.UserId = ui.UserId WHERE ui.ServerId = @serverId and ps.ServerId = @serverId", { serverId: serverId })
+    const rslts = this.runQuery("SELECT * FROM PenisSize ps INNER JOIN UserInfo ui ON ps.UserId = ui.UserId WHERE ui.ServerId = @serverId and ps.ServerId = @serverId", { serverId })
     return !rslts ? [] : rslts
   }
 

@@ -4,7 +4,7 @@ import ffmpegStatic from "ffmpeg-static"
 import { spawn } from "child_process"
 import sanitise from "sanitize-filename"
 import path from "path"
-import globby from "globby"
+import { globby } from "globby"
 import express from "express"
 import { MessageAttachment } from "discord.js"
 

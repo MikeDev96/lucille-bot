@@ -283,7 +283,7 @@ export default class extends Command {
         },
       })
 
-      var params = {
+      const params = {
         TableName: process.env.EXPORT_TABLENAME,
         Item: {
           discordID: UserId,

@@ -128,7 +128,7 @@ export default class extends Command {
     return {
       embed: {
         title: `Connect 4`,
-        description: description,
+        description,
         color: 4187927,
         author: {
           name: "Connect 4",
