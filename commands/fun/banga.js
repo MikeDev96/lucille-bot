@@ -2,7 +2,9 @@ import Commando from "discord.js-commando"
 import { getRequestee, getVoiceChannel, shuffle, paginatedEmbed } from "../../helpers.js"
 import Track from "../../classes/Track.js"
 import { MessageAttachment, Util } from "discord.js"
-import AWS from "aws-sdk"
+import { DynamoDBClient } from "@aws-sdk/client-dynamodb"
+import { DynamoDBDocumentClient, PutCommand } from "@aws-sdk/lib-dynamodb"
+import { existsSync } from "fs"
 const { Command } = Commando
 
 export default class extends Command {
@@ -136,7 +138,9 @@ export default class extends Command {
       return
     }
 
-    const bangerStampImg = new MessageAttachment(`./assets/images/bangerstamps/${msg.author.id}.png`)
+    const bangerStampPath = `./assets/images/bangerstamps/${msg.author.id}.png`
+    const bangerStampExists = existsSync(bangerStampPath)
+    const bangerStampImg = new MessageAttachment(bangerStampPath)
 
     if (checkEx.length) {
       if (this.checkForUser(checkEx, msg)) {
@@ -145,13 +149,17 @@ export default class extends Command {
       else {
         this.client.db.updateBangaUsers(currTrack, msg.author.id)
         msg.react("👍")
-        msg.channel.send(bangerStampImg)
+        if (bangerStampExists) {
+          msg.channel.send(bangerStampImg)
+        }
       }
     }
     else {
       this.client.db.writeBanga(queueItem.spotifyUri, currTrack, msg.author.id)
       msg.react("👍")
-      msg.channel.send(bangerStampImg)
+      if (bangerStampExists) {
+        msg.channel.send(bangerStampImg)
+      }
     }
   }
 
@@ -233,7 +241,7 @@ export default class extends Command {
   }
 
   exportBangas (msg) {
-    AWS.config.update({
+    const client = new DynamoDBClient({
       credentials: {
         accessKeyId: process.env.AWS_ACCESSKEYID,
         secretAccessKey: process.env.AWS_SECRETACCESSKEY,
@@ -241,7 +249,7 @@ export default class extends Command {
       region: process.env.AWS_REGION,
     })
 
-    const DynamoDB = new AWS.DynamoDB.DocumentClient()
+    const ddbDocClient = DynamoDBDocumentClient.from(client)
 
     const UserId = msg.author.id
 
@@ -291,14 +299,9 @@ export default class extends Command {
         },
       }
 
-      DynamoDB.put(params, function (err, data) {
-        if (err) {
-          console.log("Error", err)
-        }
-        else {
-          console.log("Succesfully wrote to DynamoDB")
-        }
-      })
+      ddbDocClient.send(new PutCommand(params))
+        .then(() => console.log("Succesfully wrote to DynamoDB"))
+        .catch(err => console.log("Error", err))
     }
   }
 }

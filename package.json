@@ -11,11 +11,12 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.145.0",
+    "@aws-sdk/lib-dynamodb": "^3.145.0",
     "@discordjs/opus": "^0.8.0",
     "@google-cloud/speech": "^4.10.2",
     "@picovoice/porcupine-node": "^2.1.7",
     "adm-zip": "^0.5.9",
-    "aws-sdk": "^2.1190.0",
     "axios": "^0.27.2",
     "better-sqlite3": "^7.6.2",
     "bufferutil": "^4.0.6",
