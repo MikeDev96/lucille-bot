@@ -147,7 +147,6 @@ export default class TrackExtractor {
         return [new Track(
           res.body.artists.map(a => a.name).join(", "),
           res.body.name,
-          res.body.album.images[0].url,
         )
           .setPlatform(PLATFORM_SPOTIFY)
           .setSpotifyUri(res.body.uri)]
@@ -158,7 +157,6 @@ export default class TrackExtractor {
         return res.body.tracks.items.map(t => new Track(
           t.artists.map(a => a.name).join(", "),
           t.name,
-          res.body.images[0].url,
         )
           .setPlatform(PLATFORM_SPOTIFY)
           .setSpotifyUri(t.uri),
@@ -185,7 +183,6 @@ export default class TrackExtractor {
         return tracks.map(t => new Track(
           t.track.artists.map(a => a.name).join(", "),
           t.track.name,
-          playlistRes.body.images[0].url,
         )
           .setPlatform(PLATFORM_SPOTIFY)
           .setSpotifyUri(t.track.uri))
@@ -234,7 +231,6 @@ export default class TrackExtractor {
         return [].concat(res.data.items || res.data).map(t => new Track(
           t.artists.map(a => a.name).join(", "),
           t.title,
-          `https://resources.tidal.com/images/${t.album.cover.replace(/-/g, "/")}/320x320.jpg`,
         ).setPlatform(PLATFORM_TIDAL))
       }
     }
@@ -254,7 +250,6 @@ export default class TrackExtractor {
         return res.data.results.filter(t => t.wrapperType === "track").map(t => new Track(
           t.artistName,
           t.trackName,
-          t.artworkUrl100,
         ).setPlatform(PLATFORM_APPLE))
       }
     }
@@ -272,7 +267,7 @@ export default class TrackExtractor {
         const video = await new Client().getVideo(id)
         if (video) {
           return [
-            new Track(video.channel.name, video.title, video.thumbnails[video.thumbnails.length - 1].url)
+            new Track(video.channel.name, video.title)
               .setPlatform(PLATFORM_YOUTUBE)
               .setLink(`https://www.youtube.com/watch?v=${video.id}`)
               .setYouTubeId(video.id)
@@ -287,7 +282,7 @@ export default class TrackExtractor {
         await playlist.videos.next(0)
 
         return playlist.videos.items.map(item =>
-          new Track(item.channel.name, item.title, item.thumbnails[0].url)
+          new Track(item.channel.name, item.title)
             .setPlatform(PLATFORM_YOUTUBE)
             .setLink(`https://www.youtube.com/watch?v=${item.id}`)
             .setYouTubeId(item.id)
@@ -318,7 +313,6 @@ export default class TrackExtractor {
         return validTracks.filter((_t, tIdx) => audioLinks[tIdx]).map((t, tIdx) => new Track(
           t.user.username,
           t.title,
-          t.artwork_url,
         ).setPlatform(PLATFORM_SOUNDCLOUD)
           .setLink(audioLinks[tIdx])
           .setDuration(t.duration / 1000))
@@ -359,7 +353,7 @@ export default class TrackExtractor {
       })
       const contentType = res.headers["content-type"]
       if (contentType.startsWith("audio/") || contentType.startsWith("video/")) {
-        const track = new Track("Custom Link", id, "")
+        const track = new Track("Custom Link", id)
           .setPlatform(PLATFORM_OTHER)
           .setLink(id)
           .setDuration(0)

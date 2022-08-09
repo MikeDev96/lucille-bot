@@ -20,7 +20,6 @@ export default class {
           type: this.music.type,
           artists: spotifyRes.artists,
           name: spotifyRes.title,
-          thumbnail: spotifyRes.thumbnail,
         }
       }
     }
@@ -36,7 +35,6 @@ export default class {
           type: this.music.type,
           artists: tidalRes.artists,
           name: tidalRes.title,
-          thumbnail: tidalRes.thumbnail,
         }
       }
     }
@@ -52,7 +50,6 @@ export default class {
           type: this.music.type,
           artists: appleRes.artists,
           name: appleRes.title,
-          thumbnail: appleRes.thumbnail,
         }
       }
     }
@@ -93,7 +90,6 @@ export default class {
         return {
           artists: res.body.artists.map(a => a.name).join(", "),
           title: res.body.name,
-          thumbnail: res.body.album.images[0].url,
         }
       }
       else if (this.music.type === "album") {
@@ -101,7 +97,6 @@ export default class {
         return {
           artists: res.body.artists.map(a => a.name).join(", "),
           title: res.body.name,
-          thumbnail: res.body.images[0].url,
           tracks: res.body.tracks.items,
         }
       }
@@ -110,7 +105,6 @@ export default class {
         return {
           artists: res.body.name,
           title: "",
-          thumbnail: res.body.images[0].url,
         }
       }
       else if (this.isPlaylist) {
@@ -129,7 +123,6 @@ export default class {
         return {
           artists: playlistRes.body.owner.display_name,
           title: playlistRes.body.name,
-          thumbnail: playlistRes.body.images[0].url,
           tracks: playlistRes.body.tracks.items,
         }
       }
@@ -167,7 +160,6 @@ export default class {
               id: track.id,
               artists: track.artists,
               name: track.name,
-              thumbnail: track.album.images[0].url,
             }
           }
         }
@@ -178,7 +170,6 @@ export default class {
               id: album.id,
               artists: album.artists,
               name: album.name,
-              thumbnail: album.images[0].url,
             }
           }
         }
@@ -189,7 +180,6 @@ export default class {
               id: artist.id,
               artists: [artist],
               name: "",
-              thumbnail: artist.images[0].url,
             }
           }
         }
@@ -217,7 +207,6 @@ export default class {
             success: true,
             artists: res.data.artists.map(a => a.name).join(", "),
             title: res.data.title,
-            thumbnail: `https://resources.tidal.com/images/${res.data.album.cover.replace(/-/g, "/")}/320x320.jpg`,
           }
         }
         else if (this.music.type === "album") {
@@ -225,7 +214,6 @@ export default class {
             success: true,
             artists: res.data.artists.map(a => a.name).join(", "),
             title: res.data.title,
-            thumbnail: `https://resources.tidal.com/images/${res.data.cover.replace(/-/g, "/")}/320x320.jpg`,
           }
         }
         else if (this.music.type === "artist") {
@@ -233,7 +221,6 @@ export default class {
             success: true,
             artists: res.data.name,
             title: "",
-            thumbnail: `https://resources.tidal.com/images/${res.data.picture.replace(/-/g, "/")}/320x320.jpg`,
           }
         }
       }
@@ -295,21 +282,18 @@ export default class {
           return {
             artists: item.artistName,
             title: item.trackName,
-            thumbnail: item.artworkUrl100,
           }
         }
         else if (item.wrapperType === "collection") {
           return {
             artists: item.artistName,
             title: item.collectionName,
-            thumbnail: item.artworkUrl100,
           }
         }
         else if (item.wrapperType === "artist") {
           return {
             artists: item.artistName,
             title: "",
-            thumbnail: "",
           }
         }
       }

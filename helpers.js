@@ -134,7 +134,6 @@ export const searchYouTube = async query => {
     return searchVideos.items.map(item => ({
       id: item.id.videoId,
       title: item.snippet.title,
-      thumbnail: item.snippet.thumbnails.default.url,
       duration: Duration.fromISO(videosMap.get(item.id.videoId).duration).shiftTo("seconds").seconds,
     }))
   }
@@ -146,7 +145,6 @@ export const searchYouTube = async query => {
     return searchResults.items.map(v => ({
       id: v.id,
       title: v.title,
-      thumbnail: v.thumbnails[0].url,
       duration: v.duration,
     }))
   }

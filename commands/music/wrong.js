@@ -48,7 +48,6 @@ export default class extends Command {
             const track = new Track()
               .clone(queueItem)
               .setYouTubeTitle(searchResults[index].title)
-              .setThumbnail(searchResults[index].thumbnail)
               .setLink(`https://www.youtube.com/watch?v=${searchResults[index].id}`)
               .setDuration(searchResults[index].duration)
               .setStartTime(0)

@@ -39,7 +39,7 @@ export default class extends Command {
       return
     }
 
-    const track = new Track("", radio.name, "")
+    const track = new Track("", radio.name)
       .setPlatform(PLATFORM_RADIO)
       .setLink(radio.url)
       .setDuration(0)

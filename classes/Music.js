@@ -178,7 +178,7 @@ export default class Music extends MusicState {
       const requestee = new Requestee(this.guild.me.displayName, this.client.user.displayAvatarURL(), this.client.user.id)
 
       if (randomConnectSound) {
-        queueTracks.unshift(new Track("", "Random Connect Sound", "")
+        queueTracks.unshift(new Track("", "Random Connect Sound")
           .setPlatform(PLATFORM_CONNECT)
           .setLink(`${connectPath}/${randomConnectSound}`)
           .setDuration(0)
@@ -217,7 +217,6 @@ export default class Music extends MusicState {
     if (searchResult) {
       item
         .setYouTubeTitle(searchResult.title)
-        .setThumbnail(searchResult.thumbnail)
         .setLink(`https://www.youtube.com/watch?v=${searchResult.id}`)
         .setYouTubeId(searchResult.id)
         .setDuration(searchResult.duration)
@@ -462,7 +461,7 @@ export default class Music extends MusicState {
         const randomDisconnectSound = selectRandom(disconnectSounds)
 
         if (randomDisconnectSound) {
-          this.state.queue.push(new Track("", "Random Disconnect Sound", "")
+          this.state.queue.push(new Track("", "Random Disconnect Sound")
             .setPlatform(PLATFORM_DISCONNECT)
             .setLink(`${disconnectPath}/${randomDisconnectSound}`)
             .setDuration(0)

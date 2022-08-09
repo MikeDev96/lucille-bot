@@ -1,8 +1,7 @@
 export default class Track {
-  constructor (artists, title, thumbnail) {
+  constructor (artists, title) {
     this.artists = artists || ""
     this.title = title || ""
-    this.thumbnail = thumbnail || ""
     this.finished = false
     this.startTime = 0
     this.listenTime = 0
@@ -15,11 +14,6 @@ export default class Track {
 
   setTitle (title) {
     this.title = title
-    return this
-  }
-
-  setThumbnail (thumbnail) {
-    this.thumbnail = thumbnail
     return this
   }
 
@@ -116,7 +110,6 @@ export default class Track {
   clone (track) {
     this.artists = track.artists
     this.title = track.title
-    this.thumbnail = track.thumbnail
     this.requestee = track.requestee
     this.link = track.link
     this.platform = track.platform
