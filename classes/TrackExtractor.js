@@ -1,9 +1,10 @@
 import SpotifyWebApi from "spotify-web-api-node"
 import axios from "axios"
 import Track from "./Track.js"
-import queryString from "query-string"
 import parseDuration from "parse-duration"
 import youtubei from "youtubei"
+import { URL } from "url"
+import { getFreeClientID } from "play-dl"
 
 export const PLATFORM_SPOTIFY = "spotify"
 export const PLATFORM_TIDAL = "tidal"
@@ -57,9 +58,10 @@ export default class TrackExtractor {
     while ((youtubeMatch = youtubePattern.exec(input))) {
       const [, id] = youtubeMatch
       const link = { platform: "youtube", type: "track", id, startTime: 0 }
-      const queryParams = queryString.parseUrl(input).query
-      if (queryParams.t) {
-        const startTime = !/[a-zA-Z]/.test(queryParams.t) ? queryParams.t + "s" : queryParams.t
+      const queryParams = new URL(input).searchParams
+      if (queryParams.has("t")) {
+        const timeParam = queryParams.get("t")
+        const startTime = !/[a-zA-Z]/.test(timeParam) ? timeParam + "s" : timeParam
         const duration = parseDuration(startTime, "s")
         if (duration) {
           link.startTime = duration * 1000
@@ -304,7 +306,8 @@ export default class TrackExtractor {
 
   async getSoundCloud (type, id) {
     try {
-      const res = await axios.get(`https://api-v2.soundcloud.com/resolve?url=${encodeURIComponent(`https://soundcloud.com/${id}`)}&client_id=${process.env.SOUNDCLOUD_CLIENTID}`)
+      const clientId = await getSoundCloudClientId()
+      const res = await axios.get(`https://api-v2.soundcloud.com/resolve?url=${encodeURIComponent(`https://soundcloud.com/${id}`)}&client_id=${clientId}`)
 
       if (res.data) {
         const tracks = res.data.kind === "track" ? [res.data] : res.data.tracks
@@ -333,9 +336,10 @@ export default class TrackExtractor {
     if (transcodings) {
       const transcoding = transcodings[0]
       if (transcoding) {
-        const parsedUrl = queryString.parseUrl(transcoding.url)
-        const audioCdnUrl = queryString.stringifyUrl({ url: parsedUrl.url, query: { ...parsedUrl.query, client_id: process.env.SOUNDCLOUD_CLIENTID } })
-        const res = await axios.get(audioCdnUrl)
+        const parsedUrl = new URL(transcoding.url)
+        parsedUrl.searchParams.set("client_id", await getSoundCloudClientId())
+
+        const res = await axios.get(parsedUrl.href)
 
         if (res.data) {
           return res.data.url
@@ -370,4 +374,16 @@ export default class TrackExtractor {
 
     return []
   }
+}
+
+let scClientId = ""
+let scLastGenerated
+
+const getSoundCloudClientId = async () => {
+  if (!scClientId || !scLastGenerated || Date.now() - scLastGenerated >= 60 * 60 * 1e3) {
+    scClientId = await getFreeClientID()
+    scLastGenerated = Date.now()
+  }
+
+  return scClientId
 }
