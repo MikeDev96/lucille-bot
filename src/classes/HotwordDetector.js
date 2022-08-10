@@ -1,4 +1,4 @@
-import Porcupine from "@picovoice/porcupine-node"
+import { Porcupine } from "@picovoice/porcupine-node"
 import EventEmitter from "events"
 
 class HotwordDetector extends EventEmitter {
