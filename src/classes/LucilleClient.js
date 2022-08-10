@@ -9,7 +9,7 @@ import MasterDatabase from "./MasterDatabase.js"
 import RedditRipper from "./RedditRipper.js"
 import MessageInterceptor from "./MessageInterceptor.js"
 import AmazonRipper from "./AmazonRipper.js"
-import TikTokRipper from "./TikTokRipper.js"
+// import TikTokRipper from "./TikTokRipper.js"
 import { ppResetDaily } from "../commands/fun/pp.js"
 import TextToSpeech from "./TextToSpeech.js"
 import StocksPortfolio from "./StocksPortfolio.js"
@@ -49,7 +49,7 @@ export default class LucilleClient extends CommandoClient {
       new MusicTracker().run(msg)
       new RedditRipper().runMessage(msg)
       amazonRipper.runMessage(msg)
-      new TikTokRipper().runMessage(msg)
+      // new TikTokRipper().runMessage(msg)
     })
   }
 
