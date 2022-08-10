@@ -98,7 +98,7 @@ export default class LucilleClient extends CommandoClient {
 
   async importCommands () {
     try {
-      const commandFilenames = await globby("./src/commands/**/*.js", { absolute: true })
+      const commandFilenames = await globby("src/commands/**/*.js", { absolute: true })
       const commands = await Promise.all(commandFilenames.map(l => import(`file://${l}`)))
       this.registry.registerCommands(commands)
     }
