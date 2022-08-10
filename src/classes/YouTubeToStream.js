@@ -43,7 +43,7 @@ export const getStream = async (url, options) => {
     playDlCache.set(url, info)
   }
   else {
-    console.log("Fetched steam info from cache")
+    console.log("Fetched stream info from cache")
   }
 
   const info = playDlCache.get(url)

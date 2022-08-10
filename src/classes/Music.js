@@ -275,16 +275,17 @@ export default class Music extends MusicState {
     const { stream, type } = streamData
     const prevPlaying = this.playing
 
+    console.time("readable")
+    const readablePromise = new Promise((resolve, reject) => {
+      stream.once("readable", resolve)
+      stream.once("error", reject)
+    }).then(() => console.timeEnd("readable"))
+
     if (prevPlaying) {
       // If it's the same item playing then wait for the new stream to become readable
       // so we can swap them instantly and have a seamless transition.
       if (prevPlaying.item === item) {
-        console.time("readable")
-        await new Promise((resolve, reject) => {
-          stream.once("readable", resolve)
-          stream.once("error", reject)
-        })
-        console.timeEnd("readable")
+        await readablePromise
       }
 
       this.syncTime(0, prevPlaying.item)
