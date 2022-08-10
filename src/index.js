@@ -1,7 +1,7 @@
 import express from "express"
 import dotenv from "dotenv"
 import { router as redditRoutes } from "./classes/RedditRipper.js"
-import { router as tiktokRoutes } from "./classes/TikTokRipper.js"
+// import { router as tiktokRoutes } from "./classes/TikTokRipper.js"
 import LucilleClient from "./classes/LucilleClient.js"
 import "./classes/LucilleGuild.js"
 
@@ -26,5 +26,5 @@ client.connect(process.env.DISCORD_TOKEN)
 
 express()
   .use("/", redditRoutes)
-  .use("/", tiktokRoutes)
+  // .use("/", tiktokRoutes)
   .listen(process.env.PORT, () => console.log(`Lucille API listening at http://localhost:${process.env.PORT}`))
