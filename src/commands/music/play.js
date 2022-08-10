@@ -1,0 +1,62 @@
+import Commando from "discord.js-commando"
+import { getRequestee, getVoiceChannel } from "../../helpers.js"
+import { resume } from "./resume.js"
+const { Command } = Commando
+
+export const commandConfig = {
+  name: "play",
+  aliases: ["p"],
+  group: "music",
+  memberName: "play",
+  description: "Play command",
+  args: [
+    {
+      key: "input",
+      prompt: "Search for a song or paste some link(s) to play.",
+      type: "string",
+      default: "",
+    },
+  ],
+  guildOnly: true,
+}
+
+export default class PlayCommand extends Command {
+  constructor (client) {
+    super(client, commandConfig)
+  }
+
+  async run (msg, args) {
+    await run(msg, args, false)
+  }
+}
+
+export const run = async (msg, args, jump) => {
+  const music = msg.guild.music
+
+  if (msg.author.id !== process.env.DISCORD_OWNER && (!msg.member.voice.channelID || (msg.guild.voice && msg.guild.voice.channelID && msg.guild.voice.channelID !== msg.member.voice.channelID) || msg.member.voice.deaf)) {
+    msg.react("🖕")
+    return
+  }
+
+  if (music.state.pauser !== "" && args.input === "") {
+    resume(msg)
+    return
+  }
+
+  const searchReaction = msg.react("🔍")
+
+  if (args.input !== "") {
+    const success = await music.add(args.input, getRequestee(msg), getVoiceChannel(msg), jump, msg.channel)
+    searchReaction.then(r => r.remove())
+    await (await searchReaction).remove()
+    if (success) {
+      msg.react("▶️")
+    }
+    else {
+      msg.reply(`❌ Sorry, I couldn't find a YouTube video for \`${args.input}\`, please try again...`)
+    }
+  }
+  else {
+    msg.reply("Please provide a link or search term for the song you wish to play")
+  }
+}
