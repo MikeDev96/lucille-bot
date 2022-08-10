@@ -22,6 +22,8 @@ export const resume = msg => {
   const music = msg.guild.music
   music.setState({ pauser: "" })
   music.dispatcherExec(d => d.resume())
-  music.updateEmbed()
+  // Resume is buggy from Node v14.16.1+ therefore restart the stream
+  // https://stackoverflow.com/a/67809381
+  music.play("before")
   msg.react("▶️")
 }
