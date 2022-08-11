@@ -66,13 +66,11 @@ export const getStream = async (url, options) => {
 
 const getSortedAudioFormats = formats => {
   return formats.filter(f => f.audioQuality).sort((a, b) => {
-    const [, aType, aContainer] = /(audio|video)\/(\w+?);/.exec(a.mimeType)
-    const [, bType, bContainer] = /(audio|video)\/(\w+?);/.exec(b.mimeType)
+    const [, aType] = /(audio|video)\/(\w+?);/.exec(a.mimeType)
+    const [, bType] = /(audio|video)\/(\w+?);/.exec(b.mimeType)
 
-    // Sort by audio first, then if it's mp4 and then bitrate
-    // FFMPEG seems to be quicker with mp4 than webm
+    // Sort by audio only and then bitrate
     return (((bType === "audio" ? 1 : 0) - (aType === "audio" ? 1 : 0)) ||
-      ((bContainer === "mp4" ? 1 : 0) - (aContainer === "mp4" ? 1 : 0)) ||
       (b.bitrate - a.bitrate)
     )
   })
