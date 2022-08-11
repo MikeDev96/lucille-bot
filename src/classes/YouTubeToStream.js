@@ -47,7 +47,33 @@ export const getStream = async (url, options) => {
   }
 
   const info = playDlCache.get(url)
-  const stream = await streamFromInfo(info, { seek: options.startTime / 1000 })
 
-  return playDlDiscord12CompatabilityWrapper(stream)
+  if (options.filters && (options.filters.gain !== 0 || options.filters.tempo !== 1)) {
+    const audioFormats = getSortedAudioFormats(info.format)
+
+    if (!audioFormats.length) {
+      throw new Error("No audio formats available")
+    }
+
+    return { stream: getFfmpegStream(audioFormats[0].url, options), type: "opus" }
+  }
+  else {
+    const stream = await streamFromInfo(info, { seek: options.startTime / 1000 })
+
+    return playDlDiscord12CompatabilityWrapper({ ...stream, type: stream.type === "arbitrary" ? "unknown" : stream.type })
+  }
+}
+
+const getSortedAudioFormats = formats => {
+  return formats.filter(f => f.audioQuality).sort((a, b) => {
+    const [, aType, aContainer] = /(audio|video)\/(\w+?);/.exec(a.mimeType)
+    const [, bType, bContainer] = /(audio|video)\/(\w+?);/.exec(b.mimeType)
+
+    // Sort by audio first, then if it's mp4 and then bitrate
+    // FFMPEG seems to be quicker with mp4 than webm
+    return (((bType === "audio" ? 1 : 0) - (aType === "audio" ? 1 : 0)) ||
+      ((bContainer === "mp4" ? 1 : 0) - (aContainer === "mp4" ? 1 : 0)) ||
+      (b.bitrate - a.bitrate)
+    )
+  })
 }
