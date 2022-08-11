@@ -47,7 +47,7 @@
     "rrule": "^2.7.1",
     "sanitize-filename": "^1.6.3",
     "spotify-web-api-node": "^5.0.2",
-    "tenorjs": "^1.0.8",
+    "tenorjs": "^1.0.10",
     "utf-8-validate": "^5.0.9",
     "ws": "^8.8.1",
     "youtubei": "^1.0.0-rc.4",
