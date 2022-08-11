@@ -35,7 +35,7 @@ jobs:
           key: ${{ secrets.KEY }}
           port: ${{ secrets.PORT }}
           script: |
-            cd ${{ format("/home/{0}/apps/lucille-bot", secrets.USERNAME) }} && git pull && npm i && git reset --hard && pm2 reload lucille
+            cd /home/${{ secrets.USERNAME }}/apps/lucille-bot && git pull && npm i && git reset --hard && pm2 reload lucille
 
       - name: Post-deploy notification to Lucille
         if: github.repository == 'MikeDev96/lucille-bot'
