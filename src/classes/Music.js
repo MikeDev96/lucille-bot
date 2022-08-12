@@ -168,21 +168,25 @@ export default class Music extends MusicState {
       queueTracks.push(queueDisconnect[0])
     }
 
+    const isTts = queueTracks[0] && queueTracks[0].platform === PLATFORM_TTS
+
     if (!this.state.queue.length) {
       this.state.messagePump.setChannel(textChannel)
 
-      const connectPath = "assets/sounds/connect"
-      const connectSounds = fs.existsSync(connectPath) && fs.readdirSync(connectPath)
-      const randomConnectSound = selectRandom(connectSounds)
+      if (!isTts) {
+        const connectPath = "assets/sounds/connect"
+        const connectSounds = fs.existsSync(connectPath) && fs.readdirSync(connectPath)
+        const randomConnectSound = selectRandom(connectSounds)
 
-      const requestee = new Requestee(this.guild.me.displayName, this.client.user.displayAvatarURL(), this.client.user.id)
+        const requestee = new Requestee(this.guild.me.displayName, this.client.user.displayAvatarURL(), this.client.user.id)
 
-      if (randomConnectSound) {
-        queueTracks.unshift(new Track("", "Random Connect Sound")
-          .setPlatform(PLATFORM_CONNECT)
-          .setLink(`${connectPath}/${randomConnectSound}`)
-          .setDuration(0)
-          .setRequestee(requestee))
+        if (randomConnectSound) {
+          queueTracks.unshift(new Track("", "Random Connect Sound")
+            .setPlatform(PLATFORM_CONNECT)
+            .setLink(`${connectPath}/${randomConnectSound}`)
+            .setDuration(0)
+            .setRequestee(requestee))
+        }
       }
     }
 
@@ -196,7 +200,6 @@ export default class Music extends MusicState {
 
       // If there's nothing playing, get the ball rolling
       const notStreaming = this.guild.voice && this.guild.voice.connection && !this.guild.voice.connection.dispatcher
-      const isTts = this.state.queue[0] && this.state.queue[0].platform === PLATFORM_TTS
 
       if (notStreaming || wasRadio || isTts) {
         await this.searchAndPlay()
@@ -424,6 +427,8 @@ export default class Music extends MusicState {
   }
 
   async processQueue () {
+    const item = this.state.queue[0]
+
     const disconnectPath = "assets/sounds/disconnect"
     const disconnectSounds = fs.existsSync(disconnectPath) ? fs.readdirSync(disconnectPath) : []
     const isDisconnectSound = !disconnectSounds.length || (this.state.queue[0] && this.state.queue[0].platform === PLATFORM_DISCONNECT)
@@ -446,7 +451,7 @@ export default class Music extends MusicState {
     }
 
     if (!this.state.queue[0]) {
-      if (!isDisconnectSound) {
+      if (!isDisconnectSound && item.platform !== PLATFORM_TTS) {
         const requestee = new Requestee(this.guild.me.displayName, this.client.user.displayAvatarURL(), this.client.user.id)
         const randomDisconnectSound = selectRandom(disconnectSounds)
 
