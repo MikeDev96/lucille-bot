@@ -5,7 +5,7 @@ export default class extends Command {
   constructor (client) {
     super(client, {
       name: "stop",
-      aliases: ["fuckoff", "shlata", "alt f4", "altf4"],
+      aliases: ["fuckoff", "shlata", "alt f4", "altf4", "leave"],
       group: "music",
       memberName: "stop",
       description: "Stops the bot in it's tracks",
