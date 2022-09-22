@@ -349,6 +349,7 @@ export default class Music extends MusicState {
         return await getStream(item.link, { startTime: item.startTime, filters: this.getAudioFilters() })
       }
       catch (err) {
+        console.error(err)
         this.state.textChannel.send(`❌ Failed to get a YouTube stream for\n${this.getTrackTitle(item)}\n${item.link}\n${err.message}`)
         await this.processQueue()
         return
