@@ -56,9 +56,9 @@ export default class TrackExtractor {
     const youtubePattern = /(?:https?:\/\/www.)?youtu(?:be.com\/watch\?v=|.be\/)([\w-]+)/g
     let youtubeMatch
     while ((youtubeMatch = youtubePattern.exec(input))) {
-      const [, id] = youtubeMatch
+      const [url, id] = youtubeMatch
       const link = { platform: "youtube", type: "track", id, startTime: 0 }
-      const queryParams = new URL(input).searchParams
+      const queryParams = new URL(url).searchParams
       if (queryParams.has("t")) {
         const timeParam = queryParams.get("t")
         const startTime = !/[a-zA-Z]/.test(timeParam) ? timeParam + "s" : timeParam
