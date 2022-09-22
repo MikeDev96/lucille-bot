@@ -8,24 +8,6 @@ jobs:
   deployment:
     runs-on: ubuntu-latest
     steps:
-      - name: Pre-deploy notification to Lucille
-        if: github.repository == 'MikeDev96/lucille-bot'
-        uses: fjogeleit/http-request-action@master
-        with:
-          url: ${{ secrets.WEBHOOK_URL }}
-          method: 'POST'
-          contentType: 'application/json'
-          data: ${{ secrets.WEBHOOK_PRE_DEPLOY_PAYLOAD }}
-          
-      - name: Pre-deploy notification to null;
-        if: github.repository == 'MikeDev96/lucille-bot'
-        uses: fjogeleit/http-request-action@master
-        with:
-          url: ${{ secrets.WEBHOOK_URL_NULL }}
-          method: 'POST'
-          contentType: 'application/json'
-          data: ${{ secrets.WEBHOOK_PRE_DEPLOY_PAYLOAD }}
-
       - name: Deploy
         if: github.repository == 'MikeDev96/lucille-bot'
         uses: appleboy/ssh-action@master
@@ -36,21 +18,3 @@ jobs:
           port: ${{ secrets.PORT }}
           script: |
             cd /home/${{ secrets.USERNAME }}/apps/lucille-bot && export NVM_DIR=~/.nvm && source ~/.nvm/nvm.sh && git pull && npm i && git reset --hard && pm2 reload lucille
-
-      - name: Post-deploy notification to Lucille
-        if: github.repository == 'MikeDev96/lucille-bot'
-        uses: fjogeleit/http-request-action@master
-        with:
-          url: ${{ secrets.WEBHOOK_URL }}
-          method: 'POST'
-          contentType: 'application/json'
-          data: ${{ secrets.WEBHOOK_POST_DEPLOY_PAYLOAD }}
-
-      - name: Post-deploy notification to null;
-        if: github.repository == 'MikeDev96/lucille-bot'
-        uses: fjogeleit/http-request-action@master
-        with:
-          url: ${{ secrets.WEBHOOK_URL_NULL }}
-          method: 'POST'
-          contentType: 'application/json'
-          data: ${{ secrets.WEBHOOK_POST_DEPLOY_PAYLOAD }}
