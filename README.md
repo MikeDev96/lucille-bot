@@ -1,7 +1,17 @@
 # Lucille Bot
 
-## How to set up a development environment
 This is a quick and easy quide to get Lucille up and running ready for development!
+
+## Bot creation
+You can create a discord bot at [this url](https://discord.com/developers/applications/) 
+
+Make sure you copy the bot token before it disapppears
+
+When initially creating your bot, ensure that your bot has the approriate gateway intents, such as the "Message Content Intent" to read Discord messages
+
+---
+
+## How to set up a development environment
 ### Prerequisites
 - **Windows Build Tools**  
 Lucille uses SQLite which requires WBT.  
@@ -11,60 +21,37 @@ Alternatively just install run ```npm i -g windows-build-tools``` (https://githu
 ```bash
 git clone https://github.com/MikeDev96/lucille-bot.git
 ```
-### Create a config.json file in the root folder.
-Populate it with the following skeleton config:
-```json
-{
-  "discord": {
-    "token": "",
-    "authorAvatarUrl": "https://i.imgur.com/Wh0dLdM.png",
-    "owner": "155065678318141440",
-    "footer": "Created with ♥ by ME, JC, JK, DM and JW - Powered by Keef Web Services",
-    "prefix": ";"
-  },
-  "spotify": {
-    "clientId": "",
-    "clientSecret": ""
-  },
-  "tidal": {
-    "token": ""
-  },
-  "soundCloud": {
-    "clientId": ""
-  },
-  "aws": {
-    "accessKeyId": "",
-    "secretAccessKey": "",
-    "region": ""
-  },
-  "export": {
-    "url": "",
-    "tableName": ""
-  },
-  "tenor": {
-    "key": ""
-  },
-  "speedTest":{
-    "token": ""
-  }
-}
-```
-> Certain features won't work without credentials provided in the config.json
-For example, converting Spotify links to Tidal won't work as both of their corresponding credentials are missing.
 
 ### Create a .env file in the root folder.
-Populate it with the following:
+Populate it with the following skeleton config:
 ```
+DISCORD_TOKEN = ""
+DISCORD_AUTHORAVATARURL = ""
+DISCORD_OWNER = ""
+DISCORD_FOOTER = "Created with ♥ by ME, JC, JK, DM and JW - Powered by Keef Web Services"
+DISCORD_PREFIX = ";"
+
+SPOTIFY_CLIENTID = ""
+SPOTFIY_CLIENTSECRET = ""
+
+TIDAL_TOKEN = ""
+
+SOUNDCLOUD_CLIENTID = ""
+
+EXPORT_URL = ""
+
+TENOR_KEY = ""
+
+SPEEDTEST_TOKEN = ""
+
 YOUSYNC_API_URL = "http://yousync.mikedev.uk"
 YOUSYNC_URL = "http://yousync.mikedev.uk"
-PUBLIC_URL = http://lucille.mikedev.uk
-PORT = 3000
+PUBLIC_URL = "http://lucille.mikedev.uk"
+PORT = "3000"
 ```
 
-- `YOUSYNC_API_URL` is called by the `yousync` command to create a room and optionally prepopulate it with a video.
-- `YOUSYNC_URL` is used by the `yousync` command to generate a link to the created room.
-- `PUBLIC_URL` is the endpoint used by the `Reddit Ripper` to host ripped video files.
-- `PORT` same as `PUBLIC_URL` but the port.
+> Certain features won't work without credentials provided in the .env file.
+For example, converting Spotify links to Tidal won't work if either of their corresponding credentials are missing.
 
 ### Install dependencies
 Use `npm ci` to install the Node dependencies so that you don't end up with a different package-lock.json
@@ -82,7 +69,6 @@ Tell VS Code to auto format on save: https://www.aleksandrhovhannisyan.com/blog/
 
 ### Good to go
 You should now be good to go, run `npm start` to get going!
-
 
 ---
 
