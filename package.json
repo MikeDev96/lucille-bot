@@ -39,7 +39,7 @@
     "humanize-duration": "^3.27.2",
     "libsodium-wrappers": "^0.7.10",
     "lodash-es": "^4.17.21",
-    "luxon": "^3.0.1",
+    "luxon": "^3.2.1",
     "node-fetch": "^3.2.10",
     "node-html-parser": "^5.4.1",
     "parse-duration": "^1.0.2",
