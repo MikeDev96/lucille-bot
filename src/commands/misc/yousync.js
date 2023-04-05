@@ -1,38 +1,33 @@
-import Commando from "discord.js-commando"
 import fetch from "node-fetch"
-const { Command } = Commando
 
 const YOUTUBE_REGEX_PATTERN = /(?:https?:\/\/www.)?youtu(?:be.com\/watch\?v=|.be\/)([\w-]+)/
 
-export default class extends Command {
-  constructor (client) {
-    super(client, {
-      name: "yousync",
-      aliases: ["ys"],
-      group: "misc",
-      memberName: "yousync",
-      description: "Create a YouSync room",
-      args: [
-        {
-          key: "strength",
-          prompt: "Enter a sponsor skip strength (optional)",
-          type: "string",
-          default: "low",
-        },
-        {
-          key: "link",
-          prompt: "Enter a YouTube link",
-          type: "string",
-          default: "",
-        },
-      ],
-      guildOnly: true,
-    })
-  }
-
+export default {
+  config: {
+    name: "yousync",
+    aliases: ["ys"],
+    group: "misc",
+    memberName: "yousync",
+    description: "Create a YouSync room",
+    args: [
+      {
+        key: "strength",
+        prompt: "Enter a sponsor skip strength (optional)",
+        type: "string",
+        default: "low",
+      },
+      {
+        key: "link",
+        prompt: "Enter a YouTube link",
+        type: "string",
+        default: "",
+      },
+    ],
+    guildOnly: true,
+  },
   async run (msg, args) {
     if (args.strength === "help") {
-      msg.reply(this.getHelpMessage(msg.client.commandPrefix))
+      msg.reply(getHelpMessage(msg.client.commandPrefix))
       return
     }
 
@@ -74,7 +69,7 @@ export default class extends Command {
     const videoMatch = YOUTUBE_REGEX_PATTERN.exec(args.link)
     const video = videoMatch ? encodeURIComponent(videoMatch[0]) : ""
 
-    const res = await fetch(`${process.env.YOUSYNC_API_URL}/api/room?username=${this.client.user.username}&video=${video}`, {
+    const res = await fetch(`${process.env.YOUSYNC_API_URL}/api/room?username=${msg.client.user.username}&video=${video}`, {
       method: "POST",
       body: categories,
     })
@@ -83,11 +78,11 @@ export default class extends Command {
       const data = await res.json()
       msg.reply(`${process.env.YOUSYNC_URL}/room/${data.id}`)
     }
-  }
+  },
+}
 
-  getHelpMessage (prefix) {
-    return `
+function getHelpMessage (prefix) {
+  return `
 __**${prefix}YouSync command:**__    
 \`${prefix}ys\` \`sponsor strength (optional)\` \`link\` - Where strength can be \`none\`, \`low\`, \`med\`, \`all\`.`
-  }
 }
