@@ -1,4 +1,4 @@
-import { Util } from "discord.js"
+// import { Util } from "discord.js"
 import { PassThrough, Readable } from "stream"
 import Requestee from "./classes/Requestee.js"
 import fetch from "node-fetch"
@@ -54,7 +54,8 @@ export const selectRandom = array => {
 }
 
 export const escapeMarkdown = text => {
-  return Util.escapeMarkdown(text || "")
+  // return Util.escapeMarkdown(text || "")
+  return text
 }
 
 export const getEmoji = (guild, emoji) => {

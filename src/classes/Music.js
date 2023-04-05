@@ -1,4 +1,4 @@
-import { Util } from "discord.js"
+// import { Util } from "discord.js"
 import TopMostMessagePump from "./TopMostMessagePump.js"
 import { safeJoin, msToTimestamp, selectRandom, escapeMarkdown, searchYouTube, textToStream, logarithmic, fixDispatcher } from "../helpers.js"
 import TrackExtractor, { PLATFORM_YOUTUBE, PLATFORM_RADIO, PLATFORM_SPOTIFY, PLATFORM_TIDAL, PLATFORM_APPLE, PLATFORM_CONNECT, PLATFORM_DISCONNECT, PLATFORM_TTS } from "./TrackExtractor.js"
@@ -607,7 +607,8 @@ export default class Music extends MusicState {
   createQueueEmbed (currentlyPlaying, progressPerc) {
     const queue = this.state.queue.filter((t, i) => i > 0 && t.platform !== PLATFORM_DISCONNECT).map((t, i) => `\`${(i + 1).toString().padStart(2, "0")}\` ${escapeMarkdown(this.getTrackTitle(t))} <@${t.requestee.id}>`.slice(0, 1024))
     const top10Items = queue.slice(0, 10)
-    const top10 = Util.splitMessage(top10Items, { maxLength: 1024 })
+    // const top10 = Util.splitMessage(top10Items, { maxLength: 1024 })
+    const top10 = top10Items
     const remainingCount = queue.length - top10Items.length
 
     const platformEmoji = this.getPlatformEmoji(currentlyPlaying.platform)
