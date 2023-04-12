@@ -1,4 +1,3 @@
-import { Speaking } from "discord.js"
 import humanizeDuration from "humanize-duration"
 import VoiceStateAdapter from "./VoiceStateAdapter.js"
 
@@ -514,32 +513,32 @@ class VoiceTracker {
   }
 
   initSpeechTracking () {
-    const vsa = new VoiceStateAdapter(this.client)
-    const monitor = new Map()
+    // const vsa = new VoiceStateAdapter(this.client)
+    // const monitor = new Map()
 
-    const joinCallback = ({ voiceState }) => {
-      if (voiceState.id === this.client.user.id) {
-        const guildId = voiceState.guild.id
-        voiceState.connection.on("speaking", (user, speaking) => {
-          if (user.bot) return
+    // const joinCallback = ({ voiceState }) => {
+    //   if (voiceState.id === this.client.user.id) {
+    //     const guildId = voiceState.guild.id
+    //     voiceState.connection.on("speaking", (user, speaking) => {
+    //       if (user.bot) return
 
-          if (speaking.has(Speaking.FLAGS.SPEAKING)) {
-            monitor.set(user.id, Date.now())
-          }
-          else {
-            if (monitor.has(user.id)) {
-              const duration = Date.now() - monitor.get(user.id)
-              monitor.delete(user.id)
+    //       if (speaking.has(Speaking.FLAGS.SPEAKING)) {
+    //         monitor.set(user.id, Date.now())
+    //       }
+    //       else {
+    //         if (monitor.has(user.id)) {
+    //           const duration = Date.now() - monitor.get(user.id)
+    //           monitor.delete(user.id)
 
-              this.updateSpeech(guildId, user.id, duration)
-            }
-          }
-        })
-      }
-    }
+    //           this.updateSpeech(guildId, user.id, duration)
+    //         }
+    //       }
+    //     })
+    //   }
+    // }
 
-    vsa.on("join", joinCallback.bind(this))
-    vsa.on("move", joinCallback.bind(this))
+    // vsa.on("join", joinCallback.bind(this))
+    // vsa.on("move", joinCallback.bind(this))
   }
 
   updateSpeech (guild, user, duration) {

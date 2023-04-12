@@ -1,7 +1,6 @@
-import Commando from "discord.js-commando"
+import { lucilleClient } from "../../classes/LucilleClient.js"
 import { getRequestee, getVoiceChannel } from "../../helpers.js"
-import { resume } from "./resume.js"
-const { Command } = Commando
+// import { resume } from "./resume.js"
 
 export const commandConfig = {
   name: "play",
@@ -20,18 +19,15 @@ export const commandConfig = {
   guildOnly: true,
 }
 
-export default class PlayCommand extends Command {
-  constructor (client) {
-    super(client, commandConfig)
-  }
-
-  async run (msg, args) {
+export default {
+  config: commandConfig,
+  run: async (msg, args) => {
     await run(msg, args, false)
-  }
+  },
 }
 
 export const run = async (msg, args, jump) => {
-  const music = msg.guild.music
+  const music = lucilleClient.getMusicInstance(msg.guild)
 
   if (msg.author.id !== process.env.DISCORD_OWNER && (!msg.member.voice.channelID || (msg.guild.voice && msg.guild.voice.channelID && msg.guild.voice.channelID !== msg.member.voice.channelID) || msg.member.voice.deaf)) {
     msg.react("🖕")
@@ -39,7 +35,7 @@ export const run = async (msg, args, jump) => {
   }
 
   if (music.state.pauser !== "" && args.input === "") {
-    resume(msg)
+    // resume(msg)
     return
   }
 

@@ -10,6 +10,8 @@ import MusicToX from "./MusicToX.js"
 import { getStream, getFfmpegStream } from "./YouTubeToStream.js"
 import MusicState from "./MusicState.js"
 import Requestee from "./Requestee.js"
+import { NoSubscriberBehavior, createAudioPlayer, createAudioResource, joinVoiceChannel, AudioPlayerStatus, getVoiceConnection } from "@discordjs/voice"
+import { lucilleClient } from "./LucilleClient.js"
 
 const PLATFORMS_REQUIRE_YT_SEARCH = [PLATFORM_SPOTIFY, PLATFORM_TIDAL, PLATFORM_APPLE, PLATFORM_YOUTUBE, "search"]
 
@@ -78,7 +80,11 @@ export default class Music extends MusicState {
       this.setState({ joinState: 1 })
 
       try {
-        const connection = await voiceChannel.join()
+        const connection = joinVoiceChannel({
+          channelId: voiceChannel.id,
+          guildId: voiceChannel.guild.id,
+          adapterCreator: voiceChannel.guild.voiceAdapterCreator,
+        })
 
         this.setState({
           joinState: 2,
@@ -178,7 +184,7 @@ export default class Music extends MusicState {
         const connectSounds = fs.existsSync(connectPath) && fs.readdirSync(connectPath)
         const randomConnectSound = selectRandom(connectSounds)
 
-        const requestee = new Requestee(this.guild.me.displayName, this.client.user.displayAvatarURL(), this.client.user.id)
+        const requestee = new Requestee(this.guild.members.me.displayName, this.client.user.displayAvatarURL(), this.client.user.id)
 
         if (randomConnectSound) {
           queueTracks.unshift(new Track("", "Random Connect Sound")
@@ -199,7 +205,8 @@ export default class Music extends MusicState {
       }
 
       // If there's nothing playing, get the ball rolling
-      const notStreaming = this.guild.voice && this.guild.voice.connection && !this.guild.voice.connection.dispatcher
+      const connection = getVoiceConnection(this.guild.id)
+      const notStreaming = connection// && !this.guild.voice.connection.dispatcher
 
       if (notStreaming || wasRadio || isTts) {
         await this.searchAndPlay()
@@ -276,40 +283,58 @@ export default class Music extends MusicState {
     }
 
     const { stream, type } = streamData
-    const prevPlaying = this.playing
+    // const prevPlaying = this.playing
 
-    console.time("readable")
-    const readablePromise = new Promise((resolve, reject) => {
-      stream.once("readable", resolve)
-      stream.once("error", reject)
-    }).then(() => console.timeEnd("readable"))
+    // console.time("readable")
+    // const readablePromise = new Promise((resolve, reject) => {
+    //   stream.once("readable", resolve)
+    //   stream.once("error", reject)
+    // }).then(() => console.timeEnd("readable"))
 
-    if (prevPlaying) {
-      // If it's the same item playing then wait for the new stream to become readable
-      // so we can swap them instantly and have a seamless transition.
-      if (prevPlaying.item === item) {
-        await readablePromise
-      }
+    // if (prevPlaying) {
+    //   // If it's the same item playing then wait for the new stream to become readable
+    //   // so we can swap them instantly and have a seamless transition.
+    //   if (prevPlaying.item === item) {
+    //     await readablePromise
+    //   }
 
-      this.syncTime(0, prevPlaying.item)
+    //   this.syncTime(0, prevPlaying.item)
 
-      prevPlaying.stream.destroy()
+    //   prevPlaying.stream.destroy()
 
-      await this.cleanItem(prevPlaying.item, false)
-    }
+    //   await this.cleanItem(prevPlaying.item, false)
+    // }
 
-    this.playing = { stream, type, item }
+    // const volume = [PLATFORM_CONNECT, PLATFORM_DISCONNECT].includes(item.platform) ? 3 : this.state.volume / 100
+    // const dispatcher = fixDispatcher(this.state.voiceConnection.play(stream, { type, volume: volume === 1 ? false : logarithmic(volume) }))
 
-    const volume = [PLATFORM_CONNECT, PLATFORM_DISCONNECT].includes(item.platform) ? 3 : this.state.volume / 100
-    const dispatcher = fixDispatcher(this.state.voiceConnection.play(stream, { type, volume: volume === 1 ? false : logarithmic(volume) }))
+    const connection = getVoiceConnection(this.guild.id)
+
+    const player = createAudioPlayer({
+      behaviors: {
+        noSubscriber: NoSubscriberBehavior.Play,
+      },
+    })
+
+    const resource = createAudioResource(stream, { inputType: type })
+    this.playing = { stream, type, item, player, resource }
+
+    // console.log(item)
+    player.play(resource)
+    connection.subscribe(player)
 
     if (update === "after") {
       this.updateEmbed()
     }
 
-    dispatcher.on("start", () => {
+    player.on("stateChange", (oldState, newState) => {
+      console.log(`Audio player transitioned from ${oldState.status} to ${newState.status}`)
+    })
+
+    player.on(AudioPlayerStatus.Playing, (oldState, newState) => {
+      console.log(`Audio player transitioned from ${oldState.status} to ${newState.status}`)
       if (this.state.pauser && item.platform !== PLATFORM_TTS) {
-        dispatcher.pause()
+        // dispatcher.pause()
         this.updateEmbed()
       }
       else {
@@ -321,11 +346,16 @@ export default class Music extends MusicState {
       }
     })
 
+    player.on(AudioPlayerStatus.Idle, async (oldState, newState) => {
+      console.log(`Audio player transitioned from ${oldState.status} to ${newState.status}`)
+      await this.cleanItem(item, true)
+    })
+
     // This only fires when a stream finishes gracefully or is forcibly ended (.end())
     // Commands like bass boost which just restart the stream will not fire this event
     // so make sure to clean up properly!
-    dispatcher.on("finish", async () => await this.cleanItem(item, true))
-    dispatcher.on("error", console.log)
+    // dispatcher.on("finish", async () => await this.cleanItem(item, true))
+    // dispatcher.on("error", console.log)
   }
 
   async cleanItem (item, finished) {
@@ -379,7 +409,7 @@ export default class Music extends MusicState {
   }
 
   syncTime (ms = 0, item) {
-    const deltaTime = (this.dispatcherExec(d => d.streamTime) || 0) - this.streamTimeCache
+    const deltaTime = /* (this.dispatcherExec(d => d.streamTime) || 0) */ this.playing.resource.playbackDuration - this.streamTimeCache
     const queueItem = item || this.state.queue[0]
     if (queueItem) {
       const newStartTime = queueItem.startTime + deltaTime + ms
@@ -406,8 +436,8 @@ export default class Music extends MusicState {
         console.log(`[LISTEN TRACKING] Tracked: ${item.youTubeTitle}`)
         item.setTracked(true)
 
-        this.client.db.saveYouTubeVideo(item.youTubeId, item.youTubeTitle)
-        this.client.db.insertYouTubeHistory(item.youTubeId, item.requestee.id, this.guild.id)
+        lucilleClient.db.saveYouTubeVideo(item.youTubeId, item.youTubeTitle)
+        lucilleClient.db.insertYouTubeHistory(item.youTubeId, item.requestee.id, this.guild.id)
       }, listenTimeRemaining)
 
       console.log(`[LISTEN TRACKING] Started tracking for: ${item.youTubeTitle} - ${(listenTimeRemaining / 1000).toFixed(2)}s remaining...`)
@@ -453,7 +483,7 @@ export default class Music extends MusicState {
 
     if (!this.state.queue[0]) {
       if (!isDisconnectSound && item.platform !== PLATFORM_TTS) {
-        const requestee = new Requestee(this.guild.me.displayName, this.client.user.displayAvatarURL(), this.client.user.id)
+        const requestee = new Requestee(this.guild.members.me.displayName, this.client.user.displayAvatarURL(), this.client.user.id)
         const randomDisconnectSound = selectRandom(disconnectSounds)
 
         if (randomDisconnectSound) {
@@ -613,7 +643,7 @@ export default class Music extends MusicState {
 
     const platformEmoji = this.getPlatformEmoji(currentlyPlaying.platform)
     const nowPlayingSource = ![PLATFORM_YOUTUBE, "search"].includes(currentlyPlaying.platform) ? `${platformEmoji ? `${platformEmoji} ` : ""}${escapeMarkdown(safeJoin([currentlyPlaying.artists, currentlyPlaying.title], " - "))}` : ""
-    const nowPlayingYouTube = PLATFORMS_REQUIRE_YT_SEARCH.includes(currentlyPlaying.platform) ? `${this.guild.customEmojis.youtube} ${currentlyPlaying.link ? `[${escapeMarkdown(currentlyPlaying.youTubeTitle)}](${currentlyPlaying.link}) \`▶️ ${this.client.db.getYouTubeVideoPlayCount(currentlyPlaying.youTubeId).count}\`` : "Searching..."}` : ""
+    const nowPlayingYouTube = PLATFORMS_REQUIRE_YT_SEARCH.includes(currentlyPlaying.platform) ? `${/* this.guild.customEmojis.youtube */""} ${currentlyPlaying.link ? `[${escapeMarkdown(currentlyPlaying.youTubeTitle)}](${currentlyPlaying.link}) \`▶️ ${lucilleClient.db.getYouTubeVideoPlayCount(currentlyPlaying.youTubeId).count}\`` : "Searching..."}` : ""
 
     const radioMusicToX = this.getRadioMusicToXInfo(currentlyPlaying)
     const radioNowPlaying = currentlyPlaying.platform === PLATFORM_RADIO && currentlyPlaying.radioMetadata ? escapeMarkdown([currentlyPlaying.radioMetadata.artist || "", currentlyPlaying.radioMetadata.title || ""].filter(s => s.trim()).join(" - ") + (radioMusicToX ? " " + radioMusicToX : "")) : ""
@@ -624,78 +654,80 @@ export default class Music extends MusicState {
     const requesteeMember = this.guild.members.cache.get(currentlyPlaying.requestee.id)
 
     return {
-      embed: {
-        color: 0x0099ff,
-        title: "Lucille 🎵",
-        author: {
-          name: (requesteeMember || { displayName: currentlyPlaying.requestee.id }).displayName,
-          icon_url: requesteeMember ? requesteeMember.user.displayAvatarURL() : null,
-        },
-        fields: [
-          {
-            name: "Now Playing",
-            value: nowPlaying,
-            inline: true,
+      embeds: [
+        {
+          color: 0x0099ff,
+          title: "Lucille 🎵",
+          author: {
+            name: (requesteeMember || { displayName: currentlyPlaying.requestee.id }).displayName,
+            icon_url: requesteeMember ? requesteeMember.user.displayAvatarURL() : null,
           },
-          ...(queue.length > 0
-            ? [{
-              name: "Up Next",
-              value: top10[0],
-            }]
-            : []),
-          ...(remainingCount > 0
-            ? [{
-              name: "Up Next",
-              value: `${remainingCount} more song(s)...`,
-            }]
-            : []),
-          ...(this.state.voiceConnection && this.state.voiceConnection.dispatcher && this.state.voiceConnection.dispatcher.paused
-            ? [{
-              name: "Paused By",
-              value: `<@${this.state.pauser}>`,
+          fields: [
+            {
+              name: "Now Playing",
+              value: nowPlaying,
               inline: true,
-            }]
-            : []),
-          ...(this.state.bassBoost > 0
-            ? [{
-              name: "Bass Boost",
-              value: `${amountToBassBoostMap[this.state.bassBoost]}`,
-              inline: true,
-            }]
-            : []),
-          ...(this.state.tempo !== 1
-            ? [{
-              name: "Speed",
-              value: `${this.state.tempo}`,
-              inline: true,
-            }]
-            : []),
-          ...(this.state.volume !== 100
-            ? [{
-              name: "Volume",
-              value: `${this.state.volume}`,
-              inline: true,
-            }]
-            : []),
-          ...(this.state.repeat !== "off"
-            ? [{
-              name: "Repeat",
-              value: mapRepeatTypeToEmoji(this.state.repeat),
-              inline: true,
-            }]
-            : []),
-          ...(currentlyPlaying.duration > 0
-            ? [{
-              name: "Progress",
-              value: "`" + msToTimestamp((currentlyPlaying.duration * 1000) * progressPerc) + "` " + ("▬".repeat(blocks)) + "🔵" + ("▬".repeat(Math.max(0, 20 - blocks))) + " `" + msToTimestamp(currentlyPlaying.duration * 1000) + "`",
-            }]
-            : []),
-        ],
-        footer: {
-          text: process.env.DISCORD_FOOTER,
-          icon_url: process.env.DISCORD_AUTHORAVATARURL,
+            },
+            ...(queue.length > 0
+              ? [{
+                name: "Up Next",
+                value: top10[0],
+              }]
+              : []),
+            ...(remainingCount > 0
+              ? [{
+                name: "Up Next",
+                value: `${remainingCount} more song(s)...`,
+              }]
+              : []),
+            ...(this.state.voiceConnection && this.state.voiceConnection.dispatcher && this.state.voiceConnection.dispatcher.paused
+              ? [{
+                name: "Paused By",
+                value: `<@${this.state.pauser}>`,
+                inline: true,
+              }]
+              : []),
+            ...(this.state.bassBoost > 0
+              ? [{
+                name: "Bass Boost",
+                value: `${amountToBassBoostMap[this.state.bassBoost]}`,
+                inline: true,
+              }]
+              : []),
+            ...(this.state.tempo !== 1
+              ? [{
+                name: "Speed",
+                value: `${this.state.tempo}`,
+                inline: true,
+              }]
+              : []),
+            ...(this.state.volume !== 100
+              ? [{
+                name: "Volume",
+                value: `${this.state.volume}`,
+                inline: true,
+              }]
+              : []),
+            ...(this.state.repeat !== "off"
+              ? [{
+                name: "Repeat",
+                value: mapRepeatTypeToEmoji(this.state.repeat),
+                inline: true,
+              }]
+              : []),
+            ...(currentlyPlaying.duration > 0
+              ? [{
+                name: "Progress",
+                value: "`" + msToTimestamp((currentlyPlaying.duration * 1000) * progressPerc) + "` " + ("▬".repeat(blocks)) + "🔵" + ("▬".repeat(Math.max(0, 20 - blocks))) + " `" + msToTimestamp(currentlyPlaying.duration * 1000) + "`",
+              }]
+              : []),
+          ],
+          footer: {
+            text: process.env.DISCORD_FOOTER,
+            icon_url: process.env.DISCORD_AUTHORAVATARURL,
+          },
         },
-      },
+      ],
     }
   }
 
@@ -704,7 +736,8 @@ export default class Music extends MusicState {
     case PLATFORM_RADIO:
       return "📻"
     default:
-      return this.guild.customEmojis[platform]
+      // return this.guild.customEmojis[platform]
+      return ""
     }
   }
 
@@ -713,9 +746,9 @@ export default class Music extends MusicState {
       const musicToX = item.radioMusicToX
       const splitApple = (musicToX.appleId || "").split("-")
       const radioMusicToX = [
-        musicToX.spotifyId && `[${this.guild.customEmojis.spotify}](https://open.spotify.com/track/${musicToX.spotifyId})`,
-        musicToX.tidalId && `[${this.guild.customEmojis.tidal}](https://tidal.com/browse/track/${musicToX.tidalId})`,
-        musicToX.appleId && `[${this.guild.customEmojis.apple}](https://music.apple.com/gb/album/${splitApple[0]}?i=${splitApple[1]})`,
+        musicToX.spotifyId && `[${/* this.guild.customEmojis.spotify */""}](https://open.spotify.com/track/${musicToX.spotifyId})`,
+        musicToX.tidalId && `[${/* this.guild.customEmojis.tidal */""}](https://tidal.com/browse/track/${musicToX.tidalId})`,
+        musicToX.appleId && `[${/* this.guild.customEmojis.apple */""}](https://music.apple.com/gb/album/${splitApple[0]}?i=${splitApple[1]})`,
       ].filter(s => s).join(" ")
 
       return radioMusicToX

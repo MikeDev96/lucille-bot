@@ -4,7 +4,7 @@
 // import BangaTracker from "./BangaTracker.js"
 // import AliasTracker from "./AliasTracker.js"
 // import DailyTracker from "./DailyTracker.js"
-// import MasterDatabase from "./MasterDatabase.js"
+import MasterDatabase from "./MasterDatabase.js"
 // import RedditRipper from "./RedditRipper.js"
 // import MessageInterceptor from "./MessageInterceptor.js"
 // import AmazonRipper from "./AmazonRipper.js"
@@ -15,15 +15,17 @@
 // import VoiceCommands from "./VoiceCommands.js"
 import { globby } from "globby"
 import { Client, Events, GatewayIntentBits } from "discord.js"
+import Music from "./Music.js"
 
 export default class LucilleClient {
   constructor () {
-    this.client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.MessageContent, GatewayIntentBits.GuildMessages] })
+    this.client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.MessageContent, GatewayIntentBits.GuildMessages, GatewayIntentBits.GuildVoiceStates] })
     this.client.once("ready", () => console.log("Discord client ready"))
     this.registerCommands()
     this.monitorCommands()
+    this.musicInstances = {}
 
-    // this.db = new MasterDatabase()
+    this.db = new MasterDatabase()
     // this.voiceTracker = new VoiceTracker(this)
     // this.bangaTracker = new BangaTracker()
     // this.aliasTracker = new AliasTracker()
@@ -100,8 +102,17 @@ export default class LucilleClient {
 
   async registerCommands () {
     try {
-      const commandFilenames = (await globby("src/commands/**/*.js", { absolute: true })).filter(c => /yousync/.test(c))
-      const commands = (await Promise.all(commandFilenames.map(l => import(`file://${l}`)))).map(c => c.default)
+      const commandFilenames = (await globby("src/commands/**/*.js", { absolute: true })).filter(c => /yousync|play/.test(c))
+      const commands = (await Promise.all(commandFilenames.map(l => import(`file://${l}`)))).reduce((acc, c) => {
+        const cmd = c.default
+
+        acc.push(cmd)
+        acc.push(...cmd.config.aliases.map(a => ({ ...cmd, config: { ...cmd.config, name: a } })))
+
+        return acc
+      }, [])
+      console.log(commands)
+
       this.commands = commands
 
       console.log(`Registered ${commands.length} commands`)
@@ -118,14 +129,16 @@ export default class LucilleClient {
 
   async executeCommand (msg) {
     try {
-      const match = msg.content.match(/^;(?<cmd>\w+?)\s+?(?<args>.+?)$/)
+      const match = msg.content.match(/^!(?<cmd>\w+?)\s+?(?<args>.+?)$/)
       if (!match) return
 
       const { cmd: cmdName, args } = match.groups
 
+      const cmd = this.commands.find(c => c.config.name === cmdName)
+      if (!cmd) return
+
       const argsArr = args.split(" ")
 
-      const cmd = this.commands.find(c => c.config.name === cmdName)
       const argsMap = cmd.config.args.reduce((acc, cur, idx) => {
         acc[cur.key] = argsArr[idx] ?? ""
         return acc
@@ -141,6 +154,10 @@ export default class LucilleClient {
     catch (err) {
       console.error(err)
     }
+  }
+
+  getMusicInstance (guild) {
+    return this.musicInstances[guild.id] || (this.musicInstances[guild.id] = new Music(guild))
   }
 }
 

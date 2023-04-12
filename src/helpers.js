@@ -5,6 +5,7 @@ import fetch from "node-fetch"
 import { Duration } from "luxon"
 import { Client } from "youtubei"
 import gtts from "google-tts-api"
+import { ChannelType } from "discord.js"
 
 export const noop = () => { }
 
@@ -73,7 +74,7 @@ export const getRequestee = msg => {
 }
 
 export const getVoiceChannel = msg => {
-  return msg.member.voice.channel || msg.guild.channels.cache.find(c => c.type === "voice")
+  return msg.member.voice.channel || msg.guild.channels.cache.find(c => c.type === ChannelType.GuildVoice)
 }
 
 export const isInBotsVoiceChannel = msg => {

@@ -59,8 +59,8 @@ export const getStream = async (url, options) => {
   }
   else {
     const stream = await streamFromInfo(info, { seek: options.startTime / 1000 })
-
-    return playDlDiscord12CompatabilityWrapper({ ...stream, type: stream.type === "arbitrary" ? "unknown" : stream.type })
+    // return playDlDiscord12CompatabilityWrapper({ ...stream, type: stream.type === "arbitrary" ? "unknown" : stream.type })
+    return stream
   }
 }
 
