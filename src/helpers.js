@@ -85,7 +85,7 @@ export const paginatedEmbed = async (msg, embedTemplate, embedList, emojiList = 
 
   for (const emoji of emojiList) await currentEmbed.react(emoji)
 
-  const reactionCollector = currentEmbed.createReactionCollector((reaction, user) => emojiList.includes(reaction.emoji.name) && !user.bot, { time: timeout })
+  const reactionCollector = currentEmbed.createReactionCollector({ filter: (reaction, user) => emojiList.includes(reaction.emoji.name) && !user.bot, time: timeout })
   reactionCollector.on("collect", reaction => {
     reaction.users.remove(msg.author)
 
