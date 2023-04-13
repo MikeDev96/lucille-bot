@@ -80,8 +80,8 @@ export const paginatedEmbed = async (msg, embedTemplate, embedList, emojiList = 
   if (!msg || !msg.channel || !embedList || emojiList.length !== 4) return
 
   let embedIndex = 0
-  embedTemplate.embed.fields = embedList[embedIndex]
-  const currentEmbed = await msg.channel.send(embedTemplate)
+  embedTemplate.fields = embedList[embedIndex]
+  const currentEmbed = await msg.channel.send({ embeds: [embedTemplate] })
 
   for (const emoji of emojiList) await currentEmbed.react(emoji)
 
@@ -97,8 +97,8 @@ export const paginatedEmbed = async (msg, embedTemplate, embedList, emojiList = 
     default: break
     }
 
-    embedTemplate.embed.fields = embedList[embedIndex]
-    currentEmbed.edit(embedTemplate)
+    embedTemplate.fields = embedList[embedIndex]
+    currentEmbed.edit({ embeds: [embedTemplate] })
   })
 
   reactionCollector.on("end", () => currentEmbed.reactions.removeAll())

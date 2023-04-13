@@ -210,16 +210,14 @@ __**${prefix}lb command:**__
 
     function cusEmbed (statType) {
       return {
-        embed: {
-          color: 0x0099ff,
-          title: `${statType} Lb`,
-          author: {
-            name: msg.member.displayName,
-            icon_url: msg.author.displayAvatarURL(),
-          },
-          footer: {
-            text: process.env.DISCORD_FOOTER,
-          },
+        color: 0x0099ff,
+        title: `${statType} Lb`,
+        author: {
+          name: msg.member.displayName,
+          icon_url: msg.author.displayAvatarURL(),
+        },
+        footer: {
+          text: process.env.DISCORD_FOOTER,
         },
       }
     }

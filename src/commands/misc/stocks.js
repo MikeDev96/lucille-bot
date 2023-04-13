@@ -120,7 +120,7 @@ export default class extends Command {
                 ])
 
               if (!this.embedMsg) {
-                this.embedMsg = await msg.channel.send(embed)
+                this.embedMsg = await msg.channel.send({ embeds: [embed] })
               }
               else {
                 if (this.embedMsg.deleted) {
@@ -132,7 +132,7 @@ export default class extends Command {
 
                 if (index > 5) {
                   await this.embedMsg.delete()
-                  this.embedMsg = await msg.channel.send(embed)
+                  this.embedMsg = await msg.channel.send({ embeds: [embed] })
                 }
                 else {
                   this.embedMsg.edit(embed)

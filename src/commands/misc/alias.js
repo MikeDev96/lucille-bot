@@ -64,13 +64,11 @@ export default class Alias extends Command {
 
       if (List.length) {
         paginatedEmbed(msg, {
-          embed: {
-            color: 0x0099ff,
-            title: "Lucille Alias Commands",
-            footer: {
-              text: process.env.DISCORD_FOOTER,
-              icon_url: process.env.DISCORD_AUTHORAVATARURL,
-            },
+          color: 0x0099ff,
+          title: "Lucille Alias Commands",
+          footer: {
+            text: process.env.DISCORD_FOOTER,
+            icon_url: process.env.DISCORD_AUTHORAVATARURL,
           },
         }, embedHandler(List))
       }

@@ -45,16 +45,14 @@ export default class extends Command {
       }
 
       paginatedEmbed(msg, {
-        embed: {
-          color: 0x0099ff,
-          title: "Lucille 🎵",
-          author: {
-            name: msg.member.displayName,
-            icon_url: msg.author.displayAvatarURL(),
-          },
-          footer: {
-            text: process.env.DISCORD_FOOTER,
-          },
+        color: 0x0099ff,
+        title: "Lucille 🎵",
+        author: {
+          name: msg.member.displayName,
+          icon_url: msg.author.displayAvatarURL(),
+        },
+        footer: {
+          text: process.env.DISCORD_FOOTER,
         },
       }, this.list(bangas, nickname))
       return

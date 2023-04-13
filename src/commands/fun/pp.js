@@ -171,30 +171,28 @@ export const ppResetDaily = (client, guild) => {
   }
 
   const dailyEmbed = {
-    embed: {
-      title: `PP Daily Leaderboard`,
-      description: "The daily reset is here and now its time to see where you placed!",
-      color: 4187927,
-      author: {
-        name: "PP Daily Message",
-        icon_url: client.user.displayAvatarURL(),
-      },
+    title: `PP Daily Leaderboard`,
+    description: "The daily reset is here and now its time to see where you placed!",
+    color: 4187927,
+    author: {
+      name: "PP Daily Message",
+      icon_url: client.user.displayAvatarURL(),
+    },
 
-      fields: [
-        {
-          name: "Daily PP",
-          value: fields,
-        },
-      ],
-      footer: {
-        text: process.env.DISCORD_FOOTER,
+    fields: [
+      {
+        name: "Daily PP",
+        value: fields,
       },
+    ],
+    footer: {
+      text: process.env.DISCORD_FOOTER,
     },
   }
 
   const firstGuildChannel = guild.channels.cache.filter(channel => channel.type === "text").first()
 
-  firstGuildChannel.send(dailyEmbed)
+  firstGuildChannel.send({ embeds: [dailyEmbed] })
 
   client.db.resetDailyPPSize(guild.id)
 }
