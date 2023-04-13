@@ -10,7 +10,7 @@ import MusicToX from "./MusicToX.js"
 import { getStream, getFfmpegStream } from "./YouTubeToStream.js"
 import MusicState from "./MusicState.js"
 import Requestee from "./Requestee.js"
-import { NoSubscriberBehavior, createAudioPlayer, createAudioResource, joinVoiceChannel, AudioPlayerStatus, getVoiceConnection } from "@discordjs/voice"
+import { NoSubscriberBehavior, createAudioPlayer, createAudioResource, joinVoiceChannel, AudioPlayerStatus } from "@discordjs/voice"
 import LucilleClient from "./LucilleClient.js"
 
 const PLATFORMS_REQUIRE_YT_SEARCH = [PLATFORM_SPOTIFY, PLATFORM_TIDAL, PLATFORM_APPLE, PLATFORM_YOUTUBE, "search"]
@@ -209,8 +209,7 @@ export default class Music extends MusicState {
       }
 
       // If there's nothing playing, get the ball rolling
-      const connection = getVoiceConnection(this.guild.id)
-      const notStreaming = connection
+      const notStreaming = this.player.state.status === AudioPlayerStatus.Idle
 
       if (notStreaming || wasRadio || isTts) {
         await this.searchAndPlay()
