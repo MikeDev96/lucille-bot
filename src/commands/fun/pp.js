@@ -112,25 +112,27 @@ ${client.commandPrefix}pp perm \`lb\` gets the pp leaderboard, see whose rocking
     }
 
     return {
-      embed: {
-        title: `PP ${isDaily ? "Daily" : "Perm"} Leaderboard`,
-        description: "See where you stack up against the competition.",
-        color: 4187927,
-        author: {
-          name: msg.member.displayName,
-          icon_url: msg.author.displayAvatarURL(),
-        },
-
-        fields: [
-          {
-            name: msg.guild.name,
-            value: fields,
+      embeds: [
+        {
+          title: `PP ${isDaily ? "Daily" : "Perm"} Leaderboard`,
+          description: "See where you stack up against the competition.",
+          color: 4187927,
+          author: {
+            name: msg.member.displayName,
+            icon_url: msg.author.displayAvatarURL(),
           },
-        ],
-        footer: {
-          text: process.env.DISCORD_FOOTER,
+
+          fields: [
+            {
+              name: msg.guild.name,
+              value: fields,
+            },
+          ],
+          footer: {
+            text: process.env.DISCORD_FOOTER,
+          },
         },
-      },
+      ],
     }
   }
 

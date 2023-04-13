@@ -126,25 +126,27 @@ export default class extends Command {
       ? `${["🟡", "🔴"][!turn ? 0 : 1]} <@!${user.id}> Won!`
       : `${["🟡", "🔴"][!turn ? 0 : 1]} It's <@!${user.id}> turn\r\n30s Per turn`
     return {
-      embed: {
-        title: `Connect 4`,
-        description,
-        color: 4187927,
-        author: {
-          name: "Connect 4",
-          icon_url: client.user.displayAvatarURL(),
-        },
-
-        fields: [
-          {
-            name: "The Game:",
-            value: board,
+      embeds: [
+        {
+          title: `Connect 4`,
+          description,
+          color: 4187927,
+          author: {
+            name: "Connect 4",
+            icon_url: client.user.displayAvatarURL(),
           },
-        ],
-        footer: {
-          text: "",
+
+          fields: [
+            {
+              name: "The Game:",
+              value: board,
+            },
+          ],
+          footer: {
+            text: "",
+          },
         },
-      },
+      ],
     }
   }
 
@@ -219,20 +221,22 @@ export default class extends Command {
       }))
 
     return {
-      embed: {
-        title: `Connect Four Leaderboard`,
-        description: "Connect Four leaderboard",
-        color: 4187927,
-        author: {
-          name: "Lucille",
-          icon_url: msg.client.user.displayAvatarURL(),
-        },
+      embeds: [
+        {
+          title: `Connect Four Leaderboard`,
+          description: "Connect Four leaderboard",
+          color: 4187927,
+          author: {
+            name: "Lucille",
+            icon_url: msg.client.user.displayAvatarURL(),
+          },
 
-        fields: [...fields],
-        footer: {
-          text: process.env.DISCORD_FOOTER,
+          fields: [...fields],
+          footer: {
+            text: process.env.DISCORD_FOOTER,
+          },
         },
-      },
+      ],
     }
   }
 }

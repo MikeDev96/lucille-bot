@@ -87,68 +87,70 @@ const AmazonRipper = class {
 
     if (info) {
       const embedMsg = msg.reply({
-        embed: {
-          color: 0xfffffe,
-          title: `${getEmoji(msg.guild, "amazon")} ${he.decode(info.title)}`,
-          url: msg.content,
-          fields: [
-            ...padInlineFields([
-              ...(info.price
+        embeds: [
+          {
+            color: 0xfffffe,
+            title: `${getEmoji(msg.guild, "amazon")} ${he.decode(info.title)}`,
+            url: msg.content,
+            fields: [
+              ...padInlineFields([
+                ...(info.price
+                  ? [
+                    {
+                      name: "Price",
+                      value: info.price,
+                      inline: true,
+                    },
+                  ]
+                  : []),
+                ...(info.rating
+                  ? [
+                    {
+                      name: "Rating",
+                      value: info.rating,
+                      inline: true,
+                    },
+                  ]
+                  : []),
+                ...info.variations.map(v => ({
+                  name: v.name,
+                  value: v.value,
+                  inline: true,
+                })),
+              ]),
+              ...(info.overview.length
                 ? [
                   {
-                    name: "Price",
-                    value: info.price,
-                    inline: true,
+                    name: "Overview",
+                    value: info.overview.map(({ key, value }) => `${key}: ${value}`).join("\n").substr(0, 1024),
                   },
                 ]
                 : []),
-              ...(info.rating
+              ...(info.features.length
                 ? [
                   {
-                    name: "Rating",
-                    value: info.rating,
-                    inline: true,
+                    name: "Features",
+                    value: info.features.map(feat => `• ${feat}`).join("\n").substr(0, 1024),
                   },
                 ]
                 : []),
-              ...info.variations.map(v => ({
-                name: v.name,
-                value: v.value,
-                inline: true,
-              })),
-            ]),
-            ...(info.overview.length
-              ? [
-                {
-                  name: "Overview",
-                  value: info.overview.map(({ key, value }) => `${key}: ${value}`).join("\n").substr(0, 1024),
+            ],
+            author: {
+              name: msg.member.displayName,
+              icon_url: msg.author.displayAvatarURL(),
+            },
+            image: {
+              url: info.images[0],
+            },
+            ...(info.images.length > 1
+              ? {
+                footer: {
+                  text: `Image 1 of ${info.images.length}`,
                 },
-              ]
-              : []),
-            ...(info.features.length
-              ? [
-                {
-                  name: "Features",
-                  value: info.features.map(feat => `• ${feat}`).join("\n").substr(0, 1024),
-                },
-              ]
-              : []),
-          ],
-          author: {
-            name: msg.member.displayName,
-            icon_url: msg.author.displayAvatarURL(),
+              }
+              : {}),
           },
-          image: {
-            url: info.images[0],
-          },
-          ...(info.images.length > 1
-            ? {
-              footer: {
-                text: `Image 1 of ${info.images.length}`,
-              },
-            }
-            : {}),
-        },
+        ],
       })
 
       embedMsg.then(msg => {

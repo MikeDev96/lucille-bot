@@ -16,30 +16,32 @@ export default class {
           const appleEmoji = getEmoji(msg.guild, "apple")
 
           const embed = {
-            embed: {
-              color: 0x0099ff,
-              title: "Lucille 🎵",
-              author: {
-                name: msg.member.displayName,
-                icon_url: msg.author.displayAvatarURL(),
+            embeds: [
+              {
+                color: 0x0099ff,
+                title: "Lucille 🎵",
+                author: {
+                  name: msg.member.displayName,
+                  icon_url: msg.author.displayAvatarURL(),
+                },
+                fields: processedLinks.map(t => {
+                  const splitApple = (t.appleId || "").split("-")
+                  const appleLink = `music.apple.com/gb/${t.type === "track" ? "album" : t.type}/${splitApple[0]}${splitApple[1] ? "?i=" + splitApple[1] : ""}`
+                  return {
+                    name: [t.artists, t.name].filter(s => s).join(" - "),
+                    value: [
+                      t.spotifyId && `[${spotifyEmoji}](https://open.spotify.com/${t.type}/${t.spotifyId})`,
+                      t.tidalId && `[${tidalEmoji}](https://tidal.com/browse/${t.type}/${t.tidalId})`,
+                      t.appleId && `[${appleEmoji}](https://${appleLink})`,
+                    ].filter(s => s).join(" "),
+                  }
+                }),
+                footer: {
+                  text: process.env.DISCORD_FOOTER,
+                  icon_url: process.env.DISCORD_AUTHORAVATARURL,
+                },
               },
-              fields: processedLinks.map(t => {
-                const splitApple = (t.appleId || "").split("-")
-                const appleLink = `music.apple.com/gb/${t.type === "track" ? "album" : t.type}/${splitApple[0]}${splitApple[1] ? "?i=" + splitApple[1] : ""}`
-                return {
-                  name: [t.artists, t.name].filter(s => s).join(" - "),
-                  value: [
-                    t.spotifyId && `[${spotifyEmoji}](https://open.spotify.com/${t.type}/${t.spotifyId})`,
-                    t.tidalId && `[${tidalEmoji}](https://tidal.com/browse/${t.type}/${t.tidalId})`,
-                    t.appleId && `[${appleEmoji}](https://${appleLink})`,
-                  ].filter(s => s).join(" "),
-                }
-              }),
-              footer: {
-                text: process.env.DISCORD_FOOTER,
-                icon_url: process.env.DISCORD_AUTHORAVATARURL,
-              },
-            },
+            ],
           }
 
           msg.reply(embed)

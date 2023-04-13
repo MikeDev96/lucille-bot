@@ -266,20 +266,22 @@ export default class extends Command {
     else {
       msg.reply("Sent you a DM with information")
       msg.author.send({
-        embed: {
-          color: 0x0099ff,
-          title: "Lucille Spotify Exporter",
-          fields: [
-            {
-              name: "Spotify Exporter Link",
-              value: `Visit [this link](${process.env.EXPORT_URL}/${UserId}) and authorise with Spotify`,
+        embeds: [
+          {
+            color: 0x0099ff,
+            title: "Lucille Spotify Exporter",
+            fields: [
+              {
+                name: "Spotify Exporter Link",
+                value: `Visit [this link](${process.env.EXPORT_URL}/${UserId}) and authorise with Spotify`,
+              },
+            ],
+            footer: {
+              text: process.env.DISCORD_FOOTER,
+              icon_url: process.env.DISCORD_AUTHORAVATARURL,
             },
-          ],
-          footer: {
-            text: process.env.DISCORD_FOOTER,
-            icon_url: process.env.DISCORD_AUTHORAVATARURL,
           },
-        },
+        ],
       })
 
       const params = {

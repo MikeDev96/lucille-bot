@@ -192,22 +192,24 @@ export default class extends Command {
         }
         else {
           return resolve({
-            embed: {
-              color: 0x0099ff,
-              title: "Lucille 🎵",
-              author: {
-                name: msg.member.displayName,
-                icon_url: msg.author.displayAvatarURL(),
+            embeds: [
+              {
+                color: 0x0099ff,
+                title: "Lucille 🎵",
+                author: {
+                  name: msg.member.displayName,
+                  icon_url: msg.author.displayAvatarURL(),
+                },
+                fields: splitMessage(files.map(f => f === highlightFile ? `> **${escapeMarkdown(f)}**` : escapeMarkdown(f)), { maxLength: 1024 }).map(str => ({
+                  name: "Files",
+                  value: str,
+                })),
+                footer: {
+                  text: process.env.DISCORD_FOOTER,
+                  icon_url: process.env.DISCORD_AUTHORAVATARURL,
+                },
               },
-              fields: splitMessage(files.map(f => f === highlightFile ? `> **${escapeMarkdown(f)}**` : escapeMarkdown(f)), { maxLength: 1024 }).map(str => ({
-                name: "Files",
-                value: str,
-              })),
-              footer: {
-                text: process.env.DISCORD_FOOTER,
-                icon_url: process.env.DISCORD_AUTHORAVATARURL,
-              },
-            },
+            ],
           })
         }
       })

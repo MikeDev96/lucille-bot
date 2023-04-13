@@ -66,18 +66,20 @@ export default class extends Command {
         if (list.length > 0) {
           const tempArr = this.list(list, nickname)
           const embed = {
-            embed: {
-              color: 0x0099ff,
-              title: "Lucille Stonk Exchange",
-              author: {
-                name: msg.member.displayName,
-                icon_url: msg.author.displayAvatarURL(),
+            embeds: [
+              {
+                color: 0x0099ff,
+                title: "Lucille Stonk Exchange",
+                author: {
+                  name: msg.member.displayName,
+                  icon_url: msg.author.displayAvatarURL(),
+                },
+                fields: tempArr,
+                footer: {
+                  text: process.env.DISCORD_FOOTER,
+                },
               },
-              fields: tempArr,
-              footer: {
-                text: process.env.DISCORD_FOOTER,
-              },
-            },
+            ],
           }
           msg.reply(embed)
         }

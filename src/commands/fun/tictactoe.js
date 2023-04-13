@@ -133,20 +133,22 @@ export default class extends Command {
       }))
 
     return {
-      embed: {
-        title: `TicTacToe Leaderboard`,
-        description: "TicTacToe leaderboard",
-        color: 4187927,
-        author: {
-          name: "Lucille",
-          icon_url: msg.client.user.displayAvatarURL(),
-        },
+      embeds: [
+        {
+          title: `TicTacToe Leaderboard`,
+          description: "TicTacToe leaderboard",
+          color: 4187927,
+          author: {
+            name: "Lucille",
+            icon_url: msg.client.user.displayAvatarURL(),
+          },
 
-        fields: [...fields],
-        footer: {
-          text: process.env.DISCORD_FOOTER,
+          fields: [...fields],
+          footer: {
+            text: process.env.DISCORD_FOOTER,
+          },
         },
-      },
+      ],
     }
   }
 }
