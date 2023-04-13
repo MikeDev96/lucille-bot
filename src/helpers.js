@@ -54,11 +54,6 @@ export const selectRandom = array => {
   return array[Math.floor(Math.random() * array.length)]
 }
 
-export const escapeMarkdown = text => {
-  // return Util.escapeMarkdown(text || "")
-  return text
-}
-
 export const getEmoji = (guild, emoji) => {
   return (guild.emojis.cache.find(e => e.name === emoji) || "").toString()
 }

@@ -1,6 +1,6 @@
+import { escapeMarkdown } from "discord.js"
 import Command from "../../classes/Command.js"
 import LucilleClient from "../../classes/LucilleClient.js"
-import { escapeMarkdown } from "../../helpers.js"
 
 export default class extends Command {
   constructor () {

@@ -1,6 +1,6 @@
 import Commando from "discord.js-commando"
 import { paginatedEmbed, splitMessage } from "../../helpers.js"
-import { Util } from "discord.js"
+import { escapeMarkdown } from "discord.js"
 import humanizeDuration from "humanize-duration"
 const { Command } = Commando
 
@@ -195,7 +195,7 @@ __**${prefix}lb command:**__
 
     function formatDbData (data, statType) {
       data.sort((a, b) => b[statType] - a[statType])
-      return splitMessage(data.map((obj, index) => (index + 1) + ". " + Util.escapeMarkdown(findUsernameFromId(obj.UserId) + " has been  " + statType + " for " + humanizeDuration(round1000(obj[statType])))), { maxLength: 1024 }).map((str, idx) => ({
+      return splitMessage(data.map((obj, index) => (index + 1) + ". " + escapeMarkdown(findUsernameFromId(obj.UserId) + " has been  " + statType + " for " + humanizeDuration(round1000(obj[statType])))), { maxLength: 1024 }).map((str, idx) => ({
         name: `${statType} Lb ${idx + 1}`,
         value: str,
       }))

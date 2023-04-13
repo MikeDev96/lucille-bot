@@ -5,7 +5,7 @@ import { getAudioDurationInSeconds } from "get-audio-duration"
 import { getRequestee, getVoiceChannel, splitMessage } from "../../helpers.js"
 import Track from "../../classes/Track.js"
 import { PLATFORM_OTHER } from "../../classes/TrackExtractor.js"
-import { Util, MessageAttachment } from "discord.js"
+import { MessageAttachment, escapeMarkdown } from "discord.js"
 import AdmZip from "adm-zip"
 const { Command } = Commando
 
@@ -199,7 +199,7 @@ export default class extends Command {
                 name: msg.member.displayName,
                 icon_url: msg.author.displayAvatarURL(),
               },
-              fields: splitMessage(files.map(f => f === highlightFile ? `> **${Util.escapeMarkdown(f)}**` : Util.escapeMarkdown(f)), { maxLength: 1024 }).map(str => ({
+              fields: splitMessage(files.map(f => f === highlightFile ? `> **${escapeMarkdown(f)}**` : escapeMarkdown(f)), { maxLength: 1024 }).map(str => ({
                 name: "Files",
                 value: str,
               })),

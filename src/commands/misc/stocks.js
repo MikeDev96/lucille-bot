@@ -1,4 +1,4 @@
-import { MessageEmbed, Util } from "discord.js"
+import { MessageEmbed, escapeMarkdown } from "discord.js"
 import Commando from "discord.js-commando"
 import fetch from "node-fetch"
 import { splitMessage } from "../../helpers"
@@ -217,7 +217,7 @@ export default class extends Command {
   }
 
   list (songs, nickname) {
-    return splitMessage(songs.map(s => Util.escapeMarkdown(`- ${s.symbol}`)), { maxLength: 1024 }).map(str => ({
+    return splitMessage(songs.map(s => escapeMarkdown(`- ${s.symbol}`)), { maxLength: 1024 }).map(str => ({
       name: `${nickname}'s Stock Portfolio`,
       value: str,
     }))

@@ -1,7 +1,8 @@
 import LucilleClient from "../../classes/LucilleClient.js"
-import { searchYouTube, msToTimestamp, escapeMarkdown } from "../../helpers.js"
+import { searchYouTube, msToTimestamp } from "../../helpers.js"
 import Track from "../../classes/Track.js"
 import Command from "../../classes/Command.js"
+import { escapeMarkdown } from "discord.js"
 
 export default class extends Command {
   constructor () {

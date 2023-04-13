@@ -1,6 +1,6 @@
 // import { Util } from "discord.js"
 import TopMostMessagePump from "./TopMostMessagePump.js"
-import { safeJoin, msToTimestamp, selectRandom, escapeMarkdown, searchYouTube, textToStream, splitMessage } from "../helpers.js"
+import { safeJoin, msToTimestamp, selectRandom, searchYouTube, textToStream, splitMessage } from "../helpers.js"
 import TrackExtractor, { PLATFORM_YOUTUBE, PLATFORM_RADIO, PLATFORM_SPOTIFY, PLATFORM_TIDAL, PLATFORM_APPLE, PLATFORM_CONNECT, PLATFORM_DISCONNECT, PLATFORM_TTS } from "./TrackExtractor.js"
 import Track from "./Track.js"
 import fs from "fs"
@@ -12,6 +12,7 @@ import MusicState from "./MusicState.js"
 import Requestee from "./Requestee.js"
 import { NoSubscriberBehavior, createAudioPlayer, createAudioResource, joinVoiceChannel, AudioPlayerStatus } from "@discordjs/voice"
 import LucilleClient from "./LucilleClient.js"
+import { escapeMarkdown } from "discord.js"
 
 const PLATFORMS_REQUIRE_YT_SEARCH = [PLATFORM_SPOTIFY, PLATFORM_TIDAL, PLATFORM_APPLE, PLATFORM_YOUTUBE, "search"]
 

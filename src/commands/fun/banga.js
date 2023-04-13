@@ -1,7 +1,7 @@
 import Commando from "discord.js-commando"
 import { getRequestee, getVoiceChannel, shuffle, paginatedEmbed, splitMessage } from "../../helpers.js"
 import Track from "../../classes/Track.js"
-import { MessageAttachment, Util } from "discord.js"
+import { MessageAttachment, escapeMarkdown } from "discord.js"
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb"
 import { DynamoDBDocumentClient, PutCommand } from "@aws-sdk/lib-dynamodb"
 import { existsSync } from "fs"
@@ -230,7 +230,7 @@ export default class extends Command {
   }
 
   list (songs, nickname) {
-    return splitMessage(songs.map(s => Util.escapeMarkdown(`- ${s.song}`)), { maxLength: 1024 }).map((str, idx) => ({
+    return splitMessage(songs.map(s => escapeMarkdown(`- ${s.song}`)), { maxLength: 1024 }).map((str, idx) => ({
       name: `${nickname}'s Bangers ${idx + 1}`,
       value: str,
     }))
