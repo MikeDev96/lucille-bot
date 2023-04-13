@@ -22,9 +22,6 @@ export const resume = msg => {
   const music = LucilleClient.Instance.getGuildInstance(msg.guild).music
   music.setState({ pauser: "" })
   music.player.unpause()
-  // Resume is buggy from Node v14.16.1+ therefore restart the stream
-  // https://stackoverflow.com/a/67809381
-  // music.play("before")
   music.updateEmbed()
   msg.react("▶️")
 }
