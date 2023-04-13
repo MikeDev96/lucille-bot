@@ -45,7 +45,7 @@ export default class extends Command {
       .setDuration(0)
       .setRadio(radio)
 
-    const music = LucilleClient.Instance.getMusicInstance(msg.guild)
+    const music = LucilleClient.Instance.getGuildInstance(msg.guild).music
     const success = music.add([track], getRequestee(msg), getVoiceChannel(msg), false, msg.channel)
     if (success) {
       msg.react("📻")

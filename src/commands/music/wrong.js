@@ -25,7 +25,7 @@ export default class extends Command {
   }
 
   async run (msg, args) {
-    const music = LucilleClient.Instance.getMusicInstance(msg.guild)
+    const music = LucilleClient.Instance.getGuildInstance(msg.guild).music
     const queueIndex = args.index === -1 ? 0 : args.index
     const queueItem = music.state.queue[queueIndex]
     // We can only 'correct' a item in the queue that has been searched on YT

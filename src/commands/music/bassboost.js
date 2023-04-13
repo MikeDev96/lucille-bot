@@ -22,7 +22,7 @@ export default class extends Command {
   }
 
   async run (msg, args) {
-    const music = LucilleClient.Instance.getMusicInstance(msg.guild)
+    const music = LucilleClient.Instance.getGuildInstance(msg.guild).music
     music.syncTime()
     music.setState({ bassBoost: bassBoostToAmountMap[args.amount.toLowerCase()] })
     music.play("after")

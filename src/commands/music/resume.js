@@ -19,7 +19,7 @@ export default class extends Command {
 }
 
 export const resume = msg => {
-  const music = LucilleClient.Instance.getMusicInstance(msg.guild)
+  const music = LucilleClient.Instance.getGuildInstance(msg.guild).music
   music.setState({ pauser: "" })
   music.player.unpause()
   // Resume is buggy from Node v14.16.1+ therefore restart the stream

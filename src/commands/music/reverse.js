@@ -15,7 +15,7 @@ export default class extends Command {
   }
 
   async run (msg, args) {
-    const music = LucilleClient.Instance.getMusicInstance(msg.guild)
+    const music = LucilleClient.Instance.getGuildInstance(msg.guild).music
     music.state.queue.reverse()
     music.setState({ queue: music.state.queue })
     music.play("after")

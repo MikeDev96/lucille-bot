@@ -14,7 +14,7 @@ export default class extends Command {
   }
 
   async run (msg, args) {
-    const music = LucilleClient.Instance.getMusicInstance(msg.guild)
+    const music = LucilleClient.Instance.getGuildInstance(msg.guild).music
     if (music && music.state && music.state.voiceConnection) {
       msg.react("🛑")
       music.state.queue.splice(0, music.state.queue.length)

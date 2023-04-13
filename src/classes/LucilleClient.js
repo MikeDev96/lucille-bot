@@ -15,7 +15,6 @@ import MasterDatabase from "./MasterDatabase.js"
 // import VoiceCommands from "./VoiceCommands.js"
 import { globby } from "globby"
 import { Client, Events, GatewayIntentBits } from "discord.js"
-import Music from "./Music.js"
 import LucilleGuild from "./LucilleGuild.js"
 
 export default class LucilleClient {
@@ -26,7 +25,6 @@ export default class LucilleClient {
     this.client.once("ready", () => console.log("Discord client ready"))
     this.registerCommands()
     this.monitorCommands()
-    this.musicInstances = {}
     this.guildInstances = {}
 
     this.db = new MasterDatabase()
@@ -172,10 +170,6 @@ export default class LucilleClient {
         this.getGuildInstance(guild)
       }
     })
-  }
-
-  getMusicInstance (guild) {
-    return this.musicInstances[guild.id] || (this.musicInstances[guild.id] = new Music(guild))
   }
 
   getGuildInstance (guild) {

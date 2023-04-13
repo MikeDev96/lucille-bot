@@ -14,7 +14,7 @@ export default class extends Command {
   }
 
   async run (msg, args) {
-    const music = LucilleClient.Instance.getMusicInstance(msg.guild)
+    const music = LucilleClient.Instance.getGuildInstance(msg.guild).music
     const tracks = music.state.queue
 
     if (tracks.length) {

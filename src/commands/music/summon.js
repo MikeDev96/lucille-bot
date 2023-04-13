@@ -19,7 +19,7 @@ export default class extends Command {
       return
     }
 
-    const music = LucilleClient.Instance.getMusicInstance(msg.guild)
+    const music = LucilleClient.Instance.getGuildInstance(msg.guild).music
     await music.summon(msg.member.voice.channel, true)
     await music.play()
 

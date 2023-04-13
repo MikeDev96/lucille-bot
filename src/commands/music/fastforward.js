@@ -32,7 +32,7 @@ export default class extends Command {
   }
 
   async run (msg, args) {
-    const music = LucilleClient.Instance.getMusicInstance(msg.guild)
+    const music = LucilleClient.Instance.getGuildInstance(msg.guild).music
     let amount = 0
     const match = args.amount.match(/^(\d{1,2}):(\d{1,2})$/)
     if (match) {

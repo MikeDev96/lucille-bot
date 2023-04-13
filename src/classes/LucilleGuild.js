@@ -1,9 +1,11 @@
 import { PermissionsBitField } from "discord.js"
 import fs from "fs"
+import Music from "./Music.js"
 
 export default class LucilleGuild {
   constructor (guild) {
     this.guild = guild
+    this.music = new Music(guild)
     this.customEmojis = {}
 
     this.createEmojis()
