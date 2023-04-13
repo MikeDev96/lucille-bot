@@ -1,7 +1,6 @@
 import Commando from "discord.js-commando"
 import { proxyCommand } from "../../classes/DiscordJSHelpers.js"
-import { Util } from "discord.js"
-import { paginatedEmbed } from "../../helpers.js"
+import { paginatedEmbed, splitMessage } from "../../helpers.js"
 const { Command } = Commando
 
 export default class Alias extends Command {
@@ -123,7 +122,7 @@ export default class Alias extends Command {
 }
 
 const embedHandler = (aliasList) => {
-  return Util.splitMessage(aliasList.map(alias => {
+  return splitMessage(aliasList.map(alias => {
     return (
       `${alias.command.reduce((string, cmd) => `${string} ${formatAliasCmd(cmd)}`, `**${alias.alias}** - `)}`
     )

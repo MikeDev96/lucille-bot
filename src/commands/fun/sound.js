@@ -2,7 +2,7 @@ import Commando from "discord.js-commando"
 import fetch from "node-fetch"
 import fs from "fs"
 import { getAudioDurationInSeconds } from "get-audio-duration"
-import { getRequestee, getVoiceChannel } from "../../helpers.js"
+import { getRequestee, getVoiceChannel, splitMessage } from "../../helpers.js"
 import Track from "../../classes/Track.js"
 import { PLATFORM_OTHER } from "../../classes/TrackExtractor.js"
 import { Util, MessageAttachment } from "discord.js"
@@ -199,7 +199,7 @@ export default class extends Command {
                 name: msg.member.displayName,
                 icon_url: msg.author.displayAvatarURL(),
               },
-              fields: Util.splitMessage(files.map(f => f === highlightFile ? `> **${Util.escapeMarkdown(f)}**` : Util.escapeMarkdown(f)), { maxLength: 1024 }).map(str => ({
+              fields: splitMessage(files.map(f => f === highlightFile ? `> **${Util.escapeMarkdown(f)}**` : Util.escapeMarkdown(f)), { maxLength: 1024 }).map(str => ({
                 name: "Files",
                 value: str,
               })),

@@ -172,3 +172,26 @@ export const playDlDiscord12CompatabilityWrapper = stream => {
 export const getEpoch = () => Date.now() / 1000
 
 export const logarithmic = value => Math.pow(value, 1.660964)
+
+export const splitMessage = (text, { maxLength = 2000, char = "\n", prepend = "", append = "" } = {}) => {
+  text = resolveString(text)
+  if (text.length <= maxLength) return [text]
+  const splitText = text.split(char)
+  if (splitText.some(chunk => chunk.length > maxLength)) throw new RangeError("SPLIT_MAX_LEN")
+  const messages = []
+  let msg = ""
+  for (const chunk of splitText) {
+    if (msg && (msg + char + chunk + append).length > maxLength) {
+      messages.push(msg + append)
+      msg = prepend
+    }
+    msg += (msg && msg !== prepend ? char : "") + chunk
+  }
+  return messages.concat(msg).filter(m => m)
+}
+
+export const resolveString = data => {
+  if (typeof data === "string") return data
+  if (Array.isArray(data)) return data.join("\n")
+  return String(data)
+}
