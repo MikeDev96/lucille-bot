@@ -33,42 +33,48 @@ export default class extends Command {
     }
 
     if (args.subject === "current") {
-      const videoDetails = msg.client.db.getYouTubeStatsForVideo(msg.guild.id, item.youTubeId)
+      const videoDetails = LucilleClient.Instance.db.getYouTubeStatsForVideo(msg.guild.id, item.youTubeId)
+      if (!videoDetails) {
+        msg.reply("No stats available")
+        return
+      }
 
       msg.reply({
-        embed: {
-          color: 0xf2711c,
-          title: "Lucille Stats 📊",
-          author: {
-            name: msg.member.displayName,
-            icon_url: msg.author.displayAvatarURL(),
+        embeds: [
+          {
+            color: 0xf2711c,
+            title: "Lucille Stats 📊",
+            author: {
+              name: msg.member.displayName,
+              icon_url: msg.author.displayAvatarURL(),
+            },
+            fields: [
+              {
+                name: "Showing Stats For",
+                value: LucilleClient.Instance.getGuildInstance(msg.guild).customEmojis.youtube + " " + escapeMarkdown(videoDetails.videoTitle),
+              },
+              {
+                name: "Times Played",
+                value: `🔢 ${videoDetails.count}`,
+                inline: true,
+              },
+              {
+                name: "First Played",
+                value: `⬅️ ${videoDetails.firstPlayed}`,
+                inline: true,
+              },
+              {
+                name: "Last Played",
+                value: `➡️ ${videoDetails.lastPlayed}`,
+                inline: true,
+              },
+            ],
+            footer: {
+              text: process.env.DISCORD_FOOTER,
+              icon_url: process.env.DISCORD_AUTHORAVATARURL,
+            },
           },
-          fields: [
-            {
-              name: "Showing Stats For",
-              value: msg.guild.customEmojis.youtube + " " + escapeMarkdown(videoDetails.videoTitle),
-            },
-            {
-              name: "Times Played",
-              value: `🔢 ${videoDetails.count}`,
-              inline: true,
-            },
-            {
-              name: "First Played",
-              value: `⬅️ ${videoDetails.firstPlayed}`,
-              inline: true,
-            },
-            {
-              name: "Last Played",
-              value: `➡️ ${videoDetails.lastPlayed}`,
-              inline: true,
-            },
-          ],
-          footer: {
-            text: process.env.DISCORD_FOOTER,
-            icon_url: process.env.DISCORD_AUTHORAVATARURL,
-          },
-        },
+        ],
       })
     }
     else {
