@@ -122,7 +122,7 @@ export default class extends Command {
 
       try {
         const replyMsg = await msg.reply(`Is \`${event.event}\` the event you want to remove?\nReply with yes or no [y | n]`)
-        const collected = await replyMsg.channel.awaitMessages(resMsg => resMsg.author.id === msg.author.id && /y|n/i.test(resMsg.content), { max: 1, time: 15000 })
+        const collected = await replyMsg.channel.awaitMessages({ filter: resMsg => resMsg.author.id === msg.author.id && /y|n/i.test(resMsg.content), max: 1, time: 15000 })
 
         replyMsg.delete()
 

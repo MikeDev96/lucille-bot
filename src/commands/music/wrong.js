@@ -38,7 +38,7 @@ export default class extends Command {
           await msg.reply("Respond with the number you'd like to replace.\nRespond with `cancel` to cancel the command. The command will automatically be cancelled in 30 seconds.\n\n" + searchResults.map((r, i) => `\`${i + 1}\` ${escapeMarkdown(r.title)} \`${msToTimestamp(r.duration * 1000)}\``).join("\n"))
 
           const filter = (message) => (/^[1-5]$/.test(message.content) || message.content === "cancel") && message.author.id === msg.author.id
-          const collected = await msg.channel.awaitMessages(filter, { time: 30000, max: 1 })
+          const collected = await msg.channel.awaitMessages({ filter, time: 30000, max: 1 })
 
           const reply = collected.first()
           if (reply && reply.content !== "cancel") {

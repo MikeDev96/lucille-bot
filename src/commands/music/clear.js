@@ -22,7 +22,7 @@ export default class extends Command {
     }
     if (music.state.queue.length > 1) {
       const replyMsg = await msg.reply(`Are you sure you want to clear ${music.state.queue.length - 1} song(s) from the queue?\nReply with yes or no [y | n]`)
-      const collected = await replyMsg.channel.awaitMessages(resMsg => resMsg.author.id === msg.author.id && /y|n/i.test(resMsg.content), { max: 1, time: 15000 })
+      const collected = await replyMsg.channel.awaitMessages({ filter: resMsg => resMsg.author.id === msg.author.id && /y|n/i.test(resMsg.content), max: 1, time: 15000 })
 
       replyMsg.delete()
 
