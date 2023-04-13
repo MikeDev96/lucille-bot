@@ -16,16 +16,18 @@ import MasterDatabase from "./MasterDatabase.js"
 import { globby } from "globby"
 import { Client, Events, GatewayIntentBits } from "discord.js"
 import Music from "./Music.js"
+import LucilleGuild from "./LucilleGuild.js"
 
 export default class LucilleClient {
   static Instance = new LucilleClient()
 
   constructor () {
-    this.client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.MessageContent, GatewayIntentBits.GuildMessages, GatewayIntentBits.GuildVoiceStates] })
+    this.client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.MessageContent, GatewayIntentBits.GuildMessages, GatewayIntentBits.GuildVoiceStates, GatewayIntentBits.GuildMembers] })
     this.client.once("ready", () => console.log("Discord client ready"))
     this.registerCommands()
     this.monitorCommands()
     this.musicInstances = {}
+    this.guildInstances = {}
 
     this.db = new MasterDatabase()
     // this.voiceTracker = new VoiceTracker(this)
@@ -45,6 +47,8 @@ export default class LucilleClient {
     //     newVoice.guild.music.setState({ voiceChannel: newVoice.channel })
     //   }
     // })
+
+    this.setupGuilds()
   }
 
   createMessageInterceptor () {
@@ -162,7 +166,19 @@ export default class LucilleClient {
     }
   }
 
+  setupGuilds () {
+    this.client.once("ready", () => {
+      for (const [, guild] of this.client.guilds.cache) {
+        this.getGuildInstance(guild)
+      }
+    })
+  }
+
   getMusicInstance (guild) {
     return this.musicInstances[guild.id] || (this.musicInstances[guild.id] = new Music(guild))
+  }
+
+  getGuildInstance (guild) {
+    return this.guildInstances[guild.id] || (this.guildInstances[guild.id] = new LucilleGuild(guild))
   }
 }

@@ -604,7 +604,7 @@ export default class Music extends MusicState {
 
     const platformEmoji = this.getPlatformEmoji(currentlyPlaying.platform)
     const nowPlayingSource = ![PLATFORM_YOUTUBE, "search"].includes(currentlyPlaying.platform) ? `${platformEmoji ? `${platformEmoji} ` : ""}${escapeMarkdown(safeJoin([currentlyPlaying.artists, currentlyPlaying.title], " - "))}` : ""
-    const nowPlayingYouTube = PLATFORMS_REQUIRE_YT_SEARCH.includes(currentlyPlaying.platform) ? `${/* this.guild.customEmojis.youtube */""} ${currentlyPlaying.link ? `[${escapeMarkdown(currentlyPlaying.youTubeTitle)}](${currentlyPlaying.link}) \`▶️ ${LucilleClient.Instance.db.getYouTubeVideoPlayCount(currentlyPlaying.youTubeId).count}\`` : "Searching..."}` : ""
+    const nowPlayingYouTube = PLATFORMS_REQUIRE_YT_SEARCH.includes(currentlyPlaying.platform) ? `${LucilleClient.Instance.getGuildInstance(this.guild).customEmojis.youtube} ${currentlyPlaying.link ? `[${escapeMarkdown(currentlyPlaying.youTubeTitle)}](${currentlyPlaying.link}) \`▶️ ${LucilleClient.Instance.db.getYouTubeVideoPlayCount(currentlyPlaying.youTubeId).count}\`` : "Searching..."}` : ""
 
     const radioMusicToX = this.getRadioMusicToXInfo(currentlyPlaying)
     const radioNowPlaying = currentlyPlaying.platform === PLATFORM_RADIO && currentlyPlaying.radioMetadata ? escapeMarkdown([currentlyPlaying.radioMetadata.artist || "", currentlyPlaying.radioMetadata.title || ""].filter(s => s.trim()).join(" - ") + (radioMusicToX ? " " + radioMusicToX : "")) : ""
@@ -697,8 +697,7 @@ export default class Music extends MusicState {
     case PLATFORM_RADIO:
       return "📻"
     default:
-      // return this.guild.customEmojis[platform]
-      return ""
+      return LucilleClient.Instance.getGuildInstance(this.guild).customEmojis[platform]
     }
   }
 
@@ -707,9 +706,9 @@ export default class Music extends MusicState {
       const musicToX = item.radioMusicToX
       const splitApple = (musicToX.appleId || "").split("-")
       const radioMusicToX = [
-        musicToX.spotifyId && `[${/* this.guild.customEmojis.spotify */""}](https://open.spotify.com/track/${musicToX.spotifyId})`,
-        musicToX.tidalId && `[${/* this.guild.customEmojis.tidal */""}](https://tidal.com/browse/track/${musicToX.tidalId})`,
-        musicToX.appleId && `[${/* this.guild.customEmojis.apple */""}](https://music.apple.com/gb/album/${splitApple[0]}?i=${splitApple[1]})`,
+        musicToX.spotifyId && `[${this.getPlatformEmoji(PLATFORM_SPOTIFY)}](https://open.spotify.com/track/${musicToX.spotifyId})`,
+        musicToX.tidalId && `[${this.getPlatformEmoji(PLATFORM_TIDAL)}](https://tidal.com/browse/track/${musicToX.tidalId})`,
+        musicToX.appleId && `[${this.getPlatformEmoji(PLATFORM_APPLE)}](https://music.apple.com/gb/album/${splitApple[0]}?i=${splitApple[1]})`,
       ].filter(s => s).join(" ")
 
       return radioMusicToX
