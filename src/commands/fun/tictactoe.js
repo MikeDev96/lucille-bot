@@ -80,7 +80,7 @@ export default class extends Command {
         await queryMsg.react(reactions[i])
       }
 
-      const collected = await queryMsg.awaitReactions((reaction, user) => reactions.includes(reaction.emoji.name) && user.id === playerTwoId, { time: 60000, max: 1 })
+      const collected = await queryMsg.awaitReactions({ filter: (reaction, user) => reactions.includes(reaction.emoji.name) && user.id === playerTwoId, time: 60000, max: 1 })
       const key = collected.firstKey()
 
       queryMsg.delete()

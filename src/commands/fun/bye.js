@@ -49,7 +49,7 @@ export default class extends Command {
     const confirmMsg = await msg.reply(`Is this bye wanted?`)
     confirmMsg.react("🛑")
     const filter = (reaction, user) => ["🛑"].includes(reaction.emoji.name) && !user.bot && checkPeopleAreInChannel.includes(user.id)
-    const collected = await confirmMsg.awaitReactions(filter, { time: 8000, max: 1 })
+    const collected = await confirmMsg.awaitReactions({ filter, time: 8000, max: 1 })
     if (confirmMsg.deleted) {
       msg.channel.send("Rude, don't delete the bye until its finished please")
       return

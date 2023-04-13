@@ -79,7 +79,7 @@ export default class extends Command {
         const isLucille = usersTurn === msg.author.id
         const filter = (reaction, user) => reactions.includes(reaction.emoji.name) && user.id === usersTurn
 
-        const collected = !isLucille ? await msg.awaitReactions(filter, { time: isLucille ? 1000 : 30000, max: 1 }) : undefined
+        const collected = !isLucille ? await msg.awaitReactions({ filter, time: isLucille ? 1000 : 30000, max: 1 }) : undefined
         const key = collected && collected.firstKey()
         let reactIdx = -1
         if (!key) {
@@ -167,7 +167,7 @@ export default class extends Command {
         await queryMsg.react(reactions[i])
       }
 
-      const collected = await queryMsg.awaitReactions((reaction, user) => reactions.includes(reaction.emoji.name) && user.id === playerTwoId, { time: 60000, max: 1 })
+      const collected = await queryMsg.awaitReactions({ filter: (reaction, user) => reactions.includes(reaction.emoji.name) && user.id === playerTwoId, time: 60000, max: 1 })
       const key = collected.firstKey()
 
       queryMsg.delete()

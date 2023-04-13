@@ -67,7 +67,7 @@ class TicTacToe {
       const isLucille = this.playerIds[this.turn] === this.msg.author.id
 
       const filter = (reaction, user) => this.boardReacts.includes(reaction.emoji.name) && user.id === this.playerIds[this.turn]
-      const collected = isLucille !== true ? await this.msg.awaitReactions(filter, { time: 30000, max: 1 }) : undefined
+      const collected = isLucille !== true ? await this.msg.awaitReactions({ filter, time: 30000, max: 1 }) : undefined
       const key = collected && collected.firstKey()
       let idx = this.boardReacts.findIndex(react => react === key)
 

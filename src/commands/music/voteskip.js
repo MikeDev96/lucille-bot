@@ -36,7 +36,7 @@ export default class extends Command {
 
         try {
           const filter = (reaction, user) => reaction.emoji.name === "🗳️" && voiceChannelMembers.has(user.id)
-          const reactions = await voteMsg.awaitReactions(filter, { time: 30000 })
+          const reactions = await voteMsg.awaitReactions({ filter, time: 30000 })
 
           const votes = reactions.has("🗳️") ? reactions.get("🗳️").count - 1 : 0
 

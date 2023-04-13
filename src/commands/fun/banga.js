@@ -91,7 +91,7 @@ export default class extends Command {
       const replyMsg = await msg.reply(`Are you sure you want to remove ${grug}`)
       replyMsg.react("☑️").then(() => replyMsg.react("❌"))
       const filter = (reaction, user) => ["☑️", "❌"].includes(reaction.emoji.name) && user.id === msg.author.id
-      const collected = await replyMsg.awaitReactions(filter, { time: 15000, max: 1 })
+      const collected = await replyMsg.awaitReactions({ filter, time: 15000, max: 1 })
       replyMsg.delete()
 
       const firstKey = collected.firstKey()
