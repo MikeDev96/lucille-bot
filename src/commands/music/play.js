@@ -1,6 +1,7 @@
-import { lucilleClient } from "../../classes/LucilleClient.js"
+import Command from "../../classes/Command.js"
+import LucilleClient from "../../classes/LucilleClient.js"
 import { getRequestee, getVoiceChannel } from "../../helpers.js"
-// import { resume } from "./resume.js"
+import { resume } from "./resume.js"
 
 export const commandConfig = {
   name: "play",
@@ -19,15 +20,18 @@ export const commandConfig = {
   guildOnly: true,
 }
 
-export default {
-  config: commandConfig,
-  run: async (msg, args) => {
+export default class extends Command {
+  constructor () {
+    super(commandConfig)
+  }
+
+  async run (msg, args) {
     await run(msg, args, false)
-  },
+  }
 }
 
 export const run = async (msg, args, jump) => {
-  const music = lucilleClient.getMusicInstance(msg.guild)
+  const music = LucilleClient.Instance.getMusicInstance(msg.guild)
 
   if (msg.author.id !== process.env.DISCORD_OWNER && (!msg.member.voice.channelID || (msg.guild.voice && msg.guild.voice.channelID && msg.guild.voice.channelID !== msg.member.voice.channelID) || msg.member.voice.deaf)) {
     msg.react("🖕")
@@ -35,7 +39,7 @@ export const run = async (msg, args, jump) => {
   }
 
   if (music.state.pauser !== "" && args.input === "") {
-    // resume(msg)
+    resume(msg)
     return
   }
 

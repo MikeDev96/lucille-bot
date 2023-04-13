@@ -1,9 +1,9 @@
-import Commando from "discord.js-commando"
-const { Command } = Commando
+import Command from "../../classes/Command.js"
+import LucilleClient from "../../classes/LucilleClient.js"
 
 export default class extends Command {
-  constructor (client) {
-    super(client, {
+  constructor () {
+    super({
       name: "reverse",
       aliases: ["rev"],
       group: "music",
@@ -15,7 +15,7 @@ export default class extends Command {
   }
 
   async run (msg, args) {
-    const music = msg.guild.music
+    const music = LucilleClient.Instance.getMusicInstance(msg.guild)
     music.state.queue.reverse()
     music.setState({ queue: music.state.queue })
     music.play("after")

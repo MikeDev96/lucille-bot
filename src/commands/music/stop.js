@@ -1,9 +1,9 @@
-import Commando from "discord.js-commando"
-const { Command } = Commando
+import Command from "../../classes/Command.js"
+import LucilleClient from "../../classes/LucilleClient.js"
 
 export default class extends Command {
-  constructor (client) {
-    super(client, {
+  constructor () {
+    super({
       name: "stop",
       aliases: ["fuckoff", "shlata", "alt f4", "altf4", "leave"],
       group: "music",
@@ -14,7 +14,7 @@ export default class extends Command {
   }
 
   async run (msg, args) {
-    const music = msg.guild.music
+    const music = LucilleClient.Instance.getMusicInstance(msg.guild)
     if (music && music.state && music.state.voiceConnection) {
       msg.react("🛑")
       music.state.queue.splice(0, music.state.queue.length)

@@ -1,6 +1,6 @@
 // import { Util } from "discord.js"
 import TopMostMessagePump from "./TopMostMessagePump.js"
-import { safeJoin, msToTimestamp, selectRandom, escapeMarkdown, searchYouTube, textToStream, logarithmic, fixDispatcher } from "../helpers.js"
+import { safeJoin, msToTimestamp, selectRandom, escapeMarkdown, searchYouTube, textToStream } from "../helpers.js"
 import TrackExtractor, { PLATFORM_YOUTUBE, PLATFORM_RADIO, PLATFORM_SPOTIFY, PLATFORM_TIDAL, PLATFORM_APPLE, PLATFORM_CONNECT, PLATFORM_DISCONNECT, PLATFORM_TTS } from "./TrackExtractor.js"
 import Track from "./Track.js"
 import fs from "fs"
@@ -11,7 +11,7 @@ import { getStream, getFfmpegStream } from "./YouTubeToStream.js"
 import MusicState from "./MusicState.js"
 import Requestee from "./Requestee.js"
 import { NoSubscriberBehavior, createAudioPlayer, createAudioResource, joinVoiceChannel, AudioPlayerStatus, getVoiceConnection } from "@discordjs/voice"
-import { lucilleClient } from "./LucilleClient.js"
+import LucilleClient from "./LucilleClient.js"
 
 const PLATFORMS_REQUIRE_YT_SEARCH = [PLATFORM_SPOTIFY, PLATFORM_TIDAL, PLATFORM_APPLE, PLATFORM_YOUTUBE, "search"]
 
@@ -70,6 +70,8 @@ export default class Music extends MusicState {
         }
       }
     })
+
+    this.setupPlayer()
   }
 
   async summon (voiceChannel) {
@@ -85,6 +87,8 @@ export default class Music extends MusicState {
           guildId: voiceChannel.guild.id,
           adapterCreator: voiceChannel.guild.voiceAdapterCreator,
         })
+
+        connection.subscribe(this.player)
 
         this.setState({
           joinState: 2,
@@ -206,7 +210,7 @@ export default class Music extends MusicState {
 
       // If there's nothing playing, get the ball rolling
       const connection = getVoiceConnection(this.guild.id)
-      const notStreaming = connection// && !this.guild.voice.connection.dispatcher
+      const notStreaming = connection
 
       if (notStreaming || wasRadio || isTts) {
         await this.searchAndPlay()
@@ -283,79 +287,37 @@ export default class Music extends MusicState {
     }
 
     const { stream, type } = streamData
-    // const prevPlaying = this.playing
 
-    // console.time("readable")
-    // const readablePromise = new Promise((resolve, reject) => {
-    //   stream.once("readable", resolve)
-    //   stream.once("error", reject)
-    // }).then(() => console.timeEnd("readable"))
+    const prevPlaying = this.playing
 
-    // if (prevPlaying) {
-    //   // If it's the same item playing then wait for the new stream to become readable
-    //   // so we can swap them instantly and have a seamless transition.
-    //   if (prevPlaying.item === item) {
-    //     await readablePromise
-    //   }
+    console.time("readable")
+    const readablePromise = new Promise((resolve, reject) => {
+      stream.once("readable", resolve)
+      stream.once("error", reject)
+    }).then(() => console.timeEnd("readable"))
 
-    //   this.syncTime(0, prevPlaying.item)
+    if (prevPlaying) {
+      // If it's the same item playing then wait for the new stream to become readable
+      // so we can swap them instantly and have a seamless transition.
+      if (prevPlaying.item === item) {
+        await readablePromise
+      }
 
-    //   prevPlaying.stream.destroy()
+      this.syncTime(0, prevPlaying.item)
 
-    //   await this.cleanItem(prevPlaying.item, false)
-    // }
+      // prevPlaying.stream.destroy()
 
-    // const volume = [PLATFORM_CONNECT, PLATFORM_DISCONNECT].includes(item.platform) ? 3 : this.state.volume / 100
-    // const dispatcher = fixDispatcher(this.state.voiceConnection.play(stream, { type, volume: volume === 1 ? false : logarithmic(volume) }))
-
-    const connection = getVoiceConnection(this.guild.id)
-
-    const player = createAudioPlayer({
-      behaviors: {
-        noSubscriber: NoSubscriberBehavior.Play,
-      },
-    })
+      await this.cleanItem(prevPlaying.item, false)
+    }
 
     const resource = createAudioResource(stream, { inputType: type })
-    this.playing = { stream, type, item, player, resource }
+    this.playing = { stream, type, item, resource }
 
-    // console.log(item)
-    player.play(resource)
-    connection.subscribe(player)
+    this.player.play(resource)
 
     if (update === "after") {
       this.updateEmbed()
     }
-
-    player.on("stateChange", (oldState, newState) => {
-      console.log(`Audio player transitioned from ${oldState.status} to ${newState.status}`)
-    })
-
-    player.on(AudioPlayerStatus.Playing, (oldState, newState) => {
-      console.log(`Audio player transitioned from ${oldState.status} to ${newState.status}`)
-      if (this.state.pauser && item.platform !== PLATFORM_TTS) {
-        // dispatcher.pause()
-        this.updateEmbed()
-      }
-      else {
-        console.log("Stream starting...")
-        this.endProgress()
-        this.startProgress(item)
-        this.startRadioMetadata(item)
-        this.startListenTracking(item)
-      }
-    })
-
-    player.on(AudioPlayerStatus.Idle, async (oldState, newState) => {
-      console.log(`Audio player transitioned from ${oldState.status} to ${newState.status}`)
-      await this.cleanItem(item, true)
-    })
-
-    // This only fires when a stream finishes gracefully or is forcibly ended (.end())
-    // Commands like bass boost which just restart the stream will not fire this event
-    // so make sure to clean up properly!
-    // dispatcher.on("finish", async () => await this.cleanItem(item, true))
-    // dispatcher.on("error", console.log)
   }
 
   async cleanItem (item, finished) {
@@ -409,7 +371,7 @@ export default class Music extends MusicState {
   }
 
   syncTime (ms = 0, item) {
-    const deltaTime = /* (this.dispatcherExec(d => d.streamTime) || 0) */ this.playing.resource.playbackDuration - this.streamTimeCache
+    const deltaTime = this.playing.resource.playbackDuration - this.streamTimeCache
     const queueItem = item || this.state.queue[0]
     if (queueItem) {
       const newStartTime = queueItem.startTime + deltaTime + ms
@@ -436,8 +398,8 @@ export default class Music extends MusicState {
         console.log(`[LISTEN TRACKING] Tracked: ${item.youTubeTitle}`)
         item.setTracked(true)
 
-        lucilleClient.db.saveYouTubeVideo(item.youTubeId, item.youTubeTitle)
-        lucilleClient.db.insertYouTubeHistory(item.youTubeId, item.requestee.id, this.guild.id)
+        LucilleClient.Instance.db.saveYouTubeVideo(item.youTubeId, item.youTubeTitle)
+        LucilleClient.Instance.db.insertYouTubeHistory(item.youTubeId, item.requestee.id, this.guild.id)
       }, listenTimeRemaining)
 
       console.log(`[LISTEN TRACKING] Started tracking for: ${item.youTubeTitle} - ${(listenTimeRemaining / 1000).toFixed(2)}s remaining...`)
@@ -643,7 +605,7 @@ export default class Music extends MusicState {
 
     const platformEmoji = this.getPlatformEmoji(currentlyPlaying.platform)
     const nowPlayingSource = ![PLATFORM_YOUTUBE, "search"].includes(currentlyPlaying.platform) ? `${platformEmoji ? `${platformEmoji} ` : ""}${escapeMarkdown(safeJoin([currentlyPlaying.artists, currentlyPlaying.title], " - "))}` : ""
-    const nowPlayingYouTube = PLATFORMS_REQUIRE_YT_SEARCH.includes(currentlyPlaying.platform) ? `${/* this.guild.customEmojis.youtube */""} ${currentlyPlaying.link ? `[${escapeMarkdown(currentlyPlaying.youTubeTitle)}](${currentlyPlaying.link}) \`▶️ ${lucilleClient.db.getYouTubeVideoPlayCount(currentlyPlaying.youTubeId).count}\`` : "Searching..."}` : ""
+    const nowPlayingYouTube = PLATFORMS_REQUIRE_YT_SEARCH.includes(currentlyPlaying.platform) ? `${/* this.guild.customEmojis.youtube */""} ${currentlyPlaying.link ? `[${escapeMarkdown(currentlyPlaying.youTubeTitle)}](${currentlyPlaying.link}) \`▶️ ${LucilleClient.Instance.db.getYouTubeVideoPlayCount(currentlyPlaying.youTubeId).count}\`` : "Searching..."}` : ""
 
     const radioMusicToX = this.getRadioMusicToXInfo(currentlyPlaying)
     const radioNowPlaying = currentlyPlaying.platform === PLATFORM_RADIO && currentlyPlaying.radioMetadata ? escapeMarkdown([currentlyPlaying.radioMetadata.artist || "", currentlyPlaying.radioMetadata.title || ""].filter(s => s.trim()).join(" - ") + (radioMusicToX ? " " + radioMusicToX : "")) : ""
@@ -680,7 +642,7 @@ export default class Music extends MusicState {
                 value: `${remainingCount} more song(s)...`,
               }]
               : []),
-            ...(this.state.voiceConnection && this.state.voiceConnection.dispatcher && this.state.voiceConnection.dispatcher.paused
+            ...(this.player.state.status === AudioPlayerStatus.Paused
               ? [{
                 name: "Paused By",
                 value: `<@${this.state.pauser}>`,
@@ -761,10 +723,39 @@ export default class Music extends MusicState {
     return this.state.textChannel
   }
 
-  dispatcherExec (callback) {
-    if (this.state.voiceConnection && this.state.voiceConnection.dispatcher) {
-      return callback(this.state.voiceConnection.dispatcher)
-    }
+  setupPlayer () {
+    const player = createAudioPlayer({
+      behaviors: {
+        noSubscriber: NoSubscriberBehavior.Play,
+      },
+    })
+
+    player.on("stateChange", (oldState, newState) => {
+      console.log(`Audio player transitioned from ${oldState.status} to ${newState.status}`)
+    })
+
+    player.on(AudioPlayerStatus.Playing, () => {
+      const item = this.playing.item
+
+      if (this.state.pauser && item.platform !== PLATFORM_TTS) {
+        player.pause()
+        this.updateEmbed()
+      }
+      else {
+        console.log("Stream starting...")
+        this.endProgress()
+        this.startProgress(item)
+        this.startRadioMetadata(item)
+        this.startListenTracking(item)
+      }
+    })
+
+    player.on(AudioPlayerStatus.Idle, async () => {
+      const item = this.playing.item
+      await this.cleanItem(item, true)
+    })
+
+    this.player = player
   }
 }
 

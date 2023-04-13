@@ -1,9 +1,9 @@
-import Commando from "discord.js-commando"
-const { Command } = Commando
+import Command from "../../classes/Command.js"
+import LucilleClient from "../../classes/LucilleClient.js"
 
 export default class extends Command {
-  constructor (client) {
-    super(client, {
+  constructor () {
+    super({
       name: "summon",
       aliases: ["sum"],
       group: "music",
@@ -19,7 +19,7 @@ export default class extends Command {
       return
     }
 
-    const music = msg.guild.music
+    const music = LucilleClient.Instance.getMusicInstance(msg.guild)
     await music.summon(msg.member.voice.channel, true)
     await music.play()
 

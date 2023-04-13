@@ -1,11 +1,11 @@
-import Commando from "discord.js-commando"
+import LucilleClient from "../../classes/LucilleClient.js"
 import { searchYouTube, msToTimestamp, escapeMarkdown } from "../../helpers.js"
 import Track from "../../classes/Track.js"
-const { Command } = Commando
+import Command from "../../classes/Command.js"
 
 export default class extends Command {
-  constructor (client) {
-    super(client, {
+  constructor () {
+    super({
       name: "wrong",
       aliases: [],
       group: "music",
@@ -24,7 +24,7 @@ export default class extends Command {
   }
 
   async run (msg, args) {
-    const music = msg.guild.music
+    const music = LucilleClient.Instance.getMusicInstance(msg.guild)
     const queueIndex = args.index === -1 ? 0 : args.index
     const queueItem = music.state.queue[queueIndex]
     // We can only 'correct' a item in the queue that has been searched on YT
@@ -55,7 +55,7 @@ export default class extends Command {
             if (queueIndex === 0) {
               music.state.queue.splice(queueIndex + 1, 0, track)
               music.setState({ queue: music.state.queue })
-              music.dispatcherExec(d => d.end())
+              music.player.stop()
             }
             else {
               music.state.queue.splice(queueIndex, 1, track)

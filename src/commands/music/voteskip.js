@@ -1,9 +1,9 @@
-import Commando from "discord.js-commando"
-const { Command } = Commando
+import Command from "../../classes/Command.js"
+import LucilleClient from "../../classes/LucilleClient.js"
 
-export default class PlayCommand extends Command {
-  constructor (client) {
-    super(client, {
+export default class extends Command {
+  constructor () {
+    super({
       name: "voteskip",
       aliases: ["vskip", "vs"],
       group: "music",
@@ -14,7 +14,7 @@ export default class PlayCommand extends Command {
   }
 
   async run (msg, args) {
-    const music = msg.guild.music
+    const music = LucilleClient.Instance.getMusicInstance(msg.guild)
     const tracks = music.state.queue
 
     if (tracks.length) {
@@ -46,7 +46,7 @@ export default class PlayCommand extends Command {
           if (votes >= votesNeeded && tracks[0] && music.getTrackTitle(tracks[0]) === currentlyPlayingTitle) {
             msg.react("⏭️")
 
-            music.dispatcherExec(d => d.end())
+            music.player.stop()
           }
           else {
             msg.react("🚫")

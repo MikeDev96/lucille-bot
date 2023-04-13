@@ -1,10 +1,9 @@
-import Commando from "discord.js-commando"
+import Command from "../../classes/Command.js"
 import { commandConfig, run } from "./play.js"
-const { Command } = Commando
 
 export default class PlayCommand extends Command {
-  constructor (client) {
-    super(client, {
+  constructor () {
+    super({
       ...commandConfig,
       name: "jumpqueue",
       memberName: "jumpqueue",

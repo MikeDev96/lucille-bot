@@ -1,10 +1,10 @@
-import Commando from "discord.js-commando"
+import Command from "../../classes/Command.js"
+import LucilleClient from "../../classes/LucilleClient.js"
 import { escapeMarkdown } from "../../helpers.js"
-const { Command } = Commando
 
 export default class extends Command {
-  constructor (client) {
-    super(client, {
+  constructor () {
+    super({
       name: "stats",
       aliases: ["st", "stat"],
       group: "music",
@@ -24,7 +24,7 @@ export default class extends Command {
   }
 
   async run (msg, args) {
-    const music = msg.guild.music
+    const music = LucilleClient.Instance.getMusicInstance(msg.guild)
     const item = music.state.queue[0]
 
     if (args.subject === "current" && (!item || !item.youTubeId)) {

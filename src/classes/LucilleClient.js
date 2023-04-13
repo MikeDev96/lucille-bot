@@ -18,6 +18,8 @@ import { Client, Events, GatewayIntentBits } from "discord.js"
 import Music from "./Music.js"
 
 export default class LucilleClient {
+  static Instance = new LucilleClient()
+
   constructor () {
     this.client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.MessageContent, GatewayIntentBits.GuildMessages, GatewayIntentBits.GuildVoiceStates] })
     this.client.once("ready", () => console.log("Discord client ready"))
@@ -102,16 +104,20 @@ export default class LucilleClient {
 
   async registerCommands () {
     try {
-      const commandFilenames = (await globby("src/commands/**/*.js", { absolute: true })).filter(c => /yousync|play/.test(c))
+      const commandFilenames = (await globby("src/commands/**/*.js", { absolute: true })).filter(c => /\b\/music\/\b/.test(c))
       const commands = (await Promise.all(commandFilenames.map(l => import(`file://${l}`)))).reduce((acc, c) => {
-        const cmd = c.default
+        const Command = c.default
 
+        const cmd = new Command()
         acc.push(cmd)
-        acc.push(...cmd.config.aliases.map(a => ({ ...cmd, config: { ...cmd.config, name: a } })))
+        acc.push(...cmd.config.aliases.map(a => {
+          const cmd = new Command()
+          cmd.config.name = a
+          return cmd
+        }))
 
         return acc
       }, [])
-      console.log(commands)
 
       this.commands = commands
 
@@ -129,7 +135,7 @@ export default class LucilleClient {
 
   async executeCommand (msg) {
     try {
-      const match = msg.content.match(/^!(?<cmd>\w+?)\s+?(?<args>.+?)$/)
+      const match = msg.content.match(/^!(?<cmd>\w+?)(?:\s+?(?<args>.+?))?$/)
       if (!match) return
 
       const { cmd: cmdName, args } = match.groups
@@ -137,10 +143,10 @@ export default class LucilleClient {
       const cmd = this.commands.find(c => c.config.name === cmdName)
       if (!cmd) return
 
-      const argsArr = args.split(" ")
+      const argsArr = args?.split(" ")
 
-      const argsMap = cmd.config.args.reduce((acc, cur, idx) => {
-        acc[cur.key] = argsArr[idx] ?? ""
+      const argsMap = cmd.config.args?.reduce((acc, cur, idx) => {
+        acc[cur.key] = argsArr?.[idx] ?? ""
         return acc
       }, {})
 
@@ -160,5 +166,3 @@ export default class LucilleClient {
     return this.musicInstances[guild.id] || (this.musicInstances[guild.id] = new Music(guild))
   }
 }
-
-export const lucilleClient = new LucilleClient()

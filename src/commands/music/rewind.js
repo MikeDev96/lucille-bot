@@ -1,9 +1,9 @@
-import Commando from "discord.js-commando"
-const { Command } = Commando
+import Command from "../../classes/Command.js"
+import LucilleClient from "../../classes/LucilleClient.js"
 
 export default class extends Command {
-  constructor (client) {
-    super(client, {
+  constructor () {
+    super({
       name: "rewind",
       aliases: ["rw"],
       group: "music",
@@ -32,7 +32,7 @@ export default class extends Command {
   }
 
   async run (msg, args) {
-    const music = msg.guild.music
+    const music = LucilleClient.Instance.getMusicInstance(msg.guild)
     let amount = 0
     const match = args.amount.match(/^(\d{1,2}):(\d{1,2})$/)
     if (match) {

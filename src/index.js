@@ -3,11 +3,11 @@ import dotenv from "dotenv"
 import { router as redditRoutes } from "./classes/RedditRipper.js"
 // import { router as tiktokRoutes } from "./classes/TikTokRipper.js"
 import "./classes/LucilleGuild.js"
-import { lucilleClient } from "./classes/LucilleClient.js"
+import LucilleClient from "./classes/LucilleClient.js"
 
 dotenv.config()
 
-lucilleClient.connect(process.env.DISCORD_TOKEN)
+LucilleClient.Instance.connect(process.env.DISCORD_TOKEN)
 
 express()
   .use("/", redditRoutes)

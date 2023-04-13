@@ -1,10 +1,10 @@
-import Commando from "discord.js-commando"
+import Command from "../../classes/Command.js"
+import LucilleClient from "../../classes/LucilleClient.js"
 import { isInBotsVoiceChannel } from "../../helpers.js"
-const { Command } = Commando
 
 export default class extends Command {
-  constructor (client) {
-    super(client, {
+  constructor () {
+    super({
       name: "clear",
       aliases: ["cls"],
       group: "music",
@@ -15,7 +15,7 @@ export default class extends Command {
   }
 
   async run (msg, _args) {
-    const music = msg.guild.music
+    const music = LucilleClient.Instance.getMusicInstance(msg.guild)
     if (!isInBotsVoiceChannel(msg)) {
       msg.react("🖕")
       return
