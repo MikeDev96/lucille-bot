@@ -4,6 +4,7 @@ import { DateTime } from "luxon"
 import rrule from "rrule"
 import humanizeDuration from "humanize-duration"
 import chrono from "chrono-node"
+import LucilleClient from "../../classes/LucilleClient"
 const { RRule } = rrule
 const { Command } = Commando
 
@@ -70,7 +71,7 @@ export default class extends Command {
         }
 
         const dtStart = this.toRRuleDate(date)
-        this.client.db.addCalendarEvent(`DTSTART:${dtStart}\nRRULE:FREQ=DAILY;COUNT=1;INTERVAL=1;WKST=MO`, args.arg4, msg.author.id, msg.guild.id)
+        LucilleClient.Instance.db.addCalendarEvent(`DTSTART:${dtStart}\nRRULE:FREQ=DAILY;COUNT=1;INTERVAL=1;WKST=MO`, args.arg4, msg.author.id, msg.guild.id)
 
         msg.react("👌")
       }
@@ -103,7 +104,7 @@ export default class extends Command {
         }
 
         const dtStart = this.toRRuleDate(date)
-        this.client.db.addCalendarEvent(`DTSTART:${dtStart}\n${rrule.toString()}`, args.arg5, msg.author.id, msg.guild.id)
+        LucilleClient.Instance.db.addCalendarEvent(`DTSTART:${dtStart}\n${rrule.toString()}`, args.arg5, msg.author.id, msg.guild.id)
 
         msg.react("👌")
       }
@@ -114,7 +115,7 @@ export default class extends Command {
         return
       }
 
-      const event = this.client.db.findCalendarEvent(msg.guild.id, args.arg2)
+      const event = LucilleClient.Instance.db.findCalendarEvent(msg.guild.id, args.arg2)
       if (!event) {
         msg.reply(`Couldn't find an event for \`${args.arg2}\``)
         return
@@ -130,7 +131,7 @@ export default class extends Command {
         if (firstMsg) {
           if (/y/i.test(firstMsg.content)) {
             firstMsg.react("🗑️")
-            this.client.db.removeCalendarEvent(event.calendarId)
+            LucilleClient.Instance.db.removeCalendarEvent(event.calendarId)
           }
         }
       }
@@ -139,7 +140,7 @@ export default class extends Command {
       }
     }
     else if (args.arg1 === "list" || args.arg1 === "ls") {
-      const events = this.client.db.getCalendarEvents(msg.guild.id)
+      const events = LucilleClient.Instance.db.getCalendarEvents(msg.guild.id)
 
       const reducedEvents = events.reduce((acc, event) => {
         const rrule = RRule.fromString(event.rrule)

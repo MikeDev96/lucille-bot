@@ -62,7 +62,7 @@ export default class LucilleClient {
   }
 
   createDailyTracker () {
-    // this.dailyTracker = new DailyTracker(this, "18:00:00")
+    // this.dailyTracker = new DailyTracker("18:00:00")
     // this.dailyTracker.on("reset", () => this.guilds.cache.forEach(guild => {
     //   ppResetDaily(this, guild)
     // }))

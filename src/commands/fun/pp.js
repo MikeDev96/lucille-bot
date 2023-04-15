@@ -1,5 +1,6 @@
 import Commando from "discord.js-commando"
 import { isEmpty } from "lodash-es"
+import LucilleClient from "../../classes/LucilleClient"
 const { Command } = Commando
 
 export default class extends Command {
@@ -57,7 +58,7 @@ ${client.commandPrefix}pp perm \`lb\` gets the pp leaderboard, see whose rocking
     const ppLength = this.getSize(isPerm, isDaily, msg.author.id, msg.guild.id)
 
     // Update the users display name
-    this.client.db.updateUser(msg.author.id, msg.guild.id, msg.member.displayName)
+    LucilleClient.Instance.db.updateUser(msg.author.id, msg.guild.id, msg.member.displayName)
 
     if (isPermLeaderboard || isDailyLeaderboard) {
       const lbEmbed = this.getLeaderboard(msg, isDailyLeaderboard)
@@ -77,18 +78,18 @@ ${client.commandPrefix}pp perm \`lb\` gets the pp leaderboard, see whose rocking
     let realLength = Math.ceil(Math.random() * 15)
 
     if (isPerm) {
-      realLength = this.client.db.getPenisSize(authorId, guildId, realLength, -1)
+      realLength = LucilleClient.Instance.db.getPenisSize(authorId, guildId, realLength, -1)
     }
 
     if (isDaily) {
-      realLength = this.client.db.getPenisSize(authorId, guildId, -1, realLength)
+      realLength = LucilleClient.Instance.db.getPenisSize(authorId, guildId, -1, realLength)
     }
 
     return realLength
   }
 
   getLeaderboard (msg, isDaily) {
-    const all = this.client.db.getAllPenisSize(msg.guild.id)
+    const all = LucilleClient.Instance.db.getAllPenisSize(msg.guild.id)
     const fields = all.sort((pp1, pp2) => {
       return !isDaily ? pp2.Size - pp1.Size : pp2.DailyPP - pp1.DailyPP
     })
@@ -148,7 +149,7 @@ __**${prefix}PP command:**__
 }
 
 export const ppResetDaily = (client, guild) => {
-  const all = client.db.getAllPenisSize(guild.id)
+  const all = LucilleClient.Instance.db.getAllPenisSize(guild.id)
 
   const groupedBySize = all.reduce((acc, cur) => {
     if (!acc.has(cur.DailyPP)) {
@@ -196,5 +197,5 @@ export const ppResetDaily = (client, guild) => {
 
   firstGuildChannel.send({ embeds: [dailyEmbed] })
 
-  client.db.resetDailyPPSize(guild.id)
+  LucilleClient.Instance.db.resetDailyPPSize(guild.id)
 }

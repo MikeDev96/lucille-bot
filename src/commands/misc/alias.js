@@ -1,6 +1,7 @@
 import Commando from "discord.js-commando"
 import { proxyCommand } from "../../classes/DiscordJSHelpers.js"
 import { paginatedEmbed, splitMessage } from "../../helpers.js"
+import LucilleClient from "../../classes/LucilleClient.js"
 const { Command } = Commando
 
 export default class Alias extends Command {
@@ -60,7 +61,7 @@ export default class Alias extends Command {
     const Prefix = this.client.commandPrefix
 
     if (aliasname === "list") {
-      const List = this.client.db.listAliases(aliasvalue)
+      const List = LucilleClient.Instance.db.listAliases(aliasvalue)
 
       if (List.length) {
         paginatedEmbed(msg, {
@@ -75,8 +76,8 @@ export default class Alias extends Command {
       else msg.reply("No aliases have been added yet")
     }
     else if (aliasvalue === "") {
-      if (this.client.db.checkForAlias(aliasname).length) {
-        const AliasCommand = this.client.db.checkForAlias(aliasname)[0].command
+      if (LucilleClient.Instance.db.checkForAlias(aliasname).length) {
+        const AliasCommand = LucilleClient.Instance.db.checkForAlias(aliasname)[0].command
 
         AliasCommand.forEach((command, index) => {
           if (command.length !== 0) {
@@ -95,20 +96,20 @@ export default class Alias extends Command {
     }
     else {
       if (aliasname === "delete" || aliasname === "remove" || aliasname === "rm") {
-        if (this.client.db.checkForAlias(aliasvalue).length) {
-          this.client.db.removeAlias(aliasvalue)
+        if (LucilleClient.Instance.db.checkForAlias(aliasvalue).length) {
+          LucilleClient.Instance.db.removeAlias(aliasvalue)
           msg.reply(`Deleted alias '${aliasvalue}' :)`)
         }
         else {
           msg.reply(`Alias '${aliasvalue}' not found`)
         }
       }
-      else if (this.client.db.checkForAlias(aliasname).length) {
+      else if (LucilleClient.Instance.db.checkForAlias(aliasname).length) {
         msg.reply("This alias already exists :(")
       }
       else {
         if (aliasvalue.split("&").filter(cmd => cmd !== "").length) {
-          this.client.db.writeAlias(aliasname, aliasvalue)
+          LucilleClient.Instance.db.writeAlias(aliasname, aliasvalue)
           msg.reply("Alias added :)")
         }
         else {

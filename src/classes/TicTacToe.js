@@ -1,8 +1,9 @@
+import LucilleClient from "./LucilleClient"
+
 class TicTacToe {
   constructor (msg, playerOneId, playerTwoId) {
     this.playerIds = [playerOneId, playerTwoId]
     this.msg = msg
-    this.db = msg.client.db
     this.boardVals = "0,0,0,0,0,0,0,0,0".split(",")
     this.boardReacts = "1️⃣,2️⃣,3️⃣,4️⃣,5️⃣,6️⃣,7️⃣,8️⃣,9️⃣".split(",")
     this.boardKey = "⭕❌"
@@ -55,7 +56,7 @@ class TicTacToe {
   }
 
   uploadResult () {
-    this.db.insertTicTacToeWinner(this.msg.guild.id, this.playerIds[0], this.playerIds[1], this.hasDrawn() && this.hasWon() ? "-" : this.playerIds[this.turn])
+    LucilleClient.Instance.db.insertTicTacToeWinner(this.msg.guild.id, this.playerIds[0], this.playerIds[1], this.hasDrawn() && this.hasWon() ? "-" : this.playerIds[this.turn])
   }
 
   async runLoop () {

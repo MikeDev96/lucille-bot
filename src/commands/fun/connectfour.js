@@ -1,5 +1,6 @@
 import Commando from "discord.js-commando"
 import ConnectFour from "../../classes/ConnectFour.js"
+import LucilleClient from "../../classes/LucilleClient.js"
 const { Command } = Commando
 
 export default class extends Command {
@@ -56,7 +57,7 @@ export default class extends Command {
 
         const turn = Math.ceil(Math.random() * 2) - 1
 
-        const cf = new ConnectFour(msg.client)
+        const cf = new ConnectFour()
         const boardMsg = await msg.reply(this.getEmbed(msg.guild.members.cache.find(x => x.id === playerOneId), cf.displayBoard(), msg.client, turn === 0))
 
         const reactions = ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣"]
@@ -186,7 +187,7 @@ export default class extends Command {
   }
 
   getLeaderBoard (msg) {
-    const stats = msg.client.db.getGameWins("ConnectFour", msg.guild.id)
+    const stats = LucilleClient.Instance.db.getGameWins("ConnectFour", msg.guild.id)
 
     const winloss = stats.reduce((acc, cur) => {
       if (!acc.has(cur.PlayerId)) {

@@ -2,6 +2,7 @@ import { MessageEmbed, escapeMarkdown } from "discord.js"
 import Commando from "discord.js-commando"
 import fetch from "node-fetch"
 import { splitMessage } from "../../helpers"
+import LucilleClient from "../../classes/LucilleClient"
 const { Command } = Commando
 
 export default class extends Command {
@@ -33,7 +34,7 @@ export default class extends Command {
 
   async run (msg, args) {
     if (args.action === "add") {
-      const success = this.client.db.addUser(args.symbol.toUpperCase(), msg.author.id)
+      const success = LucilleClient.Instance.db.addUser(args.symbol.toUpperCase(), msg.author.id)
 
       if (success) {
         msg.react("👍")
@@ -44,7 +45,7 @@ export default class extends Command {
       }
     }
     else if (args.action === "remove" || args.action === "rm" || args.action === "delete") {
-      const success = this.client.db.removeUser(args.symbol.toUpperCase(), msg.author.id)
+      const success = LucilleClient.Instance.db.removeUser(args.symbol.toUpperCase(), msg.author.id)
 
       if (success) {
         msg.react("👍")
@@ -62,7 +63,7 @@ export default class extends Command {
           msg.reply("Could not find user ID")
           return
         }
-        const list = this.client.db.listStocks(listId)
+        const list = LucilleClient.Instance.db.listStocks(listId)
         if (list.length > 0) {
           const tempArr = this.list(list, nickname)
           const embed = {

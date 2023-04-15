@@ -1,5 +1,6 @@
 import Commando from "discord.js-commando"
 import TicTacToe from "../../classes/TicTacToe.js"
+import LucilleClient from "../../classes/LucilleClient.js"
 const { Command } = Commando
 
 export default class extends Command {
@@ -98,7 +99,7 @@ export default class extends Command {
 
   // dupe of the connect 4 win, could do with another class of just MISC shit i suppose
   getLeaderBoard (msg) {
-    const stats = msg.client.db.getGameWins("TicTacToe", msg.guild.id)
+    const stats = LucilleClient.Instance.db.getGameWins("TicTacToe", msg.guild.id)
 
     const winloss = stats.reduce((acc, cur) => {
       if (!acc.has(cur.PlayerId)) {
