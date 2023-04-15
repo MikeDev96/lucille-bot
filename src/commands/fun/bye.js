@@ -1,3 +1,4 @@
+import { PermissionsBitField } from "discord.js"
 import Command from "../../classes/Command.js"
 import { getVoiceChannel } from "../../helpers.js"
 import LucilleClient from "../../classes/LucilleClient.js"
@@ -21,7 +22,7 @@ export default class extends Command {
       return
     }
 
-    if (!msg.channel.permissionsFor(msg.guild.roles.everyone).has("VIEW_CHANNEL")) {
+    if (!msg.channel.permissionsFor(msg.guild.roles.everyone).has(PermissionsBitField.Flags.ViewChannel)) {
       msg.channel.send("To use this command it needs to be posted in a channel that EVERYONE can see. If your doing this in a secret channel you know who you are, naughty naughty")
       return
     }
