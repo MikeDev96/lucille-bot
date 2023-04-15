@@ -177,7 +177,7 @@ export default class extends Command {
         })))
         .setFooter({ text: process.env.DISCORD_FOOTER })
 
-      msg.reply(embed)
+      msg.reply({ embeds: [embed] })
     }
     else if (args.arg1 === "help") {
       msg.reply(`

@@ -137,7 +137,7 @@ export default class extends Command {
                   this.embedMsg = await msg.channel.send({ embeds: [embed] })
                 }
                 else {
-                  this.embedMsg.edit(embed)
+                  this.embedMsg.edit({ embeds: [embed] })
                 }
               }
 
