@@ -108,27 +108,38 @@ export default class LucilleClient {
   async registerCommands () {
     try {
       const commandFilenames = (await globby("src/commands/**/*.js", { absolute: true }))
-      const commands = (await Promise.all(commandFilenames.map(l => import(`file://${l}`)))).reduce((acc, c) => {
-        const Command = c.default
+      const commands = []
+
+      for (const commandFilename of commandFilenames) {
+        const Command = await this.importCommand(commandFilename)
+        if (!Command) continue
 
         const cmd = new Command()
-        acc.push(cmd)
-        acc.push(...cmd.config.aliases.map(a => {
+        commands.push(cmd)
+        commands.push(...cmd.config.aliases.map(a => {
           const cmd = new Command()
           cmd.config.name = a
           return cmd
         }))
-
-        return acc
-      }, [])
+      }
 
       this.commands = commands
 
-      console.log(`Registered ${commands.length} commands`)
+      console.log(`Registered ${commandFilenames.length} commands`)
     }
     catch (err) {
       console.error(`Failed to import commands\n${err.toString()}`)
       return []
+    }
+  }
+
+  async importCommand (filename) {
+    try {
+      const c = await import(`file://${filename}`)
+      return c.default
+    }
+    catch (err) {
+      console.error(`Failed to import ${filename}\n${err}`)
     }
   }
 
