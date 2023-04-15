@@ -34,7 +34,7 @@ export default class extends Command {
   }
 
   async run (msg, args) {
-    const music = msg.guild.music
+    const music = LucilleClient.Instance.getGuildInstance(msg.guild).music
     if (["list", "ls"].includes(args.arg1.toLowerCase())) {
       const listId = await this.findUserId(msg, args.arg2)
       const nickname = await this.findUsername(msg, args.arg2)

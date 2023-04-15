@@ -2,6 +2,7 @@ import fetch from "node-fetch"
 import { sleep } from "../../helpers.js"
 import TtsCommand from "./tts.js"
 import Command from "../../classes/Command.js"
+import LucilleClient from "../../classes/LucilleClient.js"
 
 export default class extends Command {
   constructor () {
@@ -50,7 +51,7 @@ export default class extends Command {
           msg.member.voice.channel.leave()
         }
         else {
-          const music = msg.guild.music
+          const music = LucilleClient.Instance.getGuildInstance(msg.guild).music
           music.play()
         }
       }

@@ -7,6 +7,7 @@ import { PLATFORM_OTHER } from "../../classes/TrackExtractor.js"
 import { AttachmentBuilder, escapeMarkdown } from "discord.js"
 import AdmZip from "adm-zip"
 import Command from "../../classes/Command.js"
+import LucilleClient from "../../classes/LucilleClient.js"
 
 export default class extends Command {
   constructor () {
@@ -106,7 +107,7 @@ export default class extends Command {
             if (args.arg3) {
               const file = files.find(f => f.toLowerCase().includes(args.arg3.toLowerCase()))
               if (file) {
-                const music = msg.guild.music
+                const music = LucilleClient.Instance.getGuildInstance(msg.guild).music
                 const tracks = [
                   new Track("", file, "")
                     .setPlatform(PLATFORM_OTHER)
@@ -121,7 +122,7 @@ export default class extends Command {
               }
             }
             else {
-              const music = msg.guild.music
+              const music = LucilleClient.Instance.getGuildInstance(msg.guild).music
               const tracks = files.map(f =>
                 new Track("", f, "")
                   .setPlatform(PLATFORM_OTHER)

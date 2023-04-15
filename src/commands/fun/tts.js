@@ -1,4 +1,5 @@
 import Command from "../../classes/Command.js"
+import LucilleClient from "../../classes/LucilleClient.js"
 import TextToSpeech from "../../classes/TextToSpeech.js"
 import { getRequestee } from "../../helpers.js"
 
@@ -26,7 +27,7 @@ class TtsCommand extends Command {
       if (msg.member.voice.channel) {
         msg.react("🎙️")
 
-        const music = msg.guild.music
+        const music = LucilleClient.Instance.getGuildInstance(msg.guild).music
         const track = TextToSpeech.getTtsTrack(getRequestee(msg), args.text)
 
         music.add([track], track.requestee, msg.member.voice.channel, false, msg.guild.systemChannel)
