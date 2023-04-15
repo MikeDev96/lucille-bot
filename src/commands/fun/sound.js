@@ -149,7 +149,7 @@ export default class extends Command {
             if (args.arg3) {
               const file = files.find(f => f.toLowerCase().includes(args.arg3.toLowerCase()))
               if (file) {
-                const attach = new AttachmentBuilder(`${path}/${file}`, file)
+                const attach = new AttachmentBuilder(`${path}/${file}`, { name: file })
                 msg.reply({ files: [attach] }).then(() => {
                   msg.react("⬇️")
                   waitReact.then(r => r.remove())
@@ -164,7 +164,7 @@ export default class extends Command {
               const zip = new AdmZip()
               zip.addLocalFolder(path)
               zip.toBuffer(buffer => {
-                const attach = new AttachmentBuilder(buffer, `${files.length} ${key} sounds.zip`)
+                const attach = new AttachmentBuilder(buffer, { name: `${files.length} ${key} sounds.zip` })
                 msg.reply({ files: [attach] }).then(() => {
                   msg.react("⬇️")
                   waitReact.then(r => r.remove())

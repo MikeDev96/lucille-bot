@@ -76,7 +76,7 @@ export default class extends Command {
       // Make sure we have a value
       if (templateArgs.hat.value > -1 || templateArgs.pet.value > -1 || templateArgs.skin.value > -1) {
         const cmd = this.buildCommand(templateArgs)
-        const attachment = new AttachmentBuilder(Buffer.from(cmd, "utf8"), "amongus.bat")
+        const attachment = new AttachmentBuilder(Buffer.from(cmd, "utf8"), { name: "amongus.bat" })
 
         msg.channel.send({ files: [attachment] })
       }
