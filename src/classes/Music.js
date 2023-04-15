@@ -291,7 +291,10 @@ export default class Music extends MusicState {
       await this.cleanItem(prevPlaying.item, false)
     }
 
-    const resource = createAudioResource(stream, { inputType: type })
+    const volume = [PLATFORM_CONNECT, PLATFORM_DISCONNECT].includes(item.platform) ? 3 : this.state.volume / 100
+    const resource = createAudioResource(stream, { inputType: type, inlineVolume: volume !== 1 })
+    resource.volume?.setVolumeLogarithmic(volume)
+
     this.playing = { stream, type, item, resource }
 
     this.player.play(resource)
