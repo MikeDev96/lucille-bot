@@ -20,7 +20,7 @@ export default class extends Command {
     }
 
     const music = LucilleClient.Instance.getGuildInstance(msg.guild).music
-    await music.summon(msg.member.voice.channel, true)
+    music.summon(msg.member.voice.channel, true)
     await music.play()
 
     msg.react("🧞")

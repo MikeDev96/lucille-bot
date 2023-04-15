@@ -1,5 +1,5 @@
 import prism from "prism-media"
-import { msToTimestamp, playDlDiscord12CompatabilityWrapper } from "../helpers.js"
+import { msToTimestamp } from "../helpers.js"
 import { Readable, PassThrough } from "stream"
 import { stream_from_info as streamFromInfo, video_info as videoInfo } from "play-dl"
 

@@ -1,3 +1,4 @@
+import { AudioPlayerStatus, getVoiceConnection } from "@discordjs/voice"
 import Command from "../../classes/Command.js"
 import LucilleClient from "../../classes/LucilleClient.js"
 
@@ -15,11 +16,13 @@ export default class extends Command {
 
   async run (msg, args) {
     const music = LucilleClient.Instance.getGuildInstance(msg.guild).music
-    if (music && music.state && music.state.voiceConnection) {
+    if (music.player.state.status !== AudioPlayerStatus.Idle) {
       msg.react("🛑")
-      music.state.queue.splice(0, music.state.queue.length)
-      music.setState({ queue: music.state.queue })
-      music.state.voiceConnection.disconnect()
+
+      const connection = getVoiceConnection(msg.guild.id)
+      if (connection) {
+        connection.disconnect()
+      }
     }
   }
 }

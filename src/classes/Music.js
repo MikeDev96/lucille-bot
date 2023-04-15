@@ -10,7 +10,7 @@ import MusicToX from "./MusicToX.js"
 import { getStream, getFfmpegStream } from "./YouTubeToStream.js"
 import MusicState from "./MusicState.js"
 import Requestee from "./Requestee.js"
-import { NoSubscriberBehavior, createAudioPlayer, createAudioResource, joinVoiceChannel, AudioPlayerStatus } from "@discordjs/voice"
+import { NoSubscriberBehavior, createAudioPlayer, createAudioResource, joinVoiceChannel, AudioPlayerStatus, getVoiceConnection, VoiceConnectionStatus } from "@discordjs/voice"
 import LucilleClient from "./LucilleClient.js"
 import { escapeMarkdown } from "discord.js"
 
@@ -19,10 +19,8 @@ const PLATFORMS_REQUIRE_YT_SEARCH = [PLATFORM_SPOTIFY, PLATFORM_TIDAL, PLATFORM_
 export default class Music extends MusicState {
   constructor (guild) {
     super(guild, {
-      joinState: 0,
       voiceChannel: null,
       textChannel: guild.systemChannel,
-      voiceConnection: null,
       queue: [],
       pauser: "",
       // Move the embed down every 5 minutes, it can get lost when a radio is left on for ages
@@ -64,61 +62,46 @@ export default class Music extends MusicState {
       }
 
       if (this.state.summoned && this.state.voiceChannel) {
-        await this.summon(this.state.voiceChannel)
-
-        if (this.state.joinState === 2) {
-          await this.play()
-        }
+        this.summon(this.state.voiceChannel)
+        await this.play()
       }
     })
 
     this.setupPlayer()
   }
 
-  async summon (voiceChannel) {
+  summon (voiceChannel) {
     this.setState({ summoned: true })
 
-    // Join the voice channel if not already joining/joined
-    if (this.state.joinState === 0) {
-      this.setState({ joinState: 1 })
+    const hasVoiceConnection = !!getVoiceConnection(voiceChannel.guild.id)
 
-      try {
-        const connection = joinVoiceChannel({
-          channelId: voiceChannel.id,
-          guildId: voiceChannel.guild.id,
-          adapterCreator: voiceChannel.guild.voiceAdapterCreator,
-        })
+    const connection = joinVoiceChannel({
+      channelId: voiceChannel.id,
+      guildId: voiceChannel.guild.id,
+      adapterCreator: voiceChannel.guild.voiceAdapterCreator,
+    })
 
-        connection.subscribe(this.player)
+    if (!hasVoiceConnection) {
+      this.setState({
+        voiceChannel,
+        playedConnectSound: false,
+      })
+
+      connection.on(VoiceConnectionStatus.Disconnected, () => {
+        this.state.queue.splice(0, this.state.queue.length)
 
         this.setState({
-          joinState: 2,
-          voiceChannel,
-          voiceConnection: connection,
-          playedConnectSound: false,
+          queue: this.state.queue,
+          summoned: false,
+          voiceChannel: null,
         })
 
-        this.state.voiceConnection.once("disconnect", () => {
-          this.setState({
-            summoned: false,
-            voiceConnection: null,
-            voiceChannel: null,
-            joinState: 0,
-          })
-          this.cleanUp()
-        })
-      }
-      catch (err) {
-        this.setState({ joinState: 0 })
-        console.log(err.message)
-      }
+        this.player.stop()
+        this.cleanUp()
+      })
     }
-    else if (this.state.joinState === 2) {
-      if (this.state.voiceConnection && this.state.voiceConnection.voice) {
-        await this.state.voiceConnection.voice.setChannel(voiceChannel)
-        this.setState({ voiceChannel })
-      }
-    }
+
+    connection.subscribe(this.player)
   }
 
   async add (input, requestee, voiceChannel, jump, textChannel) {
@@ -205,9 +188,7 @@ export default class Music extends MusicState {
 
     if (this.state.queue.length > 0) {
       // Join the voice channel if not already joining/joined
-      if (this.state.joinState === 0) {
-        await this.summon(voiceChannel)
-      }
+      this.summon(voiceChannel)
 
       // If there's nothing playing, get the ball rolling
       const notStreaming = this.player.state.status === AudioPlayerStatus.Idle
@@ -460,7 +441,7 @@ export default class Music extends MusicState {
       }
       else {
         if (!this.state.summoned) {
-          this.state.voiceConnection.disconnect()
+          getVoiceConnection(this.guild.id)?.disconnect()
         }
         this.cleanUp()
       }
