@@ -156,16 +156,14 @@ export default class LucilleClient {
       const cmd = this.commands.find(c => c.config.name === cmdName)
       if (!cmd) return
 
-      const argsArr = args?.split(" ")
-
-      const argsMap = cmd.config.args?.reduce((acc, cur, idx) => {
-        const value = argsArr?.[idx] ?? cur.default ?? ""
-        acc[cur.key] = cur.type === "integer" ? parseInt(value) : value
-        return acc
-      }, {})
+      const argsRes = this.parseArguments(cmd.config.args, args)
+      if (typeof argsRes === "string") {
+        msg.reply(argsRes)
+        return
+      }
 
       try {
-        cmd.run(msg, argsMap)
+        cmd.run(msg, argsRes)
       }
       catch (err) {
         msg.reply(`Oh snap, something went wrong... see error below,\n\n${err.toString()}`)
@@ -174,6 +172,34 @@ export default class LucilleClient {
     catch (err) {
       console.error(err)
     }
+  }
+
+  castValue (type, value) {
+    switch (type) {
+      case "integer": return parseInt(value)
+      case "float": return parseFloat(value)
+      default: return value
+    }
+  }
+
+  parseArguments (configArgs, userArgs) {
+    const argsArr = userArgs?.split(" ")
+
+    const argsMap = {}
+    for (let idx = 0; idx < configArgs?.length; idx++) {
+      const cur = configArgs[idx]
+      const strValue = argsArr?.[idx] ?? cur.default ?? ""
+      const value = this.castValue(cur.type, strValue)
+
+      const valid = cur.validate ? cur.validate(value) : true
+      if (typeof valid === "string") {
+        return `${cur.key} - ${valid}`
+      }
+
+      argsMap[cur.key] = cur.type === "integer" ? parseInt(strValue) : strValue
+    }
+
+    return argsMap
   }
 
   setupGuilds () {
