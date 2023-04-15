@@ -1,11 +1,10 @@
-import Commando from "discord.js-commando"
 import fetch from "node-fetch"
 import fs from "fs"
 import { getAudioDurationInSeconds } from "get-audio-duration"
 import { getRequestee, getVoiceChannel, splitMessage } from "../../helpers.js"
 import Track from "../../classes/Track.js"
 import { PLATFORM_OTHER } from "../../classes/TrackExtractor.js"
-import { MessageAttachment, escapeMarkdown } from "discord.js"
+import { AttachmentBuilder, escapeMarkdown } from "discord.js"
 import AdmZip from "adm-zip"
 import Command from "../../classes/Command.js"
 
@@ -149,8 +148,8 @@ export default class extends Command {
             if (args.arg3) {
               const file = files.find(f => f.toLowerCase().includes(args.arg3.toLowerCase()))
               if (file) {
-                const attach = new MessageAttachment(`${path}/${file}`, file)
-                msg.reply(attach).then(() => {
+                const attach = new AttachmentBuilder(`${path}/${file}`, file)
+                msg.reply({ files: attach }).then(() => {
                   msg.react("⬇️")
                   waitReact.then(r => r.remove())
                 })
@@ -164,8 +163,8 @@ export default class extends Command {
               const zip = new AdmZip()
               zip.addLocalFolder(path)
               zip.toBuffer(buffer => {
-                const attach = new MessageAttachment(buffer, `${files.length} ${key} sounds.zip`)
-                msg.reply(attach).then(() => {
+                const attach = new AttachmentBuilder(buffer, `${files.length} ${key} sounds.zip`)
+                msg.reply({ files: attach }).then(() => {
                   msg.react("⬇️")
                   waitReact.then(r => r.remove())
                 })

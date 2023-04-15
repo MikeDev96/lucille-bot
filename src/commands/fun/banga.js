@@ -1,7 +1,6 @@
-import Commando from "discord.js-commando"
 import { getRequestee, getVoiceChannel, shuffle, paginatedEmbed, splitMessage } from "../../helpers.js"
 import Track from "../../classes/Track.js"
-import { MessageAttachment, escapeMarkdown } from "discord.js"
+import { AttachmentBuilder, escapeMarkdown } from "discord.js"
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb"
 import { DynamoDBDocumentClient, PutCommand } from "@aws-sdk/lib-dynamodb"
 import { existsSync } from "fs"
@@ -139,7 +138,7 @@ export default class extends Command {
 
     const bangerStampPath = `./assets/images/bangerstamps/${msg.author.id}.png`
     const bangerStampExists = existsSync(bangerStampPath)
-    const bangerStampImg = new MessageAttachment(bangerStampPath)
+    const bangerStampImg = new AttachmentBuilder(bangerStampPath)
 
     if (checkEx.length) {
       if (this.checkForUser(checkEx, msg)) {
@@ -149,7 +148,7 @@ export default class extends Command {
         LucilleClient.Instance.db.updateBangaUsers(currTrack, msg.author.id)
         msg.react("👍")
         if (bangerStampExists) {
-          msg.channel.send(bangerStampImg)
+          msg.channel.send({ files: bangerStampImg })
         }
       }
     }
@@ -157,7 +156,7 @@ export default class extends Command {
       LucilleClient.Instance.db.writeBanga(queueItem.spotifyUri, currTrack, msg.author.id)
       msg.react("👍")
       if (bangerStampExists) {
-        msg.channel.send(bangerStampImg)
+        msg.channel.send({ files: bangerStampImg })
       }
     }
   }

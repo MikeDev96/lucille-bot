@@ -1,5 +1,4 @@
-import { MessageAttachment } from "discord.js"
-import Commando from "discord.js-commando"
+import { AttachmentBuilder } from "discord.js"
 import fs from "fs"
 import Command from "../../classes/Command.js"
 
@@ -77,9 +76,9 @@ export default class extends Command {
       // Make sure we have a value
       if (templateArgs.hat.value > -1 || templateArgs.pet.value > -1 || templateArgs.skin.value > -1) {
         const cmd = this.buildCommand(templateArgs)
-        const attachment = new MessageAttachment(Buffer.from(cmd, "utf8"), "amongus.bat")
+        const attachment = new AttachmentBuilder(Buffer.from(cmd, "utf8"), "amongus.bat")
 
-        msg.channel.send(attachment)
+        msg.channel.send({ files: attachment })
       }
       break
     }
@@ -94,7 +93,7 @@ export default class extends Command {
     if (!fs.existsSync(filePath)) {
       return undefined
     }
-    return new MessageAttachment(filePath)
+    return new AttachmentBuilder(filePath)
   }
   /* eslint-disable */
   buildCommand(obj) {
