@@ -1,4 +1,4 @@
-import { MessageEmbed, escapeMarkdown } from "discord.js"
+import { EmbedBuilder, escapeMarkdown } from "discord.js"
 import fetch from "node-fetch"
 import { splitMessage } from "../../helpers.js"
 import LucilleClient from "../../classes/LucilleClient.js"
@@ -113,10 +113,10 @@ export default class extends Command {
 
               const item = data.quoteResponse.result[0]
 
-              const embed = new MessageEmbed()
+              const embed = new EmbedBuilder()
                 .setColor(item.regularMarketChangePercent >= 0 ? "#00ff00" : "#ff0000")
                 .setTitle("Stonks")
-                .setAuthor(msg.member.displayName, msg.author.displayAvatarURL())
+                .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL() })
                 .addFields([
                   { name: item.symbol, value: `${item.regularMarketPrice.toFixed(2)}\n${item.regularMarketChangePercent.toFixed(2)}%` },
                 ])

@@ -1,4 +1,4 @@
-import { MessageEmbed } from "discord.js"
+import { EmbedBuilder } from "discord.js"
 import { DateTime } from "luxon"
 import rrule from "rrule"
 import humanizeDuration from "humanize-duration"
@@ -167,15 +167,15 @@ export default class extends Command {
       reducedEvents.sort((a, b) => a.occurence.getTime() - b.occurence.getTime())
       reducedEvents.splice(10)
 
-      const embed = new MessageEmbed()
+      const embed = new EmbedBuilder()
         .setColor("#FF1493")
         .setTitle("Upcoming Events")
-        .setAuthor(msg.member.displayName, msg.author.displayAvatarURL())
+        .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL() })
         .addFields(reducedEvents.map(d => ({
           name: `${d.event}`,
           value: `${DateTime.fromJSDate(d.occurence).toLocal().toLocaleString(DateTime.DATETIME_MED)}\n\`${d.distance}\``,
         })))
-        .setFooter(process.env.DISCORD_FOOTER)
+        .setFooter({ text: process.env.DISCORD_FOOTER })
 
       msg.reply(embed)
     }
