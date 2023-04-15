@@ -21,7 +21,7 @@ export default class LucilleClient {
   static Instance = new LucilleClient()
 
   constructor () {
-    this.client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.MessageContent, GatewayIntentBits.GuildMessages, GatewayIntentBits.GuildVoiceStates, GatewayIntentBits.GuildMembers] })
+    this.client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.MessageContent, GatewayIntentBits.GuildMessages, GatewayIntentBits.GuildVoiceStates, GatewayIntentBits.GuildMembers, GatewayIntentBits.GuildMessageReactions] })
     this.client.once("ready", () => console.log("Discord client ready"))
     this.registerCommands()
     this.monitorCommands()
