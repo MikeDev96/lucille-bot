@@ -1,4 +1,5 @@
 import fetch from "node-fetch"
+import LucilleClient from "../../classes/LucilleClient"
 
 const YOUTUBE_REGEX_PATTERN = /(?:https?:\/\/www.)?youtu(?:be.com\/watch\?v=|.be\/)([\w-]+)/
 
@@ -27,7 +28,7 @@ export default {
   },
   async run (msg, args) {
     if (args.strength === "help") {
-      msg.reply(getHelpMessage(msg.client.commandPrefix))
+      msg.reply(getHelpMessage(LucilleClient.Instance.commandPrefix))
       return
     }
 

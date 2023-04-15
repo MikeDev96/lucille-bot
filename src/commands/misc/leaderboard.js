@@ -2,6 +2,7 @@ import { paginatedEmbed, splitMessage } from "../../helpers.js"
 import { escapeMarkdown } from "discord.js"
 import humanizeDuration from "humanize-duration"
 import Command from "../../classes/Command.js"
+import LucilleClient from "../../classes/LucilleClient.js"
 
 export default class extends Command {
   constructor () {
@@ -150,7 +151,7 @@ __**${prefix}lb command:**__
         }
         else {
           if (args.arg1 || args.arg2) {
-            msg.reply(this.getHelpMessage(msg.client.commandPrefix))
+            msg.reply(this.getHelpMessage(LucilleClient.Instance.commandPrefix))
           }
           else {
             const leaderboard = await msg.client.voiceTracker.getLeaderboard(msg.guild.id, { username: msg.author.displayName, avatarURL: msg.author.displayAvatarURL() }, msg.guild.members)

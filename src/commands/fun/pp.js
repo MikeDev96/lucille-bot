@@ -21,8 +21,8 @@ export default class extends Command {
         {
           key: "arg2",
           prompt: `
-${client.commandPrefix}pp perm \`@Mention\` gets the pp size.,
-${client.commandPrefix}pp perm \`lb\` gets the pp leaderboard, see whose rocking the biggest shlong!`,
+${LucilleClient.Instance.commandPrefix}pp perm \`@Mention\` gets the pp size.,
+${LucilleClient.Instance.commandPrefix}pp perm \`lb\` gets the pp leaderboard, see whose rocking the biggest shlong!`,
           type: "string",
           default: "",
         },
@@ -34,7 +34,7 @@ ${client.commandPrefix}pp perm \`lb\` gets the pp leaderboard, see whose rocking
   run (msg, args) {
     // if user types !pp help | !pp <> help etc...
     if (Object.values(args).filter(x => x.toLowerCase() === "help").length > 0) {
-      msg.reply(this.getHelpMessage(msg.client.commandPrefix))
+      msg.reply(this.getHelpMessage(LucilleClient.Instance.commandPrefix))
       return
     }
 
@@ -49,7 +49,7 @@ ${client.commandPrefix}pp perm \`lb\` gets the pp leaderboard, see whose rocking
 
     // Incorrect args
     if ((a1 !== "" || a2 !== "") && !isPerm && !isPermLeaderboard && !isDaily && !isDailyLeaderboard) {
-      msg.reply(this.getHelpMessage(msg.client.commandPrefix))
+      msg.reply(this.getHelpMessage(LucilleClient.Instance.commandPrefix))
       return
     }
 

@@ -22,7 +22,7 @@ export const proxyCommand = (message, author = message.author, content, handlePr
   //   return Error("Author must be an instance of User")
   // }
 
-  // const prefix = message.guild ? message.guild.commandPrefix : message.client.dispatcher.client.commandPrefix
+  // const prefix = LucilleClient.Instance.commandPrefix
   // const fakeMessage = new CommandoMessage(message.client, { id: message.id, content: `${handlePrefix ? prefix : ""}${content}`, author }, message.channel)
   // message.client.dispatcher.handleMessage(fakeMessage)
 }

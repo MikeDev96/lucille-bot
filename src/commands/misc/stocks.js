@@ -161,7 +161,7 @@ export default class extends Command {
         })()
       }
       else {
-        const prefix = msg.client.commandPrefix
+        const prefix = LucilleClient.Instance.commandPrefix
 
         const helpEmbed = `
       __**${prefix}Stock command:**__

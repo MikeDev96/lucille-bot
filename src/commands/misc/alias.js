@@ -33,7 +33,7 @@ export default class Alias extends Command {
           type: "string",
           default: "",
           validate: val => {
-            const Prefix = this.client.commandPrefix
+            const Prefix = LucilleClient.Instance.commandPrefix
             // eslint-disable-next-line
             if ((val.toLowerCase()).replace("/\s+/g", "").includes(`${Prefix}al`) || (val.toLowerCase()).replace("/\s+/g", "").includes(`${Prefix}alias`)) {
               return "Alias cannot reference another alias"
@@ -57,7 +57,7 @@ export default class Alias extends Command {
 
   async run (msg, args) {
     const { aliasname, aliasvalue } = args
-    const Prefix = this.client.commandPrefix
+    const Prefix = LucilleClient.Instance.commandPrefix
 
     if (aliasname === "list") {
       const List = LucilleClient.Instance.db.listAliases(aliasvalue)
