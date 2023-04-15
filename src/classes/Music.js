@@ -678,10 +678,10 @@ export default class Music extends MusicState {
 
   getPlatformEmoji (platform) {
     switch (platform) {
-    case PLATFORM_RADIO:
-      return "📻"
-    default:
-      return LucilleClient.Instance.getGuildInstance(this.guild).customEmojis[platform]
+      case PLATFORM_RADIO:
+        return "📻"
+      default:
+        return LucilleClient.Instance.getGuildInstance(this.guild).customEmojis[platform]
     }
   }
 
@@ -752,13 +752,13 @@ const amountToBassBoostMap = {
 
 export const mapRepeatTypeToEmoji = type => {
   switch (type) {
-  case "off":
-    return "⏭️"
-  case "one":
-    return "🔂"
-  case "all":
-    return "🔁"
-  default:
-    return ""
+    case "off":
+      return "⏭️"
+    case "one":
+      return "🔂"
+    case "all":
+      return "🔁"
+    default:
+      return ""
   }
 }

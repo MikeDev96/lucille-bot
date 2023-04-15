@@ -90,11 +90,11 @@ export const paginatedEmbed = async (msg, embedTemplate, embedList, emojiList = 
     reaction.users.remove(msg.author)
 
     switch (reaction.emoji.name) {
-    case emojiList[0] : { embedIndex = 0; break }
-    case emojiList[1] : { embedIndex = (embedIndex > 0) ? --embedIndex : embedList.length - 1; break }
-    case emojiList[2] : { embedIndex = (embedIndex + 1 < embedList.length) ? ++embedIndex : 0; break }
-    case emojiList[3] : { embedIndex = embedList.length - 1; break }
-    default: break
+      case emojiList[0] : { embedIndex = 0; break }
+      case emojiList[1] : { embedIndex = (embedIndex > 0) ? --embedIndex : embedList.length - 1; break }
+      case emojiList[2] : { embedIndex = (embedIndex + 1 < embedList.length) ? ++embedIndex : 0; break }
+      case emojiList[3] : { embedIndex = embedList.length - 1; break }
+      default: break
     }
 
     embedTemplate.fields = embedList[embedIndex]

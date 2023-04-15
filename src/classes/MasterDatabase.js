@@ -227,26 +227,26 @@ WHERE [ServerId] = @server
     }
 
     switch (rslts.DataType) {
-    case "int":
-    case "integer":
-    case "numeric": {
-      const int = parseInt(rslts.Value)
-      if (isNaN(int)) {
-        return int
+      case "int":
+      case "integer":
+      case "numeric": {
+        const int = parseInt(rslts.Value)
+        if (isNaN(int)) {
+          return int
+        }
+        break
       }
-      break
-    }
 
-    case "number": {
-      const num = Number(rslts.Value)
-      if (isNaN(num)) {
-        return num
+      case "number": {
+        const num = Number(rslts.Value)
+        if (isNaN(num)) {
+          return num
+        }
+        break
       }
-      break
-    }
 
-    default:
-      console.log("[getSetting]: Unhandled DataType - " + rslts.DataType)
+      default:
+        console.log("[getSetting]: Unhandled DataType - " + rslts.DataType)
     }
 
     return rslts.Value

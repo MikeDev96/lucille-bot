@@ -42,10 +42,10 @@ export default class TextToSpeech {
 
   getMessage (event, user, channel) {
     switch (event) {
-    case "join": return `${user} has joined ${channel}`
-    case "leave": return `${user} has left ${channel}`
-    case "move": return `${user} has moved to ${channel}`
-    default: throw new Error("Invalid case passed")
+      case "join": return `${user} has joined ${channel}`
+      case "leave": return `${user} has left ${channel}`
+      case "move": return `${user} has moved to ${channel}`
+      default: throw new Error("Invalid case passed")
     }
   }
 
