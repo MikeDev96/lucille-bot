@@ -35,19 +35,27 @@ export default class extends Command {
 
       const doDelivery = () => reply.then(msg => msg.edit(`${text}\n\n**${json.delivery}**`))
 
-      // TODO: Get 2 TTS streams and combine them with a pause in the middle and pass that to the music player instead
-      await TtsCommand.speak(msg, text)
+      if (msg.member.voice.channel) {
+        // TODO: Get 2 TTS streams and combine them with a pause in the middle and pass that to the music player instead
+        await TtsCommand.speak(msg, text)
 
-      const music = LucilleClient.Instance.getGuildInstance(msg.guild).music
-      const ttsStream = music.playing.stream
+        const music = LucilleClient.Instance.getGuildInstance(msg.guild).music
+        const ttsStream = music.playing.stream
 
-      ttsStream.once("finish", async () => {
+        ttsStream.once("finish", async () => {
+          if (json.type === "twopart") {
+            await sleep(1000)
+            doDelivery()
+            TtsCommand.speak(msg, json.delivery)
+          }
+        })
+      }
+      else {
         if (json.type === "twopart") {
-          await sleep(1000)
+          await sleep(3000)
           doDelivery()
-          TtsCommand.speak(msg, json.delivery)
         }
-      })
+      }
     }
     catch (err) {
       msg.reply(err.message)
