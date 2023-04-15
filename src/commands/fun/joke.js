@@ -36,7 +36,7 @@ export default class extends Command {
       const doDelivery = () => reply.then(msg => msg.edit(`${text}\n\n**${json.delivery}**`))
 
       if (msg.member.voice.channel) {
-        const isBotInSameChannel = msg.member.voice.channel.members.has(this.client.user.id)
+        const isBotInSameChannel = msg.member.voice.channel.members.has(msg.client.user.id)
 
         await msg.member.voice.channel.join()
         await TtsCommand.speak(msg, text)

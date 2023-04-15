@@ -104,7 +104,7 @@ ${LucilleClient.Instance.commandPrefix}pp perm \`lb\` gets the pp leaderboard, s
         return false
       })
       .map(pp =>
-        `\`${(pp.DisplayName !== null ? pp.DisplayName : this.client.users.cache.find(user => user.id === pp.UserId).username)}\`\r\n${this.getLocalised(isDaily ? pp.DailyPP : pp.Size)}\r\n`,
+        `\`${(pp.DisplayName !== null ? pp.DisplayName : msg.client.users.cache.find(user => user.id === pp.UserId).username)}\`\r\n${this.getLocalised(isDaily ? pp.DailyPP : pp.Size)}\r\n`,
       ).join("\r\n")
 
     if (isEmpty(fields)) {

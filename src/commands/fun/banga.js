@@ -132,7 +132,7 @@ export default class extends Command {
     const checkEx = LucilleClient.Instance.db.checkForBanga(currTrack)
 
     if (args.arg1 === "?") {
-      msg.channel.send(`${this.findUsers(checkEx).join(", ")} thinks its a banger`)
+      msg.channel.send(`${this.findUsers(msg.client, checkEx).join(", ")} thinks its a banger`)
       return
     }
 
@@ -165,12 +165,12 @@ export default class extends Command {
     return !!user[0].users.find(e => e === mess.author.id)
   }
 
-  findUsers (banger) {
+  findUsers (client, banger) {
     const usrArr = []
     let username
     if (banger[0]) {
       for (const e of banger[0].users) {
-        username = this.client.users.cache.get(e)
+        username = client.users.cache.get(e)
         if (username) {
           usrArr.push(username.username)
         }
