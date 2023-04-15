@@ -38,7 +38,7 @@ export default class extends Command {
         return
       }
 
-      msg.channel.send(img)
+      msg.channel.send({ files: [img] })
       break
     }
     case "config":
