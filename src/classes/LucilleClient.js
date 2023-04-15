@@ -26,7 +26,6 @@ export default class LucilleClient {
     this.registerCommands()
     this.monitorCommands()
     this.guildInstances = {}
-    this.commandPrefix = process.env.DISCORD_PREFIX
 
     this.db = new MasterDatabase()
     // this.voiceTracker = new VoiceTracker(this)
@@ -149,7 +148,7 @@ export default class LucilleClient {
 
   async executeCommand (msg) {
     try {
-      const match = msg.content.match(/^!(?<cmd>\w+?)(?:\s+?(?<args>.+?))?$/)
+      const match = msg.content.match(new RegExp(`^${this.commandPrefix}(?<cmd>\\w+?)(?:\\s+?(?<args>.+?))?$`))
       if (!match) return
 
       const { cmd: cmdName, args } = match.groups
@@ -187,5 +186,9 @@ export default class LucilleClient {
 
   getGuildInstance (guild) {
     return this.guildInstances[guild.id] || (this.guildInstances[guild.id] = new LucilleGuild(guild))
+  }
+
+  get commandPrefix () {
+    return process.env.DISCORD_PREFIX
   }
 }
