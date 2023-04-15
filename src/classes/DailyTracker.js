@@ -1,6 +1,6 @@
 import EventEmitter from "events"
 import { DateTime } from "luxon"
-import LucilleClient from "./LucilleClient"
+import LucilleClient from "./LucilleClient.js"
 
 const timeValidationRegex = /(?:[0-1]\d|2[0-3]):(?:[0-5]\d)(?::(?:[0-5]\d))?/
 

@@ -1,4 +1,4 @@
-import LucilleClient from "./LucilleClient"
+import LucilleClient from "./LucilleClient.js"
 
 class TicTacToe {
   constructor (msg, playerOneId, playerTwoId) {
