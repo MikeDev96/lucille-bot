@@ -68,7 +68,7 @@ export default class TikTokRipper {
 
       try {
         const attach = new AttachmentBuilder(filename)
-        await msg.reply({ files: attach })
+        await msg.reply({ files: [attach] })
       }
       catch (err) {
         msg.reply(new URL(endpoint, process.env.PUBLIC_URL).href)

@@ -148,7 +148,7 @@ export default class extends Command {
         LucilleClient.Instance.db.updateBangaUsers(currTrack, msg.author.id)
         msg.react("👍")
         if (bangerStampExists) {
-          msg.channel.send({ files: bangerStampImg })
+          msg.channel.send({ files: [bangerStampImg] })
         }
       }
     }
@@ -156,7 +156,7 @@ export default class extends Command {
       LucilleClient.Instance.db.writeBanga(queueItem.spotifyUri, currTrack, msg.author.id)
       msg.react("👍")
       if (bangerStampExists) {
-        msg.channel.send({ files: bangerStampImg })
+        msg.channel.send({ files: [bangerStampImg] })
       }
     }
   }

@@ -78,7 +78,7 @@ export default class extends Command {
         const cmd = this.buildCommand(templateArgs)
         const attachment = new AttachmentBuilder(Buffer.from(cmd, "utf8"), "amongus.bat")
 
-        msg.channel.send({ files: attachment })
+        msg.channel.send({ files: [attachment] })
       }
       break
     }

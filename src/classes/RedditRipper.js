@@ -84,7 +84,7 @@ export default class RedditRipper {
         }
         else {
           const attach = new AttachmentBuilder(filename)
-          await msg.reply({ files: attach })
+          await msg.reply({ files: [attach] })
         }
       }
 
