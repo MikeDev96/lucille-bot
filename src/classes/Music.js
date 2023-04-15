@@ -286,7 +286,7 @@ export default class Music extends MusicState {
 
       this.syncTime(0, prevPlaying.item)
 
-      // prevPlaying.stream.destroy()
+      prevPlaying.stream.destroy()
 
       await this.cleanItem(prevPlaying.item, false)
     }
