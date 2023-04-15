@@ -35,32 +35,19 @@ export default class extends Command {
 
       const doDelivery = () => reply.then(msg => msg.edit(`${text}\n\n**${json.delivery}**`))
 
-      if (msg.member.voice.channel) {
-        const isBotInSameChannel = msg.member.voice.channel.members.has(msg.client.user.id)
+      // TODO: Get 2 TTS streams and combine them with a pause in the middle and pass that to the music player instead
+      await TtsCommand.speak(msg, text)
 
-        await msg.member.voice.channel.join()
-        await TtsCommand.speak(msg, text)
+      const music = LucilleClient.Instance.getGuildInstance(msg.guild).music
+      const ttsStream = music.playing.stream
 
+      ttsStream.once("finish", async () => {
         if (json.type === "twopart") {
           await sleep(1000)
           doDelivery()
-          await TtsCommand.speak(msg, json.delivery)
+          TtsCommand.speak(msg, json.delivery)
         }
-
-        if (!isBotInSameChannel) {
-          msg.member.voice.channel.leave()
-        }
-        else {
-          const music = LucilleClient.Instance.getGuildInstance(msg.guild).music
-          music.play()
-        }
-      }
-      else {
-        if (json.type === "twopart") {
-          await sleep(3000)
-          doDelivery()
-        }
-      }
+      })
     }
     catch (err) {
       msg.reply(err.message)

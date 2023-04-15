@@ -27,10 +27,7 @@ class TtsCommand extends Command {
       if (msg.member.voice.channel) {
         msg.react("🎙️")
 
-        const music = LucilleClient.Instance.getGuildInstance(msg.guild).music
-        const track = TextToSpeech.getTtsTrack(getRequestee(msg), args.text)
-
-        music.add([track], track.requestee, msg.member.voice.channel, false, msg.guild.systemChannel)
+        await TtsCommand.speak(msg, args.text)
       }
       else {
         msg.react("🖕")
@@ -39,6 +36,13 @@ class TtsCommand extends Command {
     catch (err) {
       msg.reply(err.message)
     }
+  }
+
+  static async speak (msg, text) {
+    const music = LucilleClient.Instance.getGuildInstance(msg.guild).music
+    const track = TextToSpeech.getTtsTrack(getRequestee(msg), text)
+
+    await music.add([track], track.requestee, msg.member.voice.channel, false, msg.guild.systemChannel)
   }
 }
 
