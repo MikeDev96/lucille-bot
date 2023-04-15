@@ -148,7 +148,7 @@ export default class LucilleClient {
       const argsArr = args?.split(" ")
 
       const argsMap = cmd.config.args?.reduce((acc, cur, idx) => {
-        acc[cur.key] = argsArr?.[idx] ?? ""
+        acc[cur.key] = cur.type === "integer" ? parseInt(argsArr?.[idx] ?? "") : argsArr?.[idx] ?? ""
         return acc
       }, {})
 
