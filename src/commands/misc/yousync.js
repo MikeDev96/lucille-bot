@@ -1,31 +1,35 @@
 import fetch from "node-fetch"
-import LucilleClient from "../../classes/LucilleClient"
+import LucilleClient from "../../classes/LucilleClient.js"
+import Command from "../../classes/Command.js"
 
 const YOUTUBE_REGEX_PATTERN = /(?:https?:\/\/www.)?youtu(?:be.com\/watch\?v=|.be\/)([\w-]+)/
 
-export default {
-  config: {
-    name: "yousync",
-    aliases: ["ys"],
-    group: "misc",
-    memberName: "yousync",
-    description: "Create a YouSync room",
-    args: [
-      {
-        key: "strength",
-        prompt: "Enter a sponsor skip strength (optional)",
-        type: "string",
-        default: "low",
-      },
-      {
-        key: "link",
-        prompt: "Enter a YouTube link",
-        type: "string",
-        default: "",
-      },
-    ],
-    guildOnly: true,
-  },
+export default class extends Command {
+  constructor () {
+    super({
+      name: "yousync",
+      aliases: ["ys"],
+      group: "misc",
+      memberName: "yousync",
+      description: "Create a YouSync room",
+      args: [
+        {
+          key: "strength",
+          prompt: "Enter a sponsor skip strength (optional)",
+          type: "string",
+          default: "low",
+        },
+        {
+          key: "link",
+          prompt: "Enter a YouTube link",
+          type: "string",
+          default: "",
+        },
+      ],
+      guildOnly: true,
+    })
+  }
+
   async run (msg, args) {
     if (args.strength === "help") {
       msg.reply(getHelpMessage(LucilleClient.Instance.commandPrefix))
@@ -79,7 +83,7 @@ export default {
       const data = await res.json()
       msg.reply(`${process.env.YOUSYNC_URL}/room/${data.id}`)
     }
-  },
+  }
 }
 
 function getHelpMessage (prefix) {
