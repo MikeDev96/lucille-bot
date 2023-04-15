@@ -26,6 +26,7 @@ export default class LucilleClient {
     this.registerCommands()
     this.monitorCommands()
     this.guildInstances = {}
+    this.commandPrefix = process.env.DISCORD_PREFIX
 
     this.db = new MasterDatabase()
     // this.voiceTracker = new VoiceTracker(this)
