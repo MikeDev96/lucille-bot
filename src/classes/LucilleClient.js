@@ -192,8 +192,8 @@ export default class LucilleClient {
       const value = this.castValue(cur.type, strValue)
 
       const valid = cur.validate ? cur.validate(value) : true
-      if (typeof valid === "string") {
-        return `${cur.key} - ${valid}`
+      if (typeof valid === "string" || !valid) {
+        return valid ? `${cur.key} - ${valid}` : cur.prompt
       }
 
       argsMap[cur.key] = cur.type === "integer" ? parseInt(strValue) : strValue
