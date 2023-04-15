@@ -1,11 +1,10 @@
-import Commando from "discord.js-commando"
 import { isEmpty } from "lodash-es"
-import LucilleClient from "../../classes/LucilleClient"
-const { Command } = Commando
+import LucilleClient from "../../classes/LucilleClient.js"
+import Command from "../../classes/Command.js"
 
 export default class extends Command {
-  constructor (client) {
-    super(client, {
+  constructor () {
+    super({
       name: "pp",
       aliases: ["penis"],
       group: "fun",

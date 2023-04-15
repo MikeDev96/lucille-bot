@@ -1,13 +1,12 @@
-import Commando from "discord.js-commando"
 import parse from "parse-duration"
 import { DateTime } from "luxon"
-const { Command } = Commando
+import Command from "../../classes/Command.js"
 
 const timeValidationRegex = /(?:[0-1]\d|2[0-3]):(?:[0-5]\d)(?::(?:[0-5]\d))?/
 
 export default class extends Command {
-  constructor (client) {
-    super(client, {
+  constructor () {
+    super({
       name: "remind",
       aliases: ["reminder", "remindme"],
       group: "misc",

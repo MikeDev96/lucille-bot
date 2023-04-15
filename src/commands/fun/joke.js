@@ -1,12 +1,11 @@
-import Commando from "discord.js-commando"
 import fetch from "node-fetch"
 import { sleep } from "../../helpers.js"
 import TtsCommand from "./tts.js"
-const { Command } = Commando
+import Command from "../../classes/Command.js"
 
 export default class extends Command {
-  constructor (client) {
-    super(client, {
+  constructor () {
+    super({
       name: "joke",
       aliases: [],
       group: "fun",

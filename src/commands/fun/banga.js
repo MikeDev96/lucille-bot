@@ -6,11 +6,11 @@ import { DynamoDBClient } from "@aws-sdk/client-dynamodb"
 import { DynamoDBDocumentClient, PutCommand } from "@aws-sdk/lib-dynamodb"
 import { existsSync } from "fs"
 import LucilleClient from "../../classes/LucilleClient.js"
-const { Command } = Commando
+import Command from "../../classes/Command.js"
 
 export default class extends Command {
-  constructor (client) {
-    super(client, {
+  constructor () {
+    super({
       name: "banga",
       aliases: ["banger", "banging", "bangin", "b"],
       group: "fun",

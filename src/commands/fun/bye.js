@@ -1,10 +1,9 @@
-import Commando from "discord.js-commando"
+import Command from "../../classes/Command.js"
 import { getVoiceChannel } from "../../helpers.js"
-const { Command } = Commando
 
 export default class extends Command {
-  constructor (client) {
-    super(client, {
+  constructor () {
+    super({
       name: "bye",
       aliases: [],
       group: "fun",

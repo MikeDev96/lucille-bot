@@ -1,11 +1,10 @@
-import Commando from "discord.js-commando"
+import Command from "../../classes/Command.js"
 import TextToSpeech from "../../classes/TextToSpeech.js"
 import { getRequestee } from "../../helpers.js"
-const { Command } = Commando
 
 class TtsCommand extends Command {
-  constructor (client) {
-    super(client, {
+  constructor () {
+    super({
       name: "tts",
       aliases: [],
       group: "fun",

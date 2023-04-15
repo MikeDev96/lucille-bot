@@ -1,11 +1,10 @@
-import Commando from "discord.js-commando"
 import parse from "parse-duration"
 import { msToTimestamp } from "../../helpers.js"
-const { Command } = Commando
+import Command from "../../classes/Command.js"
 
 export default class extends Command {
-  constructor (client) {
-    super(client, {
+  constructor () {
+    super({
       name: "timer",
       aliases: ["settimer"],
       group: "misc",

@@ -1,16 +1,15 @@
 import { MessageEmbed } from "discord.js"
-import Commando from "discord.js-commando"
 import { DateTime } from "luxon"
 import rrule from "rrule"
 import humanizeDuration from "humanize-duration"
 import chrono from "chrono-node"
-import LucilleClient from "../../classes/LucilleClient"
+import LucilleClient from "../../classes/LucilleClient.js"
+import Command from "../../classes/Command.js"
 const { RRule } = rrule
-const { Command } = Commando
 
 export default class extends Command {
-  constructor (client) {
-    super(client, {
+  constructor () {
+    super({
       name: "calendar",
       aliases: ["cal"],
       group: "misc",

@@ -7,11 +7,11 @@ import Track from "../../classes/Track.js"
 import { PLATFORM_OTHER } from "../../classes/TrackExtractor.js"
 import { MessageAttachment, escapeMarkdown } from "discord.js"
 import AdmZip from "adm-zip"
-const { Command } = Commando
+import Command from "../../classes/Command.js"
 
 export default class extends Command {
-  constructor (client) {
-    super(client, {
+  constructor () {
+    super({
       name: "sound",
       aliases: [],
       group: "fun",

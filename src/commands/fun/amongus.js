@@ -1,11 +1,11 @@
 import { MessageAttachment } from "discord.js"
 import Commando from "discord.js-commando"
 import fs from "fs"
-const { Command } = Commando
+import Command from "../../classes/Command.js"
 
 export default class extends Command {
-  constructor (client) {
-    super(client, {
+  constructor () {
+    super({
       name: "amongus",
       aliases: ["a"],
       group: "fun",

@@ -1,7 +1,5 @@
-import { User } from "discord.js"
-import Commando from "discord.js-commando"
+// import { User } from "discord.js"
 import prism from "prism-media"
-const { CommandoMessage } = Commando
 
 export function createStream (user, { mode = "opus", end = "silence" } = {}) {
   user = this.connection.client.users.resolve(user)
@@ -16,15 +14,15 @@ export function createStream (user, { mode = "opus", end = "silence" } = {}) {
 }
 
 export const proxyCommand = (message, author = message.author, content, handlePrefix = true) => {
-  if (!(message instanceof CommandoMessage)) {
-    return Error("Message must be an instance of CommandoMessage")
-  }
+  // if (!(message instanceof CommandoMessage)) {
+  //   return Error("Message must be an instance of CommandoMessage")
+  // }
 
-  if (!(author instanceof User)) {
-    return Error("Author must be an instance of User")
-  }
+  // if (!(author instanceof User)) {
+  //   return Error("Author must be an instance of User")
+  // }
 
-  const prefix = message.guild ? message.guild.commandPrefix : message.client.dispatcher.client.commandPrefix
-  const fakeMessage = new CommandoMessage(message.client, { id: message.id, content: `${handlePrefix ? prefix : ""}${content}`, author }, message.channel)
-  message.client.dispatcher.handleMessage(fakeMessage)
+  // const prefix = message.guild ? message.guild.commandPrefix : message.client.dispatcher.client.commandPrefix
+  // const fakeMessage = new CommandoMessage(message.client, { id: message.id, content: `${handlePrefix ? prefix : ""}${content}`, author }, message.channel)
+  // message.client.dispatcher.handleMessage(fakeMessage)
 }

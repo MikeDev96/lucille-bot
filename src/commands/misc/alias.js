@@ -1,12 +1,11 @@
-import Commando from "discord.js-commando"
 import { proxyCommand } from "../../classes/DiscordJSHelpers.js"
 import { paginatedEmbed, splitMessage } from "../../helpers.js"
 import LucilleClient from "../../classes/LucilleClient.js"
-const { Command } = Commando
+import Command from "../../classes/Command.js"
 
 export default class Alias extends Command {
-  constructor (client) {
-    super(client, {
+  constructor () {
+    super({
       name: "alias",
       memberName: "alias",
       description: "Create aliases (shortcuts) for commands",

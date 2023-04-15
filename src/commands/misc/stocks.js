@@ -1,13 +1,12 @@
 import { MessageEmbed, escapeMarkdown } from "discord.js"
-import Commando from "discord.js-commando"
 import fetch from "node-fetch"
-import { splitMessage } from "../../helpers"
-import LucilleClient from "../../classes/LucilleClient"
-const { Command } = Commando
+import { splitMessage } from "../../helpers.js"
+import LucilleClient from "../../classes/LucilleClient.js"
+import Command from "../../classes/Command.js"
 
 export default class extends Command {
-  constructor (client) {
-    super(client, {
+  constructor () {
+    super({
       name: "stocks",
       aliases: ["stock", "stonk", "stonks", "nokia", "nok"],
       group: "misc",

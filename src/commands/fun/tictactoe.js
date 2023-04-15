@@ -1,11 +1,10 @@
-import Commando from "discord.js-commando"
 import TicTacToe from "../../classes/TicTacToe.js"
 import LucilleClient from "../../classes/LucilleClient.js"
-const { Command } = Commando
+import Command from "../../classes/Command.js"
 
 export default class extends Command {
-  constructor (client) {
-    super(client, {
+  constructor () {
+    super({
       name: "tictactoe",
       aliases: ["tic", "tac", "toe", "ttt"],
       group: "fun",

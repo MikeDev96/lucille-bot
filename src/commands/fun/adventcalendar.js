@@ -1,7 +1,6 @@
-import Commando from "discord.js-commando"
 import { DateTime } from "luxon"
 import Tenor from "tenorjs"
-const { Command } = Commando
+import Command from "../../classes/Command.js"
 
 let gifpairing = {}
 let prevDate = DateTime.local().toISODate()
@@ -9,8 +8,8 @@ let prevDate = DateTime.local().toISODate()
 const keywords = ["christmas pudding", "christmas donkey", "christmas elf", "christmas snowman", "christmas present", "christmas dog", "christmas cake", "christmas baby", "christmas jumper", "christmas bauble", "christmas wreath", "christmas stocking", "christmas robin", "santa sleigh", "rudolph", "christmas candle", "christmas tree", "christmas michael buble", "christmas hat", "christmas cookie", "christmas candy cane", "christmas lights", "christmas cracker", "father christmas", "christmas dinner"]
 
 export default class extends Command {
-  constructor (client) {
-    super(client, {
+  constructor () {
+    super({
       name: "advent calendar",
       aliases: ["ac"],
       group: "fun",
