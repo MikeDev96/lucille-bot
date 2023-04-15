@@ -1,3 +1,4 @@
+import LucilleClient from "./LucilleClient.js"
 import Requestee from "./Requestee.js"
 import Track from "./Track.js"
 import { PLATFORM_TTS } from "./TrackExtractor.js"
@@ -31,7 +32,7 @@ export default class TextToSpeech {
       .then(async res => {
         const user = this.validUsername(res.displayName) ? res.displayName : "User"
         const channel = event === "move" ? voiceObj.toChannel.name : voiceState.channel.name
-        const music = voiceState.guild.music
+        const music = LucilleClient.Instance.getGuildInstance(voiceState.guild).music
 
         const requestee = new Requestee(voiceState.guild.me.displayName, voiceState.guild, voiceState.guild.client.user.id)
         const track = TextToSpeech.getTtsTrack(requestee, this.getMessage(event, user, channel))

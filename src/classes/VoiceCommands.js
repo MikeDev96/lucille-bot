@@ -5,6 +5,7 @@ import SpeechToText from "./SpeechToText.js"
 import VoiceStateAdapter from "./VoiceStateAdapter.js"
 import { PassThrough } from "stream"
 import { GuildMember } from "discord.js"
+import LucilleClient from "./LucilleClient.js"
 
 class VoiceCommands {
   constructor (client) {
@@ -159,7 +160,7 @@ class VoiceCommands {
       throw Error("Member param must be instance of GuildMember")
     }
 
-    const music = member.guild.music
+    const music = LucilleClient.Instance.getGuildInstance(member.guild).music
     if (music) {
       const textChannel = music.getTextChannel()
       if (textChannel) {

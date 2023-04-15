@@ -1,5 +1,6 @@
 import Command from "../../classes/Command.js"
 import { getVoiceChannel } from "../../helpers.js"
+import LucilleClient from "../../classes/LucilleClient.js"
 
 export default class extends Command {
   constructor () {
@@ -75,7 +76,7 @@ export default class extends Command {
       return
     }
 
-    const music = msg.guild.music
+    const music = LucilleClient.Instance.getGuildInstance(msg.guild).music
     music.state.queue.splice(0, music.state.queue.length)
     music.setState({ queue: music.state.queue })
 
