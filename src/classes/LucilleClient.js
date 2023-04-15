@@ -106,7 +106,7 @@ export default class LucilleClient {
 
   async registerCommands () {
     try {
-      const commandFilenames = (await globby("src/commands/**/*.js", { absolute: true })).filter(c => /\b\/music\/\b/.test(c))
+      const commandFilenames = (await globby("src/commands/**/*.js", { absolute: true }))
       const commands = (await Promise.all(commandFilenames.map(l => import(`file://${l}`)))).reduce((acc, c) => {
         const Command = c.default
 
