@@ -81,7 +81,7 @@ export default class extends Command {
               },
             ],
           }
-          msg.reply(embed)
+          msg.reply({ embeds: [embed] })
         }
         else {
           msg.channel.send(`No stonks in ${listId === msg.author.id ? "your" : "their"} portfolio`)

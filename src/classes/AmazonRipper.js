@@ -31,7 +31,7 @@ const AmazonRipper = class {
               embed.setFooter(showCamel ? "CamelCamelCamel" : `Image ${ar.imageIndex + 1} of ${ar.images.length}`)
             }
 
-            messageReaction.message.edit({ embed })
+            messageReaction.message.edit({ embeds: [embed] })
           }
         }
       }
@@ -68,7 +68,7 @@ const AmazonRipper = class {
 
         embed.setImage(ar.images[ar.imageIndex])
         embed.setFooter(`Image ${ar.imageIndex + 1} of ${ar.images.length}`)
-        msg.edit({ embed })
+        msg.edit({ embeds: [embed] })
       }
     }
   }

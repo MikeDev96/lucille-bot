@@ -156,7 +156,7 @@ __**${prefix}lb command:**__
           else {
             const leaderboard = await msg.client.voiceTracker.getLeaderboard(msg.guild.id, { username: msg.author.displayName, avatarURL: msg.author.displayAvatarURL() }, msg.guild.members)
             if (leaderboard) {
-              msg.reply({ embed: leaderboard })
+              msg.reply({ embeds: [leaderboard] })
             }
           }
         }

@@ -24,7 +24,7 @@ export default class extends Command {
   async run (msg, args) {
     if (args.player.toLowerCase() === "lb") {
       const embed = this.getLeaderBoard(msg)
-      msg.reply(embed)
+      msg.reply({ embeds: [embed] })
     }
     else {
       try {

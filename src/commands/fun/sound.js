@@ -96,7 +96,7 @@ export default class extends Command {
       const key = typeMap[args.arg2.toLowerCase()]
       if (key) {
         const embed = await this.getFilesEmbed(msg, `./assets/sounds/${key}`, key)
-        msg.reply(embed)
+        msg.reply({ embeds: [embed] })
       }
     }
     else if (["play", "p"].includes(arg1)) {
