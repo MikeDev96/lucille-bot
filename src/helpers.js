@@ -107,7 +107,7 @@ export const paginatedEmbed = async (msg, embedTemplate, embedList, emojiList = 
 
 export const padInlineFields = fields => [
   ...fields,
-  Array(3 - (((fields.length) % 3) || 3)).fill(0).map(() => ({ name: "\u200b", value: "\u200b", inline: true })),
+  ...Array(3 - (((fields.length) % 3) || 3)).fill(0).map(() => ({ name: "\u200b", value: "\u200b", inline: true })),
 ]
 
 const youtube = new Client()

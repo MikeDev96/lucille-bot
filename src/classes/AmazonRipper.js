@@ -2,6 +2,7 @@ import fetch from "node-fetch"
 import he from "he"
 import { getEmoji, padInlineFields, getHRTimeDiff } from "../helpers.js"
 import { parse } from "node-html-parser"
+import { EmbedBuilder, Events } from "discord.js"
 
 const AmazonRipper = class {
   constructor (client) {
@@ -10,8 +11,9 @@ const AmazonRipper = class {
       const msg = await messageReaction.message.fetch()
 
       if (user.id !== client.user.id && messageReaction.emoji.name === "🐪") {
-        const embed = messageReaction.message.embeds[0]
-        if (embed) {
+        const embedData = messageReaction.message.embeds[0]
+        if (embedData) {
+          const embed = new EmbedBuilder(embedData)
           const match = /(?<=\/dp\/)\w.+?\b/.exec(embed.url)
           if (match) {
             messageReaction.users.remove(user)
@@ -43,8 +45,8 @@ const AmazonRipper = class {
   }
 
   async cycleImage (msg, dir, reaction, user) {
-    const embed = msg.embeds[0]
-    if (embed) {
+    if (msg.embeds[0]) {
+      const embed = new EmbedBuilder(msg.embeds[0])
       if (this.isAmazonLink(embed.url)) {
         reaction.users.remove(user)
 
@@ -94,35 +96,19 @@ const AmazonRipper = class {
             url: msg.content,
             fields: [
               ...padInlineFields([
-                ...(info.price
-                  ? [
-                    {
-                      name: "Price",
-                      value: info.price,
-                      inline: true,
-                    },
-                  ]
-                  : []),
-                ...(info.rating
-                  ? [
-                    {
-                      name: "Rating",
-                      value: info.rating,
-                      inline: true,
-                    },
-                  ]
-                  : []),
+                info.price && { name: "Price", value: info.price, inline: true },
+                info.rating && { name: "Rating", value: info.rating, inline: true },
                 ...info.variations.map(v => ({
                   name: v.name,
                   value: v.value,
                   inline: true,
                 })),
-              ]),
+              ].filter(f => f)),
               ...(info.overview.length
                 ? [
                   {
                     name: "Overview",
-                    value: info.overview.map(({ key, value }) => `${key}: ${value}`).join("\n").substr(0, 1024),
+                    value: info.overview.map(({ key, value }) => `${key}: ${value}`).join("\n").substring(0, 1024),
                   },
                 ]
                 : []),
@@ -130,7 +116,7 @@ const AmazonRipper = class {
                 ? [
                   {
                     name: "Features",
-                    value: info.features.map(feat => `• ${feat}`).join("\n").substr(0, 1024),
+                    value: info.features.map(feat => `• ${feat}`).join("\n").substring(0, 1024),
                   },
                 ]
                 : []),
@@ -228,7 +214,7 @@ const AmazonRipper = class {
         features,
         rating,
         imageIndex: 0,
-        variations: variations.dimensions ? variations.dimensions.map(key => ({ name: variations.variationDisplayLabels[key], value: variations.selected_variations[key] })) : [],
+        variations: variations.dimensions ? variations.dimensions.map(key => ({ name: variations.variationDisplayLabels[key], value: variations.variationValues[key][variations.selectedVariationValues[key]] })) : [],
       }
     }
     catch (err) {
@@ -239,7 +225,7 @@ const AmazonRipper = class {
   }
 
   static getImages (html, data) {
-    const match = /var data = ({\s*?'colorImages':.+?});/gs.exec(html)
+    const match = /var data = ({.*?'colorImages':.+?});/gs.exec(html)
     if (match) {
       const [, json] = match
 
