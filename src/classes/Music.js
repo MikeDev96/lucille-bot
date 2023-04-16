@@ -12,7 +12,7 @@ import MusicState from "./MusicState.js"
 import Requestee from "./Requestee.js"
 import { NoSubscriberBehavior, createAudioPlayer, createAudioResource, joinVoiceChannel, AudioPlayerStatus, getVoiceConnection, VoiceConnectionStatus } from "@discordjs/voice"
 import LucilleClient from "./LucilleClient.js"
-import { escapeMarkdown } from "discord.js"
+import { Events, escapeMarkdown } from "discord.js"
 
 const PLATFORMS_REQUIRE_YT_SEARCH = [PLATFORM_SPOTIFY, PLATFORM_TIDAL, PLATFORM_APPLE, PLATFORM_YOUTUBE, "search"]
 
@@ -42,7 +42,7 @@ export default class Music extends MusicState {
     this.listenTimeHandle = null
     this.streamTimeCache = 0
 
-    guild.client.once("ready", async () => {
+    guild.client.once(Events.ClientReady, async () => {
       // If an embed exists from the previous instance, delete it
       if (this.state.embedId && this.state.textChannel) {
         try {

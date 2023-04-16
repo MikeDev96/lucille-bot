@@ -5,7 +5,7 @@ import { parse } from "node-html-parser"
 
 const AmazonRipper = class {
   constructor (client) {
-    client.on("messageReactionAdd", async (messageReaction, user) => {
+    client.on(Events.MessageReactionAdd, async (messageReaction, user) => {
       // If the bot is restarted then the message will no longer be in the cache
       const msg = await messageReaction.message.fetch()
 

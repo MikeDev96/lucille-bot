@@ -4,7 +4,7 @@ export default class extends EventEmitter {
   constructor (client) {
     super()
 
-    client.on("message", msg => this.run(msg))
+    client.client.on(Events.MessageCreate, msg => this.run(msg))
 
     this.client = client
   }

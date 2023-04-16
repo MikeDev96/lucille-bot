@@ -3,6 +3,7 @@ import Track from "./Track.js"
 import Requestee from "./Requestee.js"
 import { createRequire } from "module"
 import LucilleClient from "./LucilleClient.js"
+import { Events } from "discord.js"
 
 const require = createRequire(import.meta.url)
 const radios = require("../../radios.json")
@@ -23,7 +24,7 @@ export default class MusicState {
       }
     }, 5000, { leading: false })
 
-    guild.client.once("ready", () => {
+    guild.client.once(Events.ClientReady, () => {
       this.loadState()
     })
   }

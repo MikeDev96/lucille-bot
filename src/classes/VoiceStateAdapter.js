@@ -1,3 +1,4 @@
+import { Events } from "discord.js"
 import EventEmitter from "events"
 
 const trackingFields = ["selfMute", "selfDeaf", "serverMute", "serverDeaf"]
@@ -6,7 +7,7 @@ class VoiceStateAdapter extends EventEmitter {
   constructor (client) {
     super()
     this.client = client
-    this.client.on("voiceStateUpdate", this.voiceStateUpdate.bind(this))
+    this.client.on(Events.VoiceStateUpdate, this.voiceStateUpdate.bind(this))
   }
 
   voiceStateUpdate (oldMember, newMember) {

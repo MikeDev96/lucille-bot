@@ -22,7 +22,7 @@ export default class LucilleClient {
 
   constructor () {
     this.client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.MessageContent, GatewayIntentBits.GuildMessages, GatewayIntentBits.GuildVoiceStates, GatewayIntentBits.GuildMembers, GatewayIntentBits.GuildMessageReactions] })
-    this.client.once("ready", () => console.log("Discord client ready"))
+    this.client.once(Events.ClientReady, () => console.log("Discord client ready"))
     this.registerCommands()
     this.monitorCommands()
     this.guildInstances = {}
@@ -203,7 +203,7 @@ export default class LucilleClient {
   }
 
   setupGuilds () {
-    this.client.once("ready", () => {
+    this.client.once(Events.ClientReady, () => {
       for (const [, guild] of this.client.guilds.cache) {
         this.getGuildInstance(guild)
       }

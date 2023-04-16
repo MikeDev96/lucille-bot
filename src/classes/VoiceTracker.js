@@ -1,6 +1,7 @@
 import humanizeDuration from "humanize-duration"
 // import VoiceStateAdapter from "./VoiceStateAdapter.js"
 import LucilleClient from "./LucilleClient.js"
+import { Events } from "discord.js"
 
 class VoiceTracker {
   constructor (client) {
@@ -62,8 +63,8 @@ class VoiceTracker {
   }
 
   initClient () {
-    this.client.once("ready", this.initiateMonitor.bind(this))
-    this.client.on("voiceStateUpdate", this.voiceStateUpdate.bind(this))
+    this.client.once(Events.ClientReady, this.initiateMonitor.bind(this))
+    this.client.on(Events.VoiceStateUpdate, this.voiceStateUpdate.bind(this))
     this.initSpeechTracking()
   }
 
