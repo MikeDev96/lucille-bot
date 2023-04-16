@@ -12,7 +12,7 @@ import MusicState from "./MusicState.js"
 import Requestee from "./Requestee.js"
 import { NoSubscriberBehavior, createAudioPlayer, createAudioResource, joinVoiceChannel, AudioPlayerStatus, getVoiceConnection, VoiceConnectionStatus } from "@discordjs/voice"
 import LucilleClient from "./LucilleClient.js"
-import { Events, escapeMarkdown } from "discord.js"
+import { escapeMarkdown } from "discord.js"
 
 const PLATFORMS_REQUIRE_YT_SEARCH = [PLATFORM_SPOTIFY, PLATFORM_TIDAL, PLATFORM_APPLE, PLATFORM_YOUTUBE, "search"]
 
@@ -42,32 +42,33 @@ export default class Music extends MusicState {
     this.listenTimeHandle = null
     this.streamTimeCache = 0
 
-    guild.client.once(Events.ClientReady, async () => {
-      // If an embed exists from the previous instance, delete it
-      if (this.state.embedId && this.state.textChannel) {
-        try {
-          const msg = await this.state.textChannel.messages.fetch(this.state.embedId)
-          if (msg) {
-            msg.delete()
-          }
-        }
-        catch (err) {
-          console.log(err.message)
-        }
-      }
-
-      // Useful for testing, boots the bot out of the channel on start up
-      if (guild.voice) {
-        await guild.voice.setChannel(null)
-      }
-
-      if (this.state.summoned && this.state.voiceChannel) {
-        this.summon(this.state.voiceChannel)
-        await this.play()
-      }
-    })
-
     this.setupPlayer()
+    this.init()
+  }
+
+  async init () {
+    // If an embed exists from the previous instance, delete it
+    if (this.state.embedId && this.state.textChannel) {
+      try {
+        const msg = await this.state.textChannel.messages.fetch(this.state.embedId)
+        if (msg) {
+          msg.delete()
+        }
+      }
+      catch (err) {
+        console.log(err.message)
+      }
+    }
+
+    // Useful for testing, boots the bot out of the channel on start up
+    if (this.guild.voice) {
+      await this.guild.voice.setChannel(null)
+    }
+
+    if (this.state.summoned && this.state.voiceChannel) {
+      this.summon(this.state.voiceChannel)
+      await this.play()
+    }
   }
 
   summon (voiceChannel) {
