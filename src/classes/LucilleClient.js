@@ -39,11 +39,11 @@ export default class LucilleClient {
     this.createDailyTracker()
     this.createTTS()
 
-    // this.on(Events.VoiceStateUpdate, (_oldVoice, newVoice) => {
-    //   if (newVoice.id === this.user.id && newVoice.channelId) {
-    //     LucilleClient.Instance.getGuildInstance(newVoice.guild).music.setState({ voiceChannel: newVoice.channel })
-    //   }
-    // })
+    this.client.on(Events.VoiceStateUpdate, (_oldVoice, newVoice) => {
+      if (newVoice.id === this.client.user.id && newVoice.channelId) {
+        LucilleClient.Instance.getGuildInstance(newVoice.guild).music.setState({ voiceChannel: newVoice.channel })
+      }
+    })
 
     this.setupGuilds()
   }
