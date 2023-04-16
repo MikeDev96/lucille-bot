@@ -34,7 +34,7 @@ export default class TextToSpeech {
         const channel = event === "move" ? voiceObj.toChannel.name : voiceState.channel.name
         const music = LucilleClient.Instance.getGuildInstance(voiceState.guild).music
 
-        const requestee = new Requestee(voiceState.guild.me.displayName, voiceState.guild, voiceState.guild.client.user.id)
+        const requestee = new Requestee(voiceState.guild.members.me.displayName, voiceState.guild, voiceState.guild.client.user.id)
         const track = TextToSpeech.getTtsTrack(requestee, this.getMessage(event, user, channel))
         music.add([track], requestee, voiceState.channel, false, voiceState.guild.systemChannel)
       })
