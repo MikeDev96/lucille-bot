@@ -55,8 +55,9 @@ export default class Music extends MusicState {
           msg.delete()
         }
       }
-      catch (err) {
-        console.log(err.message)
+      catch { }
+      finally {
+        this.setState({ embedId: "" })
       }
     }
 
