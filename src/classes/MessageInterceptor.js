@@ -1,3 +1,4 @@
+import { Events } from "discord.js"
 import EventEmitter from "events"
 
 export default class extends EventEmitter {
@@ -10,7 +11,7 @@ export default class extends EventEmitter {
   }
 
   async run (msg) {
-    if (this.client.dispatcher.parseMessage(msg)) {
+    if (this.client.parseMessage(msg)) {
       return
     }
 

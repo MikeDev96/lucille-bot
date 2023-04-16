@@ -1,13 +1,13 @@
 import EventEmitter from "events"
 import { DateTime } from "luxon"
-import LucilleClient from "./LucilleClient.js"
 
 const timeValidationRegex = /(?:[0-1]\d|2[0-3]):(?:[0-5]\d)(?::(?:[0-5]\d))?/
 
 class DailyTracker extends EventEmitter {
-  constructor (startTime) {
+  constructor (client, startTime) {
     super()
 
+    this.client = client
     this.startTime = startTime
 
     this.initResetTimer()
@@ -15,10 +15,10 @@ class DailyTracker extends EventEmitter {
 
   initResetTimer () {
     // no need to check if it exists because we just work out the duration anyway
-    let nextResetTime = LucilleClient.Instance.db.setSetting("", "Daily.nextReset", Date.now() + this.getDuration(), "number") // 86400000
+    let nextResetTime = this.client.db.setSetting("", "Daily.nextReset", Date.now() + this.getDuration(), "number") // 86400000
 
     setTimeout(() => {
-      nextResetTime = LucilleClient.Instance.db.setSetting("", "Daily.nextReset", Date.now() + this.getDuration(), "number")
+      nextResetTime = this.client.db.setSetting("", "Daily.nextReset", Date.now() + this.getDuration(), "number")
 
       this.emit("reset")
       this.initResetTimer()
