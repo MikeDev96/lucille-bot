@@ -1,5 +1,5 @@
 import prism from "prism-media"
-import { msToTimestamp, playDlDiscord12CompatabilityWrapper } from "../helpers.js"
+import { msToTimestamp } from "../helpers.js"
 import { Readable, PassThrough } from "stream"
 import { stream_from_info as streamFromInfo, video_info as videoInfo } from "play-dl"
 
@@ -59,8 +59,8 @@ export const getStream = async (url, options) => {
   }
   else {
     const stream = await streamFromInfo(info, { seek: options.startTime / 1000 })
-
-    return playDlDiscord12CompatabilityWrapper({ ...stream, type: stream.type === "arbitrary" ? "unknown" : stream.type })
+    // return playDlDiscord12CompatabilityWrapper({ ...stream, type: stream.type === "arbitrary" ? "unknown" : stream.type })
+    return stream
   }
 }
 

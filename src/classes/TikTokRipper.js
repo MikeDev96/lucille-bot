@@ -5,8 +5,8 @@ import sanitise from "sanitize-filename"
 import path from "path"
 import { globby } from "globby"
 import express from "express"
-import { MessageAttachment } from "discord.js"
 import tts from "tiktok-scraper"
+import { AttachmentBuilder } from "discord.js"
 
 export const router = express.Router()
 
@@ -67,8 +67,8 @@ export default class TikTokRipper {
       const [filename, endpoint] = await this.run(url, id)
 
       try {
-        const attach = new MessageAttachment(filename)
-        await msg.reply(attach)
+        const attach = new AttachmentBuilder(filename)
+        await msg.reply({ files: [attach] })
       }
       catch (err) {
         msg.reply(new URL(endpoint, process.env.PUBLIC_URL).href)

@@ -1,10 +1,11 @@
-import Commando from "discord.js-commando"
+import { PermissionsBitField } from "discord.js"
+import Command from "../../classes/Command.js"
 import { getVoiceChannel } from "../../helpers.js"
-const { Command } = Commando
+import LucilleClient from "../../classes/LucilleClient.js"
 
 export default class extends Command {
-  constructor (client) {
-    super(client, {
+  constructor () {
+    super({
       name: "bye",
       aliases: [],
       group: "fun",
@@ -21,7 +22,7 @@ export default class extends Command {
       return
     }
 
-    if (!msg.channel.permissionsFor(msg.guild.roles.everyone).has("VIEW_CHANNEL")) {
+    if (!msg.channel.permissionsFor(msg.guild.roles.everyone).has(PermissionsBitField.Flags.ViewChannel)) {
       msg.channel.send("To use this command it needs to be posted in a channel that EVERYONE can see. If your doing this in a secret channel you know who you are, naughty naughty")
       return
     }
@@ -49,7 +50,7 @@ export default class extends Command {
     const confirmMsg = await msg.reply(`Is this bye wanted?`)
     confirmMsg.react("🛑")
     const filter = (reaction, user) => ["🛑"].includes(reaction.emoji.name) && !user.bot && checkPeopleAreInChannel.includes(user.id)
-    const collected = await confirmMsg.awaitReactions(filter, { time: 8000, max: 1 })
+    const collected = await confirmMsg.awaitReactions({ filter, time: 8000, max: 1 })
     if (confirmMsg.deleted) {
       msg.channel.send("Rude, don't delete the bye until its finished please")
       return
@@ -76,7 +77,7 @@ export default class extends Command {
       return
     }
 
-    const music = msg.guild.music
+    const music = LucilleClient.Instance.getGuildInstance(msg.guild).music
     music.state.queue.splice(0, music.state.queue.length)
     music.setState({ queue: music.state.queue })
 

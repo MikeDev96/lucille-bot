@@ -1,9 +1,9 @@
-import Commando from "discord.js-commando"
-const { Command } = Commando
+import Command from "../../classes/Command.js"
+import LucilleClient from "../../classes/LucilleClient.js"
 
 export default class extends Command {
-  constructor (client) {
-    super(client, {
+  constructor () {
+    super({
       name: "resume",
       aliases: ["unpause"],
       group: "music",
@@ -19,11 +19,9 @@ export default class extends Command {
 }
 
 export const resume = msg => {
-  const music = msg.guild.music
+  const music = LucilleClient.Instance.getGuildInstance(msg.guild).music
   music.setState({ pauser: "" })
-  music.dispatcherExec(d => d.resume())
-  // Resume is buggy from Node v14.16.1+ therefore restart the stream
-  // https://stackoverflow.com/a/67809381
-  music.play("before")
+  music.player.unpause()
+  music.updateEmbed()
   msg.react("▶️")
 }

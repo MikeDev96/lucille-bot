@@ -1,6 +1,7 @@
+import LucilleClient from "./LucilleClient.js"
+
 class ConnectFour {
-  constructor (client, gameId) {
-    this.db = client.db
+  constructor () {
     this.boardVals = "0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0".split(",")
     this.boardKey = ["⚫", "🟡", "🔴"]
     this.gameId = ""
@@ -54,7 +55,7 @@ class ConnectFour {
   }
 
   uploadWin (serverId, playerOne, playerTwo, winner) {
-    this.db.insertConnectFourWinner(serverId, playerOne, playerTwo, winner)
+    LucilleClient.Instance.db.insertConnectFourWinner(serverId, playerOne, playerTwo, winner)
   }
 
   checkForWin (turn) {

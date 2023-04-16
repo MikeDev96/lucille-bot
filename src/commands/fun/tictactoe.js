@@ -1,10 +1,10 @@
-import Commando from "discord.js-commando"
 import TicTacToe from "../../classes/TicTacToe.js"
-const { Command } = Commando
+import LucilleClient from "../../classes/LucilleClient.js"
+import Command from "../../classes/Command.js"
 
 export default class extends Command {
-  constructor (client) {
-    super(client, {
+  constructor () {
+    super({
       name: "tictactoe",
       aliases: ["tic", "tac", "toe", "ttt"],
       group: "fun",
@@ -24,7 +24,7 @@ export default class extends Command {
   async run (msg, args) {
     if (args.player.toLowerCase() === "lb") {
       const embed = this.getLeaderBoard(msg)
-      msg.reply(embed)
+      msg.reply({ embeds: [embed] })
     }
     else {
       try {
@@ -80,7 +80,7 @@ export default class extends Command {
         await queryMsg.react(reactions[i])
       }
 
-      const collected = await queryMsg.awaitReactions((reaction, user) => reactions.includes(reaction.emoji.name) && user.id === playerTwoId, { time: 60000, max: 1 })
+      const collected = await queryMsg.awaitReactions({ filter: (reaction, user) => reactions.includes(reaction.emoji.name) && user.id === playerTwoId, time: 60000, max: 1 })
       const key = collected.firstKey()
 
       queryMsg.delete()
@@ -98,7 +98,7 @@ export default class extends Command {
 
   // dupe of the connect 4 win, could do with another class of just MISC shit i suppose
   getLeaderBoard (msg) {
-    const stats = msg.client.db.getGameWins("TicTacToe", msg.guild.id)
+    const stats = LucilleClient.Instance.db.getGameWins("TicTacToe", msg.guild.id)
 
     const winloss = stats.reduce((acc, cur) => {
       if (!acc.has(cur.PlayerId)) {
@@ -133,20 +133,22 @@ export default class extends Command {
       }))
 
     return {
-      embed: {
-        title: `TicTacToe Leaderboard`,
-        description: "TicTacToe leaderboard",
-        color: 4187927,
-        author: {
-          name: "Lucille",
-          icon_url: msg.client.user.displayAvatarURL(),
-        },
+      embeds: [
+        {
+          title: `TicTacToe Leaderboard`,
+          description: "TicTacToe leaderboard",
+          color: 4187927,
+          author: {
+            name: "Lucille",
+            icon_url: msg.client.user.displayAvatarURL(),
+          },
 
-        fields: [...fields],
-        footer: {
-          text: process.env.DISCORD_FOOTER,
+          fields: [...fields],
+          footer: {
+            text: process.env.DISCORD_FOOTER,
+          },
         },
-      },
+      ],
     }
   }
 }

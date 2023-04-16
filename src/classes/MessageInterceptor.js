@@ -1,16 +1,17 @@
+import { Events } from "discord.js"
 import EventEmitter from "events"
 
 export default class extends EventEmitter {
   constructor (client) {
     super()
 
-    client.on("message", msg => this.run(msg))
+    client.client.on(Events.MessageCreate, msg => this.run(msg))
 
     this.client = client
   }
 
   async run (msg) {
-    if (this.client.dispatcher.parseMessage(msg)) {
+    if (this.client.parseMessage(msg)) {
       return
     }
 

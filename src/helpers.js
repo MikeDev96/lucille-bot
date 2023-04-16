@@ -1,10 +1,11 @@
-import { Util } from "discord.js"
+// import { Util } from "discord.js"
 import { PassThrough, Readable } from "stream"
 import Requestee from "./classes/Requestee.js"
 import fetch from "node-fetch"
 import { Duration } from "luxon"
 import { Client } from "youtubei"
 import gtts from "google-tts-api"
+import { ChannelType } from "discord.js"
 
 export const noop = () => { }
 
@@ -53,10 +54,6 @@ export const selectRandom = array => {
   return array[Math.floor(Math.random() * array.length)]
 }
 
-export const escapeMarkdown = text => {
-  return Util.escapeMarkdown(text || "")
-}
-
 export const getEmoji = (guild, emoji) => {
   return (guild.emojis.cache.find(e => e.name === emoji) || "").toString()
 }
@@ -72,36 +69,36 @@ export const getRequestee = msg => {
 }
 
 export const getVoiceChannel = msg => {
-  return msg.member.voice.channel || msg.guild.channels.cache.find(c => c.type === "voice")
+  return msg.member.voice.channel || msg.guild.channels.cache.find(c => c.type === ChannelType.GuildVoice)
 }
 
 export const isInBotsVoiceChannel = msg => {
-  return msg.author.id === process.env.DISCORD_OWNER || (msg.guild.voice && msg.guild.voice.channelID && msg.guild.voice.channelID === msg.member.voice.channelID) || msg.member.voice.deaf
+  return msg.author.id === process.env.DISCORD_OWNER || (msg.guild.voice && msg.guild.voice.channelId && msg.guild.voice.channelId === msg.member.voice.channelId) || msg.member.voice.deaf
 }
 
 export const paginatedEmbed = async (msg, embedTemplate, embedList, emojiList = ["⏪", "◀️", "▶️", "⏩"], timeout = 120000) => {
   if (!msg || !msg.channel || !embedList || emojiList.length !== 4) return
 
   let embedIndex = 0
-  embedTemplate.embed.fields = embedList[embedIndex]
-  const currentEmbed = await msg.channel.send(embedTemplate)
+  embedTemplate.fields = embedList[embedIndex]
+  const currentEmbed = await msg.channel.send({ embeds: [embedTemplate] })
 
   for (const emoji of emojiList) await currentEmbed.react(emoji)
 
-  const reactionCollector = currentEmbed.createReactionCollector((reaction, user) => emojiList.includes(reaction.emoji.name) && !user.bot, { time: timeout })
+  const reactionCollector = currentEmbed.createReactionCollector({ filter: (reaction, user) => emojiList.includes(reaction.emoji.name) && !user.bot, time: timeout })
   reactionCollector.on("collect", reaction => {
     reaction.users.remove(msg.author)
 
     switch (reaction.emoji.name) {
-    case emojiList[0] : { embedIndex = 0; break }
-    case emojiList[1] : { embedIndex = (embedIndex > 0) ? --embedIndex : embedList.length - 1; break }
-    case emojiList[2] : { embedIndex = (embedIndex + 1 < embedList.length) ? ++embedIndex : 0; break }
-    case emojiList[3] : { embedIndex = embedList.length - 1; break }
-    default: break
+      case emojiList[0] : { embedIndex = 0; break }
+      case emojiList[1] : { embedIndex = (embedIndex > 0) ? --embedIndex : embedList.length - 1; break }
+      case emojiList[2] : { embedIndex = (embedIndex + 1 < embedList.length) ? ++embedIndex : 0; break }
+      case emojiList[3] : { embedIndex = embedList.length - 1; break }
+      default: break
     }
 
-    embedTemplate.embed.fields = embedList[embedIndex]
-    currentEmbed.edit(embedTemplate)
+    embedTemplate.fields = embedList[embedIndex]
+    currentEmbed.edit({ embeds: [embedTemplate] })
   })
 
   reactionCollector.on("end", () => currentEmbed.reactions.removeAll())
@@ -110,7 +107,7 @@ export const paginatedEmbed = async (msg, embedTemplate, embedList, emojiList = 
 
 export const padInlineFields = fields => [
   ...fields,
-  Array(3 - (((fields.length) % 3) || 3)).fill(0).map(() => ({ name: "\u200b", value: "\u200b", inline: true })),
+  ...Array(3 - (((fields.length) % 3) || 3)).fill(0).map(() => ({ name: "\u200b", value: "\u200b", inline: true })),
 ]
 
 const youtube = new Client()
@@ -171,16 +168,25 @@ export const getEpoch = () => Date.now() / 1000
 
 export const logarithmic = value => Math.pow(value, 1.660964)
 
-export const fixDispatcher = dispatcher => {
-  dispatcher.once("close", () => {
-    // Discord.js only destroys child streams when the finish event fires...
-    // Lets also destroy them when the dispatch gets destroyed.
-    for (const stream in dispatcher.streams) {
-      dispatcher.streams[stream].destroy()
+export const splitMessage = (text, { maxLength = 2000, char = "\n", prepend = "", append = "" } = {}) => {
+  text = resolveString(text)
+  if (text.length <= maxLength) return [text]
+  const splitText = text.split(char)
+  if (splitText.some(chunk => chunk.length > maxLength)) throw new RangeError("SPLIT_MAX_LEN")
+  const messages = []
+  let msg = ""
+  for (const chunk of splitText) {
+    if (msg && (msg + char + chunk + append).length > maxLength) {
+      messages.push(msg + append)
+      msg = prepend
     }
+    msg += (msg && msg !== prepend ? char : "") + chunk
+  }
+  return messages.concat(msg).filter(m => m)
+}
 
-    console.log("Cleaned up underlying streams")
-  })
-
-  return dispatcher
+export const resolveString = data => {
+  if (typeof data === "string") return data
+  if (Array.isArray(data)) return data.join("\n")
+  return String(data)
 }

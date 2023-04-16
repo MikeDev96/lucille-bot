@@ -1,17 +1,17 @@
-import Commando from "discord.js-commando"
 import fetch from "node-fetch"
 import fs from "fs"
 import { getAudioDurationInSeconds } from "get-audio-duration"
-import { getRequestee, getVoiceChannel } from "../../helpers.js"
+import { getRequestee, getVoiceChannel, splitMessage } from "../../helpers.js"
 import Track from "../../classes/Track.js"
 import { PLATFORM_OTHER } from "../../classes/TrackExtractor.js"
-import { Util, MessageAttachment } from "discord.js"
+import { AttachmentBuilder, escapeMarkdown } from "discord.js"
 import AdmZip from "adm-zip"
-const { Command } = Commando
+import Command from "../../classes/Command.js"
+import LucilleClient from "../../classes/LucilleClient.js"
 
 export default class extends Command {
-  constructor (client) {
-    super(client, {
+  constructor () {
+    super({
       name: "sound",
       aliases: [],
       group: "fun",
@@ -96,7 +96,7 @@ export default class extends Command {
       const key = typeMap[args.arg2.toLowerCase()]
       if (key) {
         const embed = await this.getFilesEmbed(msg, `./assets/sounds/${key}`, key)
-        msg.reply(embed)
+        msg.reply({ embeds: [embed] })
       }
     }
     else if (["play", "p"].includes(arg1)) {
@@ -107,7 +107,7 @@ export default class extends Command {
             if (args.arg3) {
               const file = files.find(f => f.toLowerCase().includes(args.arg3.toLowerCase()))
               if (file) {
-                const music = msg.guild.music
+                const music = LucilleClient.Instance.getGuildInstance(msg.guild).music
                 const tracks = [
                   new Track("", file, "")
                     .setPlatform(PLATFORM_OTHER)
@@ -122,7 +122,7 @@ export default class extends Command {
               }
             }
             else {
-              const music = msg.guild.music
+              const music = LucilleClient.Instance.getGuildInstance(msg.guild).music
               const tracks = files.map(f =>
                 new Track("", f, "")
                   .setPlatform(PLATFORM_OTHER)
@@ -149,8 +149,8 @@ export default class extends Command {
             if (args.arg3) {
               const file = files.find(f => f.toLowerCase().includes(args.arg3.toLowerCase()))
               if (file) {
-                const attach = new MessageAttachment(`${path}/${file}`, file)
-                msg.reply(attach).then(() => {
+                const attach = new AttachmentBuilder(`${path}/${file}`, { name: file })
+                msg.reply({ files: [attach] }).then(() => {
                   msg.react("⬇️")
                   waitReact.then(r => r.remove())
                 })
@@ -164,8 +164,8 @@ export default class extends Command {
               const zip = new AdmZip()
               zip.addLocalFolder(path)
               zip.toBuffer(buffer => {
-                const attach = new MessageAttachment(buffer, `${files.length} ${key} sounds.zip`)
-                msg.reply(attach).then(() => {
+                const attach = new AttachmentBuilder(buffer, { name: `${files.length} ${key} sounds.zip` })
+                msg.reply({ files: [attach] }).then(() => {
                   msg.react("⬇️")
                   waitReact.then(r => r.remove())
                 })
@@ -192,22 +192,24 @@ export default class extends Command {
         }
         else {
           return resolve({
-            embed: {
-              color: 0x0099ff,
-              title: "Lucille 🎵",
-              author: {
-                name: msg.member.displayName,
-                icon_url: msg.author.displayAvatarURL(),
+            embeds: [
+              {
+                color: 0x0099ff,
+                title: "Lucille 🎵",
+                author: {
+                  name: msg.member.displayName,
+                  icon_url: msg.author.displayAvatarURL(),
+                },
+                fields: splitMessage(files.map(f => f === highlightFile ? `> **${escapeMarkdown(f)}**` : escapeMarkdown(f)), { maxLength: 1024 }).map(str => ({
+                  name: "Files",
+                  value: str,
+                })),
+                footer: {
+                  text: process.env.DISCORD_FOOTER,
+                  icon_url: process.env.DISCORD_AUTHORAVATARURL,
+                },
               },
-              fields: Util.splitMessage(files.map(f => f === highlightFile ? `> **${Util.escapeMarkdown(f)}**` : Util.escapeMarkdown(f)), { maxLength: 1024 }).map(str => ({
-                name: "Files",
-                value: str,
-              })),
-              footer: {
-                text: process.env.DISCORD_FOOTER,
-                icon_url: process.env.DISCORD_AUTHORAVATARURL,
-              },
-            },
+            ],
           })
         }
       })

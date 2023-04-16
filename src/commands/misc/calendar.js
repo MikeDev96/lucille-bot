@@ -1,15 +1,15 @@
-import { MessageEmbed } from "discord.js"
-import Commando from "discord.js-commando"
+import { EmbedBuilder } from "discord.js"
 import { DateTime } from "luxon"
 import rrule from "rrule"
 import humanizeDuration from "humanize-duration"
 import chrono from "chrono-node"
+import LucilleClient from "../../classes/LucilleClient.js"
+import Command from "../../classes/Command.js"
 const { RRule } = rrule
-const { Command } = Commando
 
 export default class extends Command {
-  constructor (client) {
-    super(client, {
+  constructor () {
+    super({
       name: "calendar",
       aliases: ["cal"],
       group: "misc",
@@ -70,7 +70,7 @@ export default class extends Command {
         }
 
         const dtStart = this.toRRuleDate(date)
-        this.client.db.addCalendarEvent(`DTSTART:${dtStart}\nRRULE:FREQ=DAILY;COUNT=1;INTERVAL=1;WKST=MO`, args.arg4, msg.author.id, msg.guild.id)
+        LucilleClient.Instance.db.addCalendarEvent(`DTSTART:${dtStart}\nRRULE:FREQ=DAILY;COUNT=1;INTERVAL=1;WKST=MO`, args.arg4, msg.author.id, msg.guild.id)
 
         msg.react("👌")
       }
@@ -103,7 +103,7 @@ export default class extends Command {
         }
 
         const dtStart = this.toRRuleDate(date)
-        this.client.db.addCalendarEvent(`DTSTART:${dtStart}\n${rrule.toString()}`, args.arg5, msg.author.id, msg.guild.id)
+        LucilleClient.Instance.db.addCalendarEvent(`DTSTART:${dtStart}\n${rrule.toString()}`, args.arg5, msg.author.id, msg.guild.id)
 
         msg.react("👌")
       }
@@ -114,7 +114,7 @@ export default class extends Command {
         return
       }
 
-      const event = this.client.db.findCalendarEvent(msg.guild.id, args.arg2)
+      const event = LucilleClient.Instance.db.findCalendarEvent(msg.guild.id, args.arg2)
       if (!event) {
         msg.reply(`Couldn't find an event for \`${args.arg2}\``)
         return
@@ -122,7 +122,7 @@ export default class extends Command {
 
       try {
         const replyMsg = await msg.reply(`Is \`${event.event}\` the event you want to remove?\nReply with yes or no [y | n]`)
-        const collected = await replyMsg.channel.awaitMessages(resMsg => resMsg.author.id === msg.author.id && /y|n/i.test(resMsg.content), { max: 1, time: 15000 })
+        const collected = await replyMsg.channel.awaitMessages({ filter: resMsg => resMsg.author.id === msg.author.id && /y|n/i.test(resMsg.content), max: 1, time: 15000 })
 
         replyMsg.delete()
 
@@ -130,7 +130,7 @@ export default class extends Command {
         if (firstMsg) {
           if (/y/i.test(firstMsg.content)) {
             firstMsg.react("🗑️")
-            this.client.db.removeCalendarEvent(event.calendarId)
+            LucilleClient.Instance.db.removeCalendarEvent(event.calendarId)
           }
         }
       }
@@ -139,7 +139,7 @@ export default class extends Command {
       }
     }
     else if (args.arg1 === "list" || args.arg1 === "ls") {
-      const events = this.client.db.getCalendarEvents(msg.guild.id)
+      const events = LucilleClient.Instance.db.getCalendarEvents(msg.guild.id)
 
       const reducedEvents = events.reduce((acc, event) => {
         const rrule = RRule.fromString(event.rrule)
@@ -167,17 +167,17 @@ export default class extends Command {
       reducedEvents.sort((a, b) => a.occurence.getTime() - b.occurence.getTime())
       reducedEvents.splice(10)
 
-      const embed = new MessageEmbed()
+      const embed = new EmbedBuilder()
         .setColor("#FF1493")
         .setTitle("Upcoming Events")
-        .setAuthor(msg.member.displayName, msg.author.displayAvatarURL())
+        .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL() })
         .addFields(reducedEvents.map(d => ({
           name: `${d.event}`,
           value: `${DateTime.fromJSDate(d.occurence).toLocal().toLocaleString(DateTime.DATETIME_MED)}\n\`${d.distance}\``,
         })))
-        .setFooter(process.env.DISCORD_FOOTER)
+        .setFooter({ text: process.env.DISCORD_FOOTER })
 
-      msg.reply(embed)
+      msg.reply({ embeds: [embed] })
     }
     else if (args.arg1 === "help") {
       msg.reply(`

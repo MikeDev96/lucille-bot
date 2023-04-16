@@ -1,11 +1,10 @@
-import { MessageAttachment } from "discord.js"
-import Commando from "discord.js-commando"
+import { AttachmentBuilder } from "discord.js"
 import fs from "fs"
-const { Command } = Commando
+import Command from "../../classes/Command.js"
 
 export default class extends Command {
-  constructor (client) {
-    super(client, {
+  constructor () {
+    super({
       name: "amongus",
       aliases: ["a"],
       group: "fun",
@@ -29,62 +28,62 @@ export default class extends Command {
 
   run (msg, args) {
     switch (args.arg1) {
-    case "image":
-    case "i":
-    case "show": {
-      const img = this.getImage(args.arg2)
+      case "image":
+      case "i":
+      case "show": {
+        const img = this.getImage(args.arg2)
 
-      if (!img) {
-        msg.reply("No such image exists.")
-        return
+        if (!img) {
+          msg.reply("No such image exists.")
+          return
+        }
+
+        msg.channel.send({ files: [img] })
+        break
       }
+      case "config":
+      case "c": {
+        const params = args.arg2.split(" ")
+        const templateArgs = {
+          hat: { id: 10, min: 0, max: 93, value: -1 },
+          pet: { id: 16, min: 0, max: 10, value: -1 },
+          skin: { id: 15, min: 0, max: 15, value: -1 },
+        }
 
-      msg.channel.send(img)
-      break
-    }
-    case "config":
-    case "c": {
-      const params = args.arg2.split(" ")
-      const templateArgs = {
-        hat: { id: 10, min: 0, max: 93, value: -1 },
-        pet: { id: 16, min: 0, max: 10, value: -1 },
-        skin: { id: 15, min: 0, max: 15, value: -1 },
-      }
+        // loop through user params and find any of the templates
+        for (let i = 0; i < params.length; i++) {
+          const key = params[i]
+          if (Object.keys(templateArgs).includes(key.toLowerCase())) {
+            const id = parseInt(params[i + 1])
 
-      // loop through user params and find any of the templates
-      for (let i = 0; i < params.length; i++) {
-        const key = params[i]
-        if (Object.keys(templateArgs).includes(key.toLowerCase())) {
-          const id = parseInt(params[i + 1])
-
-          // valid number?
-          if (!isNaN(id)) {
-            if (templateArgs[key].min <= id && templateArgs[key].max >= id) {
-              templateArgs[key].value = id
+            // valid number?
+            if (!isNaN(id)) {
+              if (templateArgs[key].min <= id && templateArgs[key].max >= id) {
+                templateArgs[key].value = id
+              }
+              else {
+                msg.reply(`Invalid value: ${key} must have a value between ${templateArgs[key].min}-${templateArgs[key].max}`)
+              }
             }
             else {
-              msg.reply(`Invalid value: ${key} must have a value between ${templateArgs[key].min}-${templateArgs[key].max}`)
+              msg.reply(`Invalid value: ${key} must have a numeric value between ${templateArgs[key].min}-${templateArgs[key].max}`)
             }
-          }
-          else {
-            msg.reply(`Invalid value: ${key} must have a numeric value between ${templateArgs[key].min}-${templateArgs[key].max}`)
-          }
 
-          i++
+            i++
+          }
         }
-      }
 
-      // Make sure we have a value
-      if (templateArgs.hat.value > -1 || templateArgs.pet.value > -1 || templateArgs.skin.value > -1) {
-        const cmd = this.buildCommand(templateArgs)
-        const attachment = new MessageAttachment(Buffer.from(cmd, "utf8"), "amongus.bat")
+        // Make sure we have a value
+        if (templateArgs.hat.value > -1 || templateArgs.pet.value > -1 || templateArgs.skin.value > -1) {
+          const cmd = this.buildCommand(templateArgs)
+          const attachment = new AttachmentBuilder(Buffer.from(cmd, "utf8"), { name: "amongus.bat" })
 
-        msg.channel.send(attachment)
+          msg.channel.send({ files: [attachment] })
+        }
+        break
       }
-      break
-    }
-    default:
-      break
+      default:
+        break
     }
   }
 
@@ -94,7 +93,7 @@ export default class extends Command {
     if (!fs.existsSync(filePath)) {
       return undefined
     }
-    return new MessageAttachment(filePath)
+    return new AttachmentBuilder(filePath)
   }
   /* eslint-disable */
   buildCommand(obj) {

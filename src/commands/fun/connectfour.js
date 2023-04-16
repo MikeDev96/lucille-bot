@@ -1,10 +1,10 @@
-import Commando from "discord.js-commando"
+import Command from "../../classes/Command.js"
 import ConnectFour from "../../classes/ConnectFour.js"
-const { Command } = Commando
+import LucilleClient from "../../classes/LucilleClient.js"
 
 export default class extends Command {
-  constructor (client) {
-    super(client, {
+  constructor () {
+    super({
       name: "connect4",
       aliases: ["c4"],
       group: "fun",
@@ -24,7 +24,7 @@ export default class extends Command {
   async run (msg, args) {
     if (args.player.toLowerCase() === "lb") {
       const embed = this.getLeaderBoard(msg)
-      msg.reply(embed)
+      msg.reply({ embeds: [embed] })
     }
     else {
       try {
@@ -56,7 +56,7 @@ export default class extends Command {
 
         const turn = Math.ceil(Math.random() * 2) - 1
 
-        const cf = new ConnectFour(msg.client)
+        const cf = new ConnectFour()
         const boardMsg = await msg.reply(this.getEmbed(msg.guild.members.cache.find(x => x.id === playerOneId), cf.displayBoard(), msg.client, turn === 0))
 
         const reactions = ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣"]
@@ -79,7 +79,7 @@ export default class extends Command {
         const isLucille = usersTurn === msg.author.id
         const filter = (reaction, user) => reactions.includes(reaction.emoji.name) && user.id === usersTurn
 
-        const collected = !isLucille ? await msg.awaitReactions(filter, { time: isLucille ? 1000 : 30000, max: 1 }) : undefined
+        const collected = !isLucille ? await msg.awaitReactions({ filter, time: isLucille ? 1000 : 30000, max: 1 }) : undefined
         const key = collected && collected.firstKey()
         let reactIdx = -1
         if (!key) {
@@ -126,25 +126,27 @@ export default class extends Command {
       ? `${["🟡", "🔴"][!turn ? 0 : 1]} <@!${user.id}> Won!`
       : `${["🟡", "🔴"][!turn ? 0 : 1]} It's <@!${user.id}> turn\r\n30s Per turn`
     return {
-      embed: {
-        title: `Connect 4`,
-        description,
-        color: 4187927,
-        author: {
-          name: "Connect 4",
-          icon_url: client.user.displayAvatarURL(),
-        },
-
-        fields: [
-          {
-            name: "The Game:",
-            value: board,
+      embeds: [
+        {
+          title: `Connect 4`,
+          description,
+          color: 4187927,
+          author: {
+            name: "Connect 4",
+            icon_url: client.user.displayAvatarURL(),
           },
-        ],
-        footer: {
-          text: "",
+
+          fields: [
+            {
+              name: "The Game:",
+              value: board,
+            },
+          ],
+          footer: {
+            text: "",
+          },
         },
-      },
+      ],
     }
   }
 
@@ -167,7 +169,7 @@ export default class extends Command {
         await queryMsg.react(reactions[i])
       }
 
-      const collected = await queryMsg.awaitReactions((reaction, user) => reactions.includes(reaction.emoji.name) && user.id === playerTwoId, { time: 60000, max: 1 })
+      const collected = await queryMsg.awaitReactions({ filter: (reaction, user) => reactions.includes(reaction.emoji.name) && user.id === playerTwoId, time: 60000, max: 1 })
       const key = collected.firstKey()
 
       queryMsg.delete()
@@ -184,7 +186,7 @@ export default class extends Command {
   }
 
   getLeaderBoard (msg) {
-    const stats = msg.client.db.getGameWins("ConnectFour", msg.guild.id)
+    const stats = LucilleClient.Instance.db.getGameWins("ConnectFour", msg.guild.id)
 
     const winloss = stats.reduce((acc, cur) => {
       if (!acc.has(cur.PlayerId)) {
@@ -219,20 +221,22 @@ export default class extends Command {
       }))
 
     return {
-      embed: {
-        title: `Connect Four Leaderboard`,
-        description: "Connect Four leaderboard",
-        color: 4187927,
-        author: {
-          name: "Lucille",
-          icon_url: msg.client.user.displayAvatarURL(),
-        },
+      embeds: [
+        {
+          title: `Connect Four Leaderboard`,
+          description: "Connect Four leaderboard",
+          color: 4187927,
+          author: {
+            name: "Lucille",
+            icon_url: msg.client.user.displayAvatarURL(),
+          },
 
-        fields: [...fields],
-        footer: {
-          text: process.env.DISCORD_FOOTER,
+          fields: [...fields],
+          footer: {
+            text: process.env.DISCORD_FOOTER,
+          },
         },
-      },
+      ],
     }
   }
 }

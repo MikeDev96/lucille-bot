@@ -1,10 +1,10 @@
-import Commando from "discord.js-commando"
+import Command from "../../classes/Command.js"
+import LucilleClient from "../../classes/LucilleClient.js"
 import { mapRepeatTypeToEmoji } from "../../classes/Music.js"
-const { Command } = Commando
 
-export default class PlayCommand extends Command {
-  constructor (client) {
-    super(client, {
+export default class extends Command {
+  constructor () {
+    super({
       name: "repeat",
       aliases: ["rep"],
       group: "music",
@@ -24,7 +24,7 @@ export default class PlayCommand extends Command {
   }
 
   async run (msg, args) {
-    const music = msg.guild.music
+    const music = LucilleClient.Instance.getGuildInstance(msg.guild).music
     music.setRepeat(args.type)
 
     const emoji = mapRepeatTypeToEmoji(args.type)

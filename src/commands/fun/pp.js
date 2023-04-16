@@ -1,10 +1,10 @@
-import Commando from "discord.js-commando"
 import { isEmpty } from "lodash-es"
-const { Command } = Commando
+import LucilleClient from "../../classes/LucilleClient.js"
+import Command from "../../classes/Command.js"
 
 export default class extends Command {
-  constructor (client) {
-    super(client, {
+  constructor () {
+    super({
       name: "pp",
       aliases: ["penis"],
       group: "fun",
@@ -21,8 +21,8 @@ export default class extends Command {
         {
           key: "arg2",
           prompt: `
-${client.commandPrefix}pp perm \`@Mention\` gets the pp size.,
-${client.commandPrefix}pp perm \`lb\` gets the pp leaderboard, see whose rocking the biggest shlong!`,
+${LucilleClient.Instance.commandPrefix}pp perm \`@Mention\` gets the pp size.,
+${LucilleClient.Instance.commandPrefix}pp perm \`lb\` gets the pp leaderboard, see whose rocking the biggest shlong!`,
           type: "string",
           default: "",
         },
@@ -34,7 +34,7 @@ ${client.commandPrefix}pp perm \`lb\` gets the pp leaderboard, see whose rocking
   run (msg, args) {
     // if user types !pp help | !pp <> help etc...
     if (Object.values(args).filter(x => x.toLowerCase() === "help").length > 0) {
-      msg.reply(this.getHelpMessage(msg.client.commandPrefix))
+      msg.reply(this.getHelpMessage(LucilleClient.Instance.commandPrefix))
       return
     }
 
@@ -49,7 +49,7 @@ ${client.commandPrefix}pp perm \`lb\` gets the pp leaderboard, see whose rocking
 
     // Incorrect args
     if ((a1 !== "" || a2 !== "") && !isPerm && !isPermLeaderboard && !isDaily && !isDailyLeaderboard) {
-      msg.reply(this.getHelpMessage(msg.client.commandPrefix))
+      msg.reply(this.getHelpMessage(LucilleClient.Instance.commandPrefix))
       return
     }
 
@@ -57,7 +57,7 @@ ${client.commandPrefix}pp perm \`lb\` gets the pp leaderboard, see whose rocking
     const ppLength = this.getSize(isPerm, isDaily, msg.author.id, msg.guild.id)
 
     // Update the users display name
-    this.client.db.updateUser(msg.author.id, msg.guild.id, msg.member.displayName)
+    LucilleClient.Instance.db.updateUser(msg.author.id, msg.guild.id, msg.member.displayName)
 
     if (isPermLeaderboard || isDailyLeaderboard) {
       const lbEmbed = this.getLeaderboard(msg, isDailyLeaderboard)
@@ -77,18 +77,18 @@ ${client.commandPrefix}pp perm \`lb\` gets the pp leaderboard, see whose rocking
     let realLength = Math.ceil(Math.random() * 15)
 
     if (isPerm) {
-      realLength = this.client.db.getPenisSize(authorId, guildId, realLength, -1)
+      realLength = LucilleClient.Instance.db.getPenisSize(authorId, guildId, realLength, -1)
     }
 
     if (isDaily) {
-      realLength = this.client.db.getPenisSize(authorId, guildId, -1, realLength)
+      realLength = LucilleClient.Instance.db.getPenisSize(authorId, guildId, -1, realLength)
     }
 
     return realLength
   }
 
   getLeaderboard (msg, isDaily) {
-    const all = this.client.db.getAllPenisSize(msg.guild.id)
+    const all = LucilleClient.Instance.db.getAllPenisSize(msg.guild.id)
     const fields = all.sort((pp1, pp2) => {
       return !isDaily ? pp2.Size - pp1.Size : pp2.DailyPP - pp1.DailyPP
     })
@@ -104,7 +104,7 @@ ${client.commandPrefix}pp perm \`lb\` gets the pp leaderboard, see whose rocking
         return false
       })
       .map(pp =>
-        `\`${(pp.DisplayName !== null ? pp.DisplayName : this.client.users.cache.find(user => user.id === pp.UserId).username)}\`\r\n${this.getLocalised(isDaily ? pp.DailyPP : pp.Size)}\r\n`,
+        `\`${(pp.DisplayName !== null ? pp.DisplayName : msg.client.users.cache.find(user => user.id === pp.UserId).username)}\`\r\n${this.getLocalised(isDaily ? pp.DailyPP : pp.Size)}\r\n`,
       ).join("\r\n")
 
     if (isEmpty(fields)) {
@@ -112,25 +112,27 @@ ${client.commandPrefix}pp perm \`lb\` gets the pp leaderboard, see whose rocking
     }
 
     return {
-      embed: {
-        title: `PP ${isDaily ? "Daily" : "Perm"} Leaderboard`,
-        description: "See where you stack up against the competition.",
-        color: 4187927,
-        author: {
-          name: msg.member.displayName,
-          icon_url: msg.author.displayAvatarURL(),
-        },
-
-        fields: [
-          {
-            name: msg.guild.name,
-            value: fields,
+      embeds: [
+        {
+          title: `PP ${isDaily ? "Daily" : "Perm"} Leaderboard`,
+          description: "See where you stack up against the competition.",
+          color: 4187927,
+          author: {
+            name: msg.member.displayName,
+            icon_url: msg.author.displayAvatarURL(),
           },
-        ],
-        footer: {
-          text: process.env.DISCORD_FOOTER,
+
+          fields: [
+            {
+              name: msg.guild.name,
+              value: fields,
+            },
+          ],
+          footer: {
+            text: process.env.DISCORD_FOOTER,
+          },
         },
-      },
+      ],
     }
   }
 
@@ -146,7 +148,7 @@ __**${prefix}PP command:**__
 }
 
 export const ppResetDaily = (client, guild) => {
-  const all = client.db.getAllPenisSize(guild.id)
+  const all = LucilleClient.Instance.db.getAllPenisSize(guild.id)
 
   const groupedBySize = all.reduce((acc, cur) => {
     if (!acc.has(cur.DailyPP)) {
@@ -171,30 +173,28 @@ export const ppResetDaily = (client, guild) => {
   }
 
   const dailyEmbed = {
-    embed: {
-      title: `PP Daily Leaderboard`,
-      description: "The daily reset is here and now its time to see where you placed!",
-      color: 4187927,
-      author: {
-        name: "PP Daily Message",
-        icon_url: client.user.displayAvatarURL(),
-      },
+    title: `PP Daily Leaderboard`,
+    description: "The daily reset is here and now its time to see where you placed!",
+    color: 4187927,
+    author: {
+      name: "PP Daily Message",
+      icon_url: client.user.displayAvatarURL(),
+    },
 
-      fields: [
-        {
-          name: "Daily PP",
-          value: fields,
-        },
-      ],
-      footer: {
-        text: process.env.DISCORD_FOOTER,
+    fields: [
+      {
+        name: "Daily PP",
+        value: fields,
       },
+    ],
+    footer: {
+      text: process.env.DISCORD_FOOTER,
     },
   }
 
   const firstGuildChannel = guild.channels.cache.filter(channel => channel.type === "text").first()
 
-  firstGuildChannel.send(dailyEmbed)
+  firstGuildChannel.send({ embeds: [dailyEmbed] })
 
-  client.db.resetDailyPPSize(guild.id)
+  LucilleClient.Instance.db.resetDailyPPSize(guild.id)
 }

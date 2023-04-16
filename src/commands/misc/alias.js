@@ -1,12 +1,11 @@
-import Commando from "discord.js-commando"
 import { proxyCommand } from "../../classes/DiscordJSHelpers.js"
-import { Util } from "discord.js"
-import { paginatedEmbed } from "../../helpers.js"
-const { Command } = Commando
+import { paginatedEmbed, splitMessage } from "../../helpers.js"
+import LucilleClient from "../../classes/LucilleClient.js"
+import Command from "../../classes/Command.js"
 
 export default class Alias extends Command {
-  constructor (client) {
-    super(client, {
+  constructor () {
+    super({
       name: "alias",
       memberName: "alias",
       description: "Create aliases (shortcuts) for commands",
@@ -34,7 +33,7 @@ export default class Alias extends Command {
           type: "string",
           default: "",
           validate: val => {
-            const Prefix = this.client.commandPrefix
+            const Prefix = LucilleClient.Instance.commandPrefix
             // eslint-disable-next-line
             if ((val.toLowerCase()).replace("/\s+/g", "").includes(`${Prefix}al`) || (val.toLowerCase()).replace("/\s+/g", "").includes(`${Prefix}alias`)) {
               return "Alias cannot reference another alias"
@@ -58,28 +57,26 @@ export default class Alias extends Command {
 
   async run (msg, args) {
     const { aliasname, aliasvalue } = args
-    const Prefix = this.client.commandPrefix
+    const Prefix = LucilleClient.Instance.commandPrefix
 
     if (aliasname === "list") {
-      const List = this.client.db.listAliases(aliasvalue)
+      const List = LucilleClient.Instance.db.listAliases(aliasvalue)
 
       if (List.length) {
         paginatedEmbed(msg, {
-          embed: {
-            color: 0x0099ff,
-            title: "Lucille Alias Commands",
-            footer: {
-              text: process.env.DISCORD_FOOTER,
-              icon_url: process.env.DISCORD_AUTHORAVATARURL,
-            },
+          color: 0x0099ff,
+          title: "Lucille Alias Commands",
+          footer: {
+            text: process.env.DISCORD_FOOTER,
+            icon_url: process.env.DISCORD_AUTHORAVATARURL,
           },
         }, embedHandler(List))
       }
       else msg.reply("No aliases have been added yet")
     }
     else if (aliasvalue === "") {
-      if (this.client.db.checkForAlias(aliasname).length) {
-        const AliasCommand = this.client.db.checkForAlias(aliasname)[0].command
+      if (LucilleClient.Instance.db.checkForAlias(aliasname).length) {
+        const AliasCommand = LucilleClient.Instance.db.checkForAlias(aliasname)[0].command
 
         AliasCommand.forEach((command, index) => {
           if (command.length !== 0) {
@@ -98,20 +95,20 @@ export default class Alias extends Command {
     }
     else {
       if (aliasname === "delete" || aliasname === "remove" || aliasname === "rm") {
-        if (this.client.db.checkForAlias(aliasvalue).length) {
-          this.client.db.removeAlias(aliasvalue)
+        if (LucilleClient.Instance.db.checkForAlias(aliasvalue).length) {
+          LucilleClient.Instance.db.removeAlias(aliasvalue)
           msg.reply(`Deleted alias '${aliasvalue}' :)`)
         }
         else {
           msg.reply(`Alias '${aliasvalue}' not found`)
         }
       }
-      else if (this.client.db.checkForAlias(aliasname).length) {
+      else if (LucilleClient.Instance.db.checkForAlias(aliasname).length) {
         msg.reply("This alias already exists :(")
       }
       else {
         if (aliasvalue.split("&").filter(cmd => cmd !== "").length) {
-          this.client.db.writeAlias(aliasname, aliasvalue)
+          LucilleClient.Instance.db.writeAlias(aliasname, aliasvalue)
           msg.reply("Alias added :)")
         }
         else {
@@ -123,7 +120,7 @@ export default class Alias extends Command {
 }
 
 const embedHandler = (aliasList) => {
-  return Util.splitMessage(aliasList.map(alias => {
+  return splitMessage(aliasList.map(alias => {
     return (
       `${alias.command.reduce((string, cmd) => `${string} ${formatAliasCmd(cmd)}`, `**${alias.alias}** - `)}`
     )

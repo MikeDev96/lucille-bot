@@ -2,6 +2,7 @@ import { throttle } from "lodash-es"
 import Track from "./Track.js"
 import Requestee from "./Requestee.js"
 import { createRequire } from "module"
+import LucilleClient from "./LucilleClient.js"
 
 const require = createRequire(import.meta.url)
 const radios = require("../../radios.json")
@@ -14,7 +15,7 @@ export default class MusicState {
     let count = 0
     this.saveState = throttle(state => {
       const t = process.hrtime()
-      guild.client.db.saveMusicState(guild.id, JSON.stringify(this.reduceState(state)))
+      LucilleClient.Instance.db.saveMusicState(guild.id, JSON.stringify(this.reduceState(state)))
       const t2 = process.hrtime(t)
 
       if (count++ % 100 === 0) {
@@ -22,9 +23,7 @@ export default class MusicState {
       }
     }, 5000, { leading: false })
 
-    guild.client.once("ready", () => {
-      this.loadState()
-    })
+    this.loadState()
   }
 
   setState (state) {
@@ -67,7 +66,7 @@ export default class MusicState {
   }
 
   loadState () {
-    const jsonState = this.guild.client.db.getMusicState(this.guild.id)
+    const jsonState = LucilleClient.Instance.db.getMusicState(this.guild.id)
     if (!jsonState) {
       return
     }

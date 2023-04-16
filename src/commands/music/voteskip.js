@@ -1,9 +1,9 @@
-import Commando from "discord.js-commando"
-const { Command } = Commando
+import Command from "../../classes/Command.js"
+import LucilleClient from "../../classes/LucilleClient.js"
 
-export default class PlayCommand extends Command {
-  constructor (client) {
-    super(client, {
+export default class extends Command {
+  constructor () {
+    super({
       name: "voteskip",
       aliases: ["vskip", "vs"],
       group: "music",
@@ -14,11 +14,11 @@ export default class PlayCommand extends Command {
   }
 
   async run (msg, args) {
-    const music = msg.guild.music
+    const music = LucilleClient.Instance.getGuildInstance(msg.guild).music
     const tracks = music.state.queue
 
     if (tracks.length) {
-      if (msg.member.voice.channelID !== msg.guild.voice.channelID) {
+      if (msg.member.voice.channelId !== msg.guild.voice.channelId) {
         msg.react("🖕")
         return
       }
@@ -36,7 +36,7 @@ export default class PlayCommand extends Command {
 
         try {
           const filter = (reaction, user) => reaction.emoji.name === "🗳️" && voiceChannelMembers.has(user.id)
-          const reactions = await voteMsg.awaitReactions(filter, { time: 30000 })
+          const reactions = await voteMsg.awaitReactions({ filter, time: 30000 })
 
           const votes = reactions.has("🗳️") ? reactions.get("🗳️").count - 1 : 0
 
@@ -46,7 +46,7 @@ export default class PlayCommand extends Command {
           if (votes >= votesNeeded && tracks[0] && music.getTrackTitle(tracks[0]) === currentlyPlayingTitle) {
             msg.react("⏭️")
 
-            music.dispatcherExec(d => d.end())
+            music.player.stop()
           }
           else {
             msg.react("🚫")

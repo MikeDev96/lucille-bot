@@ -1,10 +1,10 @@
-import Commando from "discord.js-commando"
+import Command from "../../classes/Command.js"
+import LucilleClient from "../../classes/LucilleClient.js"
 import { isInBotsVoiceChannel } from "../../helpers.js"
-const { Command } = Commando
 
 export default class extends Command {
-  constructor (client) {
-    super(client, {
+  constructor () {
+    super({
       name: "clear",
       aliases: ["cls"],
       group: "music",
@@ -15,14 +15,14 @@ export default class extends Command {
   }
 
   async run (msg, _args) {
-    const music = msg.guild.music
+    const music = LucilleClient.Instance.getGuildInstance(msg.guild).music
     if (!isInBotsVoiceChannel(msg)) {
       msg.react("🖕")
       return
     }
     if (music.state.queue.length > 1) {
       const replyMsg = await msg.reply(`Are you sure you want to clear ${music.state.queue.length - 1} song(s) from the queue?\nReply with yes or no [y | n]`)
-      const collected = await replyMsg.channel.awaitMessages(resMsg => resMsg.author.id === msg.author.id && /y|n/i.test(resMsg.content), { max: 1, time: 15000 })
+      const collected = await replyMsg.channel.awaitMessages({ filter: resMsg => resMsg.author.id === msg.author.id && /y|n/i.test(resMsg.content), max: 1, time: 15000 })
 
       replyMsg.delete()
 

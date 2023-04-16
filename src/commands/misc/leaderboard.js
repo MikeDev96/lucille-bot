@@ -1,12 +1,12 @@
-import Commando from "discord.js-commando"
-import { paginatedEmbed } from "../../helpers.js"
-import { Util } from "discord.js"
+import { paginatedEmbed, splitMessage } from "../../helpers.js"
+import { escapeMarkdown } from "discord.js"
 import humanizeDuration from "humanize-duration"
-const { Command } = Commando
+import Command from "../../classes/Command.js"
+import LucilleClient from "../../classes/LucilleClient.js"
 
 export default class extends Command {
-  constructor (client) {
-    super(client, {
+  constructor () {
+    super({
       name: "leaderboard",
       aliases: ["lb"],
       group: "misc",
@@ -151,12 +151,12 @@ __**${prefix}lb command:**__
         }
         else {
           if (args.arg1 || args.arg2) {
-            msg.reply(this.getHelpMessage(msg.client.commandPrefix))
+            msg.reply(this.getHelpMessage(LucilleClient.Instance.commandPrefix))
           }
           else {
             const leaderboard = await msg.client.voiceTracker.getLeaderboard(msg.guild.id, { username: msg.author.displayName, avatarURL: msg.author.displayAvatarURL() }, msg.guild.members)
             if (leaderboard) {
-              msg.reply({ embed: leaderboard })
+              msg.reply({ embeds: [leaderboard] })
             }
           }
         }
@@ -195,7 +195,7 @@ __**${prefix}lb command:**__
 
     function formatDbData (data, statType) {
       data.sort((a, b) => b[statType] - a[statType])
-      return Util.splitMessage(data.map((obj, index) => (index + 1) + ". " + Util.escapeMarkdown(findUsernameFromId(obj.UserId) + " has been  " + statType + " for " + humanizeDuration(round1000(obj[statType])))), { maxLength: 1024 }).map((str, idx) => ({
+      return splitMessage(data.map((obj, index) => (index + 1) + ". " + escapeMarkdown(findUsernameFromId(obj.UserId) + " has been  " + statType + " for " + humanizeDuration(round1000(obj[statType])))), { maxLength: 1024 }).map((str, idx) => ({
         name: `${statType} Lb ${idx + 1}`,
         value: str,
       }))
@@ -210,16 +210,14 @@ __**${prefix}lb command:**__
 
     function cusEmbed (statType) {
       return {
-        embed: {
-          color: 0x0099ff,
-          title: `${statType} Lb`,
-          author: {
-            name: msg.member.displayName,
-            icon_url: msg.author.displayAvatarURL(),
-          },
-          footer: {
-            text: process.env.DISCORD_FOOTER,
-          },
+        color: 0x0099ff,
+        title: `${statType} Lb`,
+        author: {
+          name: msg.member.displayName,
+          icon_url: msg.author.displayAvatarURL(),
+        },
+        footer: {
+          text: process.env.DISCORD_FOOTER,
         },
       }
     }

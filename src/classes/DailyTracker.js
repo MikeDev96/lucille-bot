@@ -7,7 +7,7 @@ class DailyTracker extends EventEmitter {
   constructor (client, startTime) {
     super()
 
-    this.db = client.db
+    this.client = client
     this.startTime = startTime
 
     this.initResetTimer()
@@ -15,10 +15,10 @@ class DailyTracker extends EventEmitter {
 
   initResetTimer () {
     // no need to check if it exists because we just work out the duration anyway
-    let nextResetTime = this.db.setSetting("", "Daily.nextReset", Date.now() + this.getDuration(), "number") // 86400000
+    let nextResetTime = this.client.db.setSetting("", "Daily.nextReset", Date.now() + this.getDuration(), "number") // 86400000
 
     setTimeout(() => {
-      nextResetTime = this.db.setSetting("", "Daily.nextReset", Date.now() + this.getDuration(), "number")
+      nextResetTime = this.client.db.setSetting("", "Daily.nextReset", Date.now() + this.getDuration(), "number")
 
       this.emit("reset")
       this.initResetTimer()

@@ -1,10 +1,9 @@
-import Commando from "discord.js-commando"
 import { exec } from "child_process"
-const { Command } = Commando
+import Command from "../../classes/Command.js"
 
 export default class extends Command {
-  constructor (client) {
-    super(client, {
+  constructor () {
+    super({
       name: "restart",
       aliases: [],
       group: "misc",

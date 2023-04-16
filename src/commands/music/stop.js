@@ -1,9 +1,10 @@
-import Commando from "discord.js-commando"
-const { Command } = Commando
+import { AudioPlayerStatus, getVoiceConnection } from "@discordjs/voice"
+import Command from "../../classes/Command.js"
+import LucilleClient from "../../classes/LucilleClient.js"
 
 export default class extends Command {
-  constructor (client) {
-    super(client, {
+  constructor () {
+    super({
       name: "stop",
       aliases: ["fuckoff", "shlata", "alt f4", "altf4", "leave"],
       group: "music",
@@ -14,12 +15,14 @@ export default class extends Command {
   }
 
   async run (msg, args) {
-    const music = msg.guild.music
-    if (music && music.state && music.state.voiceConnection) {
+    const music = LucilleClient.Instance.getGuildInstance(msg.guild).music
+    if (music.player.state.status !== AudioPlayerStatus.Idle) {
       msg.react("🛑")
-      music.state.queue.splice(0, music.state.queue.length)
-      music.setState({ queue: music.state.queue })
-      music.state.voiceConnection.disconnect()
+
+      const connection = getVoiceConnection(msg.guild.id)
+      if (connection) {
+        connection.disconnect()
+      }
     }
   }
 }

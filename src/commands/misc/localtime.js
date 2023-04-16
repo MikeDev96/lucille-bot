@@ -1,9 +1,8 @@
-import Commando from "discord.js-commando"
-const { Command } = Commando
+import Command from "../../classes/Command.js"
 
 export default class LocalTime extends Command {
-  constructor (client) {
-    super(client, {
+  constructor () {
+    super({
       name: "localtime",
       aliases: ["time"],
       group: "misc",

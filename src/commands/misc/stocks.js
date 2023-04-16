@@ -1,11 +1,12 @@
-import { MessageEmbed, Util } from "discord.js"
-import Commando from "discord.js-commando"
+import { EmbedBuilder, escapeMarkdown } from "discord.js"
 import fetch from "node-fetch"
-const { Command } = Commando
+import { splitMessage } from "../../helpers.js"
+import LucilleClient from "../../classes/LucilleClient.js"
+import Command from "../../classes/Command.js"
 
 export default class extends Command {
-  constructor (client) {
-    super(client, {
+  constructor () {
+    super({
       name: "stocks",
       aliases: ["stock", "stonk", "stonks", "nokia", "nok"],
       group: "misc",
@@ -32,7 +33,7 @@ export default class extends Command {
 
   async run (msg, args) {
     if (args.action === "add") {
-      const success = this.client.db.addUser(args.symbol.toUpperCase(), msg.author.id)
+      const success = LucilleClient.Instance.db.addUser(args.symbol.toUpperCase(), msg.author.id)
 
       if (success) {
         msg.react("👍")
@@ -43,7 +44,7 @@ export default class extends Command {
       }
     }
     else if (args.action === "remove" || args.action === "rm" || args.action === "delete") {
-      const success = this.client.db.removeUser(args.symbol.toUpperCase(), msg.author.id)
+      const success = LucilleClient.Instance.db.removeUser(args.symbol.toUpperCase(), msg.author.id)
 
       if (success) {
         msg.react("👍")
@@ -61,24 +62,26 @@ export default class extends Command {
           msg.reply("Could not find user ID")
           return
         }
-        const list = this.client.db.listStocks(listId)
+        const list = LucilleClient.Instance.db.listStocks(listId)
         if (list.length > 0) {
           const tempArr = this.list(list, nickname)
           const embed = {
-            embed: {
-              color: 0x0099ff,
-              title: "Lucille Stonk Exchange",
-              author: {
-                name: msg.member.displayName,
-                icon_url: msg.author.displayAvatarURL(),
+            embeds: [
+              {
+                color: 0x0099ff,
+                title: "Lucille Stonk Exchange",
+                author: {
+                  name: msg.member.displayName,
+                  icon_url: msg.author.displayAvatarURL(),
+                },
+                fields: tempArr,
+                footer: {
+                  text: process.env.DISCORD_FOOTER,
+                },
               },
-              fields: tempArr,
-              footer: {
-                text: process.env.DISCORD_FOOTER,
-              },
-            },
+            ],
           }
-          msg.reply(embed)
+          msg.reply({ embeds: [embed] })
         }
         else {
           msg.channel.send(`No stonks in ${listId === msg.author.id ? "your" : "their"} portfolio`)
@@ -110,16 +113,16 @@ export default class extends Command {
 
               const item = data.quoteResponse.result[0]
 
-              const embed = new MessageEmbed()
+              const embed = new EmbedBuilder()
                 .setColor(item.regularMarketChangePercent >= 0 ? "#00ff00" : "#ff0000")
                 .setTitle("Stonks")
-                .setAuthor(msg.member.displayName, msg.author.displayAvatarURL())
+                .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL() })
                 .addFields([
                   { name: item.symbol, value: `${item.regularMarketPrice.toFixed(2)}\n${item.regularMarketChangePercent.toFixed(2)}%` },
                 ])
 
               if (!this.embedMsg) {
-                this.embedMsg = await msg.channel.send(embed)
+                this.embedMsg = await msg.channel.send({ embeds: [embed] })
               }
               else {
                 if (this.embedMsg.deleted) {
@@ -131,10 +134,10 @@ export default class extends Command {
 
                 if (index > 5) {
                   await this.embedMsg.delete()
-                  this.embedMsg = await msg.channel.send(embed)
+                  this.embedMsg = await msg.channel.send({ embeds: [embed] })
                 }
                 else {
-                  this.embedMsg.edit(embed)
+                  this.embedMsg.edit({ embeds: [embed] })
                 }
               }
 
@@ -158,7 +161,7 @@ export default class extends Command {
         })()
       }
       else {
-        const prefix = msg.client.commandPrefix
+        const prefix = LucilleClient.Instance.commandPrefix
 
         const helpEmbed = `
       __**${prefix}Stock command:**__
@@ -216,7 +219,7 @@ export default class extends Command {
   }
 
   list (songs, nickname) {
-    return Util.splitMessage(songs.map(s => Util.escapeMarkdown(`- ${s.symbol}`)), { maxLength: 1024 }).map(str => ({
+    return splitMessage(songs.map(s => escapeMarkdown(`- ${s.symbol}`)), { maxLength: 1024 }).map(str => ({
       name: `${nickname}'s Stock Portfolio`,
       value: str,
     }))

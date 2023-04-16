@@ -1,15 +1,15 @@
-import Commando from "discord.js-commando"
-import { getRequestee, getVoiceChannel, shuffle, paginatedEmbed } from "../../helpers.js"
+import { getRequestee, getVoiceChannel, shuffle, paginatedEmbed, splitMessage } from "../../helpers.js"
 import Track from "../../classes/Track.js"
-import { MessageAttachment, Util } from "discord.js"
+import { AttachmentBuilder, escapeMarkdown } from "discord.js"
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb"
 import { DynamoDBDocumentClient, PutCommand } from "@aws-sdk/lib-dynamodb"
 import { existsSync } from "fs"
-const { Command } = Commando
+import LucilleClient from "../../classes/LucilleClient.js"
+import Command from "../../classes/Command.js"
 
 export default class extends Command {
-  constructor (client) {
-    super(client, {
+  constructor () {
+    super({
       name: "banga",
       aliases: ["banger", "banging", "bangin", "b"],
       group: "fun",
@@ -34,27 +34,25 @@ export default class extends Command {
   }
 
   async run (msg, args) {
-    const music = msg.guild.music
+    const music = LucilleClient.Instance.getGuildInstance(msg.guild).music
     if (["list", "ls"].includes(args.arg1.toLowerCase())) {
       const listId = await this.findUserId(msg, args.arg2)
       const nickname = await this.findUsername(msg, args.arg2)
-      const bangas = this.client.db.listBangas(listId)
+      const bangas = LucilleClient.Instance.db.listBangas(listId)
       if (!bangas.length) {
         msg.channel.send("This person is boring and has no bangers")
         return
       }
 
       paginatedEmbed(msg, {
-        embed: {
-          color: 0x0099ff,
-          title: "Lucille 🎵",
-          author: {
-            name: msg.member.displayName,
-            icon_url: msg.author.displayAvatarURL(),
-          },
-          footer: {
-            text: process.env.DISCORD_FOOTER,
-          },
+        color: 0x0099ff,
+        title: "Lucille 🎵",
+        author: {
+          name: msg.member.displayName,
+          icon_url: msg.author.displayAvatarURL(),
+        },
+        footer: {
+          text: process.env.DISCORD_FOOTER,
         },
       }, this.list(bangas, nickname))
       return
@@ -64,7 +62,7 @@ export default class extends Command {
       let playArr = []
       const playId = await this.findUserId(msg, args.arg2)
       if (!playId) return
-      playArr = this.client.db.listBangas(playId)
+      playArr = LucilleClient.Instance.db.listBangas(playId)
       const trackedMusic = playArr.map(dbSong => new Track()
         .setPlatform("search")
         .setQuery(dbSong.song)
@@ -82,7 +80,7 @@ export default class extends Command {
       if (queueItem && queueItem.radioMetadata && queueItem.radioMetadata.title && queueItem.radioMetadata.artist) currTrack = queueItem.radioMetadata.artist + " - " + queueItem.radioMetadata.title
       if (queueItem && queueItem.platform === "soundcloud") currTrack = queueItem.title
 
-      const grug = this.client.db.findBanga(args.arg2 !== "" ? args.arg2 : currTrack, msg.author.id)
+      const grug = LucilleClient.Instance.db.findBanga(args.arg2 !== "" ? args.arg2 : currTrack, msg.author.id)
 
       if (!grug) {
         msg.channel.send("Nice try")
@@ -91,7 +89,7 @@ export default class extends Command {
       const replyMsg = await msg.reply(`Are you sure you want to remove ${grug}`)
       replyMsg.react("☑️").then(() => replyMsg.react("❌"))
       const filter = (reaction, user) => ["☑️", "❌"].includes(reaction.emoji.name) && user.id === msg.author.id
-      const collected = await replyMsg.awaitReactions(filter, { time: 15000, max: 1 })
+      const collected = await replyMsg.awaitReactions({ filter, time: 15000, max: 1 })
       replyMsg.delete()
 
       const firstKey = collected.firstKey()
@@ -101,14 +99,14 @@ export default class extends Command {
         if (firstKey === "☑️") {
           if (args.arg2 === "") {
             if (currTrack) {
-              this.client.db.removeBanga(currTrack, msg.author.id)
+              LucilleClient.Instance.db.removeBanga(currTrack, msg.author.id)
             }
             else {
               msg.react("🖕")
             }
           }
           else {
-            this.client.db.removeBanga(args.arg2, msg.author.id)
+            LucilleClient.Instance.db.removeBanga(args.arg2, msg.author.id)
           }
         }
       }
@@ -131,34 +129,34 @@ export default class extends Command {
       return
     }
 
-    const checkEx = this.client.db.checkForBanga(currTrack)
+    const checkEx = LucilleClient.Instance.db.checkForBanga(currTrack)
 
     if (args.arg1 === "?") {
-      msg.channel.send(`${this.findUsers(checkEx).join(", ")} thinks its a banger`)
+      msg.channel.send(`${this.findUsers(msg.client, checkEx).join(", ")} thinks its a banger`)
       return
     }
 
     const bangerStampPath = `./assets/images/bangerstamps/${msg.author.id}.png`
     const bangerStampExists = existsSync(bangerStampPath)
-    const bangerStampImg = new MessageAttachment(bangerStampPath)
+    const bangerStampImg = new AttachmentBuilder(bangerStampPath)
 
     if (checkEx.length) {
       if (this.checkForUser(checkEx, msg)) {
         msg.channel.send("You've already said this was a banger")
       }
       else {
-        this.client.db.updateBangaUsers(currTrack, msg.author.id)
+        LucilleClient.Instance.db.updateBangaUsers(currTrack, msg.author.id)
         msg.react("👍")
         if (bangerStampExists) {
-          msg.channel.send(bangerStampImg)
+          msg.channel.send({ files: [bangerStampImg] })
         }
       }
     }
     else {
-      this.client.db.writeBanga(queueItem.spotifyUri, currTrack, msg.author.id)
+      LucilleClient.Instance.db.writeBanga(queueItem.spotifyUri, currTrack, msg.author.id)
       msg.react("👍")
       if (bangerStampExists) {
-        msg.channel.send(bangerStampImg)
+        msg.channel.send({ files: [bangerStampImg] })
       }
     }
   }
@@ -167,12 +165,12 @@ export default class extends Command {
     return !!user[0].users.find(e => e === mess.author.id)
   }
 
-  findUsers (banger) {
+  findUsers (client, banger) {
     const usrArr = []
     let username
     if (banger[0]) {
       for (const e of banger[0].users) {
-        username = this.client.users.cache.get(e)
+        username = client.users.cache.get(e)
         if (username) {
           usrArr.push(username.username)
         }
@@ -230,7 +228,7 @@ export default class extends Command {
   }
 
   list (songs, nickname) {
-    return Util.splitMessage(songs.map(s => Util.escapeMarkdown(`- ${s.song}`)), { maxLength: 1024 }).map((str, idx) => ({
+    return splitMessage(songs.map(s => escapeMarkdown(`- ${s.song}`)), { maxLength: 1024 }).map((str, idx) => ({
       name: `${nickname}'s Bangers ${idx + 1}`,
       value: str,
     }))
@@ -253,7 +251,7 @@ export default class extends Command {
       return
     }
 
-    const songsArr = this.client.db.listBangas(UserId).reduce((acc, song) => {
+    const songsArr = LucilleClient.Instance.db.listBangas(UserId).reduce((acc, song) => {
       if (song.spotifyUri) {
         if (song.spotifyUri.length) {
           acc.push(song.spotifyUri)
@@ -268,20 +266,22 @@ export default class extends Command {
     else {
       msg.reply("Sent you a DM with information")
       msg.author.send({
-        embed: {
-          color: 0x0099ff,
-          title: "Lucille Spotify Exporter",
-          fields: [
-            {
-              name: "Spotify Exporter Link",
-              value: `Visit [this link](${process.env.EXPORT_URL}/${UserId}) and authorise with Spotify`,
+        embeds: [
+          {
+            color: 0x0099ff,
+            title: "Lucille Spotify Exporter",
+            fields: [
+              {
+                name: "Spotify Exporter Link",
+                value: `Visit [this link](${process.env.EXPORT_URL}/${UserId}) and authorise with Spotify`,
+              },
+            ],
+            footer: {
+              text: process.env.DISCORD_FOOTER,
+              icon_url: process.env.DISCORD_AUTHORAVATARURL,
             },
-          ],
-          footer: {
-            text: process.env.DISCORD_FOOTER,
-            icon_url: process.env.DISCORD_AUTHORAVATARURL,
           },
-        },
+        ],
       })
 
       const params = {

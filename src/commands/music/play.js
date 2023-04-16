@@ -1,7 +1,7 @@
-import Commando from "discord.js-commando"
+import Command from "../../classes/Command.js"
+import LucilleClient from "../../classes/LucilleClient.js"
 import { getRequestee, getVoiceChannel } from "../../helpers.js"
 import { resume } from "./resume.js"
-const { Command } = Commando
 
 export const commandConfig = {
   name: "play",
@@ -20,9 +20,9 @@ export const commandConfig = {
   guildOnly: true,
 }
 
-export default class PlayCommand extends Command {
-  constructor (client) {
-    super(client, commandConfig)
+export default class extends Command {
+  constructor () {
+    super(commandConfig)
   }
 
   async run (msg, args) {
@@ -31,9 +31,9 @@ export default class PlayCommand extends Command {
 }
 
 export const run = async (msg, args, jump) => {
-  const music = msg.guild.music
+  const music = LucilleClient.Instance.getGuildInstance(msg.guild).music
 
-  if (msg.author.id !== process.env.DISCORD_OWNER && (!msg.member.voice.channelID || (msg.guild.voice && msg.guild.voice.channelID && msg.guild.voice.channelID !== msg.member.voice.channelID) || msg.member.voice.deaf)) {
+  if (msg.author.id !== process.env.DISCORD_OWNER && (!msg.member.voice.channelId || (msg.guild.voice && msg.guild.voice.channelId && msg.guild.voice.channelId !== msg.member.voice.channelId) || msg.member.voice.deaf)) {
     msg.react("🖕")
     return
   }

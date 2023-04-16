@@ -1,12 +1,12 @@
-import Commando from "discord.js-commando"
 import fetch from "node-fetch"
 import { sleep } from "../../helpers.js"
 import TtsCommand from "./tts.js"
-const { Command } = Commando
+import Command from "../../classes/Command.js"
+import LucilleClient from "../../classes/LucilleClient.js"
 
 export default class extends Command {
-  constructor (client) {
-    super(client, {
+  constructor () {
+    super({
       name: "joke",
       aliases: [],
       group: "fun",
@@ -36,24 +36,19 @@ export default class extends Command {
       const doDelivery = () => reply.then(msg => msg.edit(`${text}\n\n**${json.delivery}**`))
 
       if (msg.member.voice.channel) {
-        const isBotInSameChannel = msg.member.voice.channel.members.has(this.client.user.id)
-
-        await msg.member.voice.channel.join()
+        // TODO: Get 2 TTS streams and combine them with a pause in the middle and pass that to the music player instead
         await TtsCommand.speak(msg, text)
 
-        if (json.type === "twopart") {
-          await sleep(1000)
-          doDelivery()
-          await TtsCommand.speak(msg, json.delivery)
-        }
+        const music = LucilleClient.Instance.getGuildInstance(msg.guild).music
+        const ttsStream = music.playing.stream
 
-        if (!isBotInSameChannel) {
-          msg.member.voice.channel.leave()
-        }
-        else {
-          const music = msg.guild.music
-          music.play()
-        }
+        ttsStream.once("finish", async () => {
+          if (json.type === "twopart") {
+            await sleep(1000)
+            doDelivery()
+            TtsCommand.speak(msg, json.delivery)
+          }
+        })
       }
       else {
         if (json.type === "twopart") {

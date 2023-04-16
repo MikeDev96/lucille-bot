@@ -1,51 +1,44 @@
-import { Structures } from "discord.js"
-import Music from "./Music.js"
+import { PermissionsBitField } from "discord.js"
 import fs from "fs"
+import Music from "./Music.js"
 
-export default Structures.extend("Guild", Guild => {
-  class LucilleGuild extends Guild {
-    constructor (client, data) {
-      super(client, data)
+export default class LucilleGuild {
+  constructor (guild) {
+    this.guild = guild
+    this.music = new Music(guild)
+    this.customEmojis = {}
 
-      this.music = new Music(this)
-      this.customEmojis = {}
-
-      this.client.once("ready", () => {
-        this.createEmojis()
-      })
-    }
-
-    createEmojis () {
-      const emojiPermissions = this.members.cache.find(m => m.user.id === this.client.user.id).hasPermission("MANAGE_EMOJIS")
-      if (emojiPermissions) {
-        const botRole = this.roles.cache.find(r => r.name !== "@everyone" && r.members.has(this.client.user.id))
-        emojis.forEach(emoji => {
-          if (!this.emojis.cache.find(e => e.name === emoji.name)) {
-            fs.readFile(emoji.path, (err, data) => {
-              if (!err) {
-                this.emojis.create(data, emoji.name, { roles: [botRole], reason: "Used by Lucille" })
-                  .then(guildEmoji => {
-                    this.customEmojis[emoji.name] = guildEmoji.toString()
-                  })
-              }
-              else {
-                console.log(err)
-              }
-            })
-          }
-          else {
-            this.customEmojis[emoji.name] = this.emojis.cache.find(e => e.name === emoji.name).toString()
-          }
-        })
-      }
-      else {
-        console.log("Could not create emojis on " + this.name)
-      }
-    }
+    this.createEmojis()
   }
 
-  return LucilleGuild
-})
+  createEmojis () {
+    const emojiPermissions = this.guild.members.cache.find(m => m.user.id === this.guild.client.user.id).permissions.has(PermissionsBitField.Flags.ManageEmojisAndStickers)
+    if (emojiPermissions) {
+      const botRole = this.guild.roles.cache.find(r => r.name !== "@everyone" && r.members.has(this.guild.client.user.id))
+      emojis.forEach(emoji => {
+        if (!this.guild.emojis.cache.find(e => e.name === emoji.name)) {
+          fs.readFile(emoji.path, (err, data) => {
+            if (!err) {
+              this.guild.emojis.create(data, emoji.name, { roles: [botRole], reason: "Used by Lucille" })
+                .then(guildEmoji => {
+                  this.customEmojis[emoji.name] = guildEmoji.toString()
+                })
+            }
+            else {
+              console.log(err)
+            }
+          })
+        }
+        else {
+          this.customEmojis[emoji.name] = this.guild.emojis.cache.find(e => e.name === emoji.name).toString()
+        }
+      })
+    }
+    else {
+      console.log("Could not create emojis on " + this.guild.name)
+    }
+  }
+}
 
 const emojis = [
   { name: "youtube", path: "assets/emojis/youtube.png" },

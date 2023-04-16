@@ -1,16 +1,16 @@
-import Commando from "discord.js-commando"
+import Command from "../../classes/Command.js"
 import { getRequestee, getVoiceChannel, isInBotsVoiceChannel } from "../../helpers.js"
 import { PLATFORM_RADIO } from "../../classes/TrackExtractor.js"
 import Track from "../../classes/Track.js"
 import { createRequire } from "module"
-const { Command } = Commando
+import LucilleClient from "../../classes/LucilleClient.js"
 
 const require = createRequire(import.meta.url)
 const radios = require("../../../radios.json")
 
 export default class extends Command {
-  constructor (client) {
-    super(client, {
+  constructor () {
+    super({
       name: "radio",
       aliases: ["r", "rad", "fm"],
       group: "music",
@@ -45,7 +45,7 @@ export default class extends Command {
       .setDuration(0)
       .setRadio(radio)
 
-    const music = msg.guild.music
+    const music = LucilleClient.Instance.getGuildInstance(msg.guild).music
     const success = music.add([track], getRequestee(msg), getVoiceChannel(msg), false, msg.channel)
     if (success) {
       msg.react("📻")

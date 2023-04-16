@@ -1,11 +1,11 @@
-import Commando from "discord.js-commando"
+import Command from "../../classes/Command.js"
+import LucilleClient from "../../classes/LucilleClient.js"
 import TextToSpeech from "../../classes/TextToSpeech.js"
 import { getRequestee } from "../../helpers.js"
-const { Command } = Commando
 
 class TtsCommand extends Command {
-  constructor (client) {
-    super(client, {
+  constructor () {
+    super({
       name: "tts",
       aliases: [],
       group: "fun",
@@ -27,10 +27,7 @@ class TtsCommand extends Command {
       if (msg.member.voice.channel) {
         msg.react("🎙️")
 
-        const music = msg.guild.music
-        const track = TextToSpeech.getTtsTrack(getRequestee(msg), args.text)
-
-        music.add([track], track.requestee, msg.member.voice.channel, false, msg.guild.systemChannel)
+        await TtsCommand.speak(msg, args.text)
       }
       else {
         msg.react("🖕")
@@ -39,6 +36,13 @@ class TtsCommand extends Command {
     catch (err) {
       msg.reply(err.message)
     }
+  }
+
+  static async speak (msg, text) {
+    const music = LucilleClient.Instance.getGuildInstance(msg.guild).music
+    const track = TextToSpeech.getTtsTrack(getRequestee(msg), text)
+
+    await music.add([track], track.requestee, msg.member.voice.channel, false, msg.guild.systemChannel)
   }
 }
 
