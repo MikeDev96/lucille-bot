@@ -162,5 +162,9 @@
   "unity": {
     "name": "Unity",
     "url": "http://stream.audiospace.co/unityradio"
+  },
+  "lofi": {
+    "name": "Lofi",
+    "url": "https://boxradio-edge-02.streamafrica.net/lofi"
   }
 }
