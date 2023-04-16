@@ -41,7 +41,7 @@ export default class LucilleClient {
 
     // this.on("guildCreate", guild => guild.createEmojis())
     // this.on("voiceStateUpdate", (_oldVoice, newVoice) => {
-    //   if (newVoice.id === this.user.id && newVoice.channelID) {
+    //   if (newVoice.id === this.user.id && newVoice.channelId) {
     //     LucilleClient.Instance.getGuildInstance(newVoice.guild).music.setState({ voiceChannel: newVoice.channel })
     //   }
     // })

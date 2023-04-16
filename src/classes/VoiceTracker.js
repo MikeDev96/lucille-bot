@@ -73,7 +73,7 @@ class VoiceTracker {
     this.client.guilds.cache.forEach(serverId => {
       if (serverId.voiceStates.cache) {
         serverId.voiceStates.cache.forEach(activePeep => {
-          if (activePeep.channelID === activePeep.guild.afkChannelID) {
+          if (activePeep.channelId === activePeep.guild.afkChannelId) {
             this.monitor = { ...this.monitor, [activePeep.id]: { afk: curTime, serverId: activePeep.guild.id } }
           }
           else if (this.checkIfActive(activePeep, this.trackingFields)) {
@@ -143,9 +143,9 @@ class VoiceTracker {
     }
 
     // User joined the voice channel
-    if (oldMember.channelID === null && newMember.channelID !== null) {
+    if (oldMember.channelId === null && newMember.channelId !== null) {
       // User joined in AFK
-      if (newMember.channelID === oldMember.guild.afkChannelID) {
+      if (newMember.channelId === oldMember.guild.afkChannelId) {
         mon.afk = curTime
       }
       // User joined in another channel
@@ -167,9 +167,9 @@ class VoiceTracker {
       }
     }
     // User left the voice channel
-    else if (oldMember.channelID !== null && newMember.channelID === null) {
+    else if (oldMember.channelId !== null && newMember.channelId === null) {
       // User left AFK
-      if (oldMember.channelID === oldMember.guild.afkChannelID) {
+      if (oldMember.channelId === oldMember.guild.afkChannelId) {
         if ("afk" in mon) {
           const duration = curTime - mon.afk
           delete mon.afk
@@ -193,9 +193,9 @@ class VoiceTracker {
       }
     }
     // User moved voice channel
-    else if (oldMember.channelID !== null && newMember.channelID !== null && oldMember.channelID !== newMember.channelID) {
+    else if (oldMember.channelId !== null && newMember.channelId !== null && oldMember.channelId !== newMember.channelId) {
       // Moved from AFK
-      if (oldMember.channelID === oldMember.guild.afkChannelID) {
+      if (oldMember.channelId === oldMember.guild.afkChannelId) {
         if ("afk" in mon) {
           const duration = curTime - mon.afk
           delete mon.afk
@@ -218,7 +218,7 @@ class VoiceTracker {
         })
       }
       // Moved to AFK
-      else if (newMember.channelID === oldMember.guild.afkChannelID) {
+      else if (newMember.channelId === oldMember.guild.afkChannelId) {
         mon.afk = curTime
         if (mon.active > 0) {
           const duration = curTime - mon.active
@@ -239,7 +239,7 @@ class VoiceTracker {
     // Wasn't a voice channel change
     else {
       // Dont care about tracking field updates if user is in AFK
-      if (newMember.channelID !== newMember.guild.afkChannelID) {
+      if (newMember.channelId !== newMember.guild.afkChannelId) {
         if (this.checkIfActive(newMember, this.trackingFields)) {
           mon.active = curTime
         }

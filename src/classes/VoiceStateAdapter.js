@@ -11,28 +11,28 @@ class VoiceStateAdapter extends EventEmitter {
 
   voiceStateUpdate (oldMember, newMember) {
     // User joined the voice channel
-    if (!oldMember.channelID && newMember.channelID) {
+    if (!oldMember.channelId && newMember.channelId) {
       this.emit("join", {
         channel: newMember.channel,
-        isAfk: newMember.channelID === oldMember.guild.afkChannelID,
+        isAfk: newMember.channelId === oldMember.guild.afkChannelId,
         voiceState: newMember,
       })
     }
     // User left the voice channel
-    else if (oldMember.channelID && !newMember.channelID) {
+    else if (oldMember.channelId && !newMember.channelId) {
       this.emit("leave", {
         channel: oldMember.channel,
-        isAfk: oldMember.channelID === oldMember.guild.afkChannelID,
+        isAfk: oldMember.channelId === oldMember.guild.afkChannelId,
         voiceState: oldMember,
       })
     }
     // User moved voice channel
-    else if (oldMember.channelID && newMember.channelID && oldMember.channelID !== newMember.channelID) {
+    else if (oldMember.channelId && newMember.channelId && oldMember.channelId !== newMember.channelId) {
       this.emit("move", {
         fromChannel: oldMember.channel,
         toChannel: newMember.channel,
-        fromAfk: oldMember.channelID === oldMember.guild.afkChannelID,
-        toAfk: newMember.channelID === oldMember.guild.afkChannelID,
+        fromAfk: oldMember.channelId === oldMember.guild.afkChannelId,
+        toAfk: newMember.channelId === oldMember.guild.afkChannelId,
         voiceState: oldMember,
       })
     }
