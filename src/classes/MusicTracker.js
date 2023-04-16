@@ -44,7 +44,7 @@ export default class {
             ],
           }
 
-          msg.reply({ embeds: [embed] })
+          msg.reply(embed)
         }
       }
     }
