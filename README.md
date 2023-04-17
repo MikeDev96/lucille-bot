@@ -75,3 +75,8 @@ You should now be good to go, run `npm start` to get going!
 ## Add bot to server
 Replace the `client_id` param with your bot's client id and open the link.
 https://discordapp.com/oauth2/authorize?&client_id=000000000000000000&scope=bot&permissions=8
+
+---
+
+## Resources
+This is useful to find BBC radio streams: https://en.everybodywiki.com/List_of_BBC_radio_stream_URLs
