@@ -142,6 +142,24 @@
       "summon": 30
     }
   },
+  "bbcr1dance": {
+    "name": "BBC Radio 1 Dance",
+    "url": "http://a.files.bbci.co.uk/media/live/manifesto/audio/simulcast/dash/uk/dash_full/ak/bbc_radio_one_dance.mpd",
+    "metadata": {
+      "type": "poll",
+      "url": "https://rms.api.bbc.co.uk/v2/services/bbc_radio_one_dance/segments/latest?limit=1",
+      "summon": 30
+    }
+  },
+  "bbcr1relax": {
+    "name": "BBC Radio 1 Relax",
+    "url": "http://a.files.bbci.co.uk/media/live/manifesto/audio/simulcast/dash/uk/dash_full/ak/bbc_radio_one_relax.mpd",
+    "metadata": {
+      "type": "poll",
+      "url": "https://rms.api.bbc.co.uk/v2/services/bbc_radio_one_relax/segments/latest?limit=1",
+      "summon": 30
+    }
+  },
   "heartxmas": {
     "name": "Heart Xmas",
     "url": "https://media-ssl.musicradio.com/HeartXmas",
