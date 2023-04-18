@@ -38,6 +38,10 @@ export default class LucilleGuild {
       console.log("Could not create emojis on " + this.guild.name)
     }
   }
+
+  get voice () {
+    return this.guild.voiceStates.cache.get(this.guild.client.user.id)
+  }
 }
 
 const emojis = [

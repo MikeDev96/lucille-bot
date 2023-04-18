@@ -18,7 +18,7 @@ export default class extends Command {
     const tracks = music.state.queue
 
     if (tracks.length) {
-      if (msg.member.voice.channelId !== msg.guild.voice.channelId) {
+      if (msg.member.voice.channelId !== LucilleClient.Instance.getGuildInstance(msg.guild).voice?.channelId) {
         msg.react("🖕")
         return
       }

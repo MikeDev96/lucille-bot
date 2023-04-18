@@ -6,6 +6,7 @@ import { Duration } from "luxon"
 import { Client } from "youtubei"
 import gtts from "google-tts-api"
 import { ChannelType } from "discord.js"
+import LucilleClient from "./classes/LucilleClient.js"
 
 export const noop = () => { }
 
@@ -73,7 +74,7 @@ export const getVoiceChannel = msg => {
 }
 
 export const isInBotsVoiceChannel = msg => {
-  const voiceChannelId = msg.guild.voiceStates.cache.get(msg.client.user.id)?.channelId
+  const voiceChannelId = LucilleClient.Instance.getGuildInstance(msg.guild).voice?.channelId
   return msg.author.id === process.env.DISCORD_OWNER || (voiceChannelId === msg.member.voice.channelId) || msg.member.voice.deaf
 }
 
