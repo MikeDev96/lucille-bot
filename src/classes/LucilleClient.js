@@ -36,7 +36,6 @@ export default class LucilleClient {
     // this.voiceCommands = new VoiceCommands(this)
 
     this.createMessageInterceptor()
-    this.createDailyTracker()
     this.createTTS()
 
     this.client.on(Events.VoiceStateUpdate, (_oldVoice, newVoice) => {
@@ -45,7 +44,10 @@ export default class LucilleClient {
       }
     })
 
-    this.setupGuilds()
+    this.client.once(Events.ClientReady, () => {
+      this.createDailyTracker()
+      this.setupGuilds()
+    })
   }
 
   createMessageInterceptor () {
@@ -206,11 +208,9 @@ export default class LucilleClient {
   }
 
   setupGuilds () {
-    this.client.once(Events.ClientReady, () => {
-      for (const [, guild] of this.client.guilds.cache) {
-        this.getGuildInstance(guild)
-      }
-    })
+    for (const [, guild] of this.client.guilds.cache) {
+      this.getGuildInstance(guild)
+    }
 
     this.client.on(Events.GuildCreate, guild => this.getGuildInstance(guild))
   }

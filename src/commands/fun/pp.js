@@ -167,8 +167,9 @@ export const ppResetDaily = (client, guild) => {
       `${medals[idx] || ""} ${groupedBySize.get(val1).map(user => "`" + (user.DisplayName !== null ? user.DisplayName : guild.users.cache.find(user => user.id === user.UserId).username) + "`").join(" & ")}
 8${"=".repeat(val1)}D${val1 === 15 ? " ~ ~ ~" : ""}\r\n`,
     )
+    .join("\n")
 
-  if (!fields.length) {
+  if (!fields) {
     return
   }
 
@@ -192,9 +193,7 @@ export const ppResetDaily = (client, guild) => {
     },
   }
 
-  const firstGuildChannel = guild.channels.cache.filter(channel => channel.type === "text").first()
-
-  firstGuildChannel.send({ embeds: [dailyEmbed] })
+  guild.systemChannel.send({ embeds: [dailyEmbed] })
 
   LucilleClient.Instance.db.resetDailyPPSize(guild.id)
 }
