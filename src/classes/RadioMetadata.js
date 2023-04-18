@@ -184,19 +184,27 @@ export default class RadioMetadata extends EventEmitter {
         const res = await fetch(this.state.url)
         const data = await res.json()
         if (res.ok && data) {
-          const nowPlaying = data.data.find(item => item.type === "segment_item" && item.offset.now_playing)
-          if (nowPlaying) {
-            this.emit("data", {
-              artist: nowPlaying.titles.primary,
-              title: nowPlaying.titles.secondary,
-            })
+          let meta = { artist: "", title: "" }
+
+          if (this.provider === "bbc") {
+            const nowPlaying = data.data.find(item => item.type === "segment_item" && item.offset.now_playing)
+            if (nowPlaying) {
+              meta = {
+                artist: nowPlaying.titles.primary,
+                title: nowPlaying.titles.secondary,
+              }
+            }
           }
-          else {
-            this.emit("data", {
-              artist: "",
-              title: "",
-            })
+          else if (this.provider === "boxradio") {
+            const nowPlaying = data.now_playing?.song
+            if (nowPlaying) {
+              meta = {
+                artist: nowPlaying.artist,
+                title: nowPlaying.title,
+              }
+            }
           }
+          this.emit("data", meta)
         }
       }
       catch (err) {
