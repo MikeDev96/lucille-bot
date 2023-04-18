@@ -128,6 +128,7 @@
     "name": "BBC Radio 1",
     "url": "http://stream.live.vc.bbcmedia.co.uk/bbc_radio_one",
     "metadata": {
+      "provider": "bbc",
       "type": "poll",
       "url": "https://rms.api.bbc.co.uk/v2/services/bbc_radio_one/segments/latest?limit=1",
       "summon": 30
@@ -137,6 +138,7 @@
     "name": "BBC Radio 1xtra",
     "url": "http://stream.live.vc.bbcmedia.co.uk/bbc_1xtra",
     "metadata": {
+      "provider": "bbc",
       "type": "poll",
       "url": "https://rms.api.bbc.co.uk/v2/services/bbc_1xtra/segments/latest?limit=1",
       "summon": 30
@@ -165,6 +167,12 @@
   },
   "lofi": {
     "name": "Lofi",
-    "url": "https://boxradio-edge-02.streamafrica.net/lofi"
+    "url": "https://boxradio-edge-02.streamafrica.net/lofi",
+    "metadata": {
+      "provider": "boxradio",
+      "type": "poll",
+      "url": "https://api.streamafrica.net/nowplaying/new.php?id=lofi",
+      "summon": 30
+    }
   }
 }
