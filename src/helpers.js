@@ -74,7 +74,7 @@ export const getVoiceChannel = msg => {
 
 export const isInBotsVoiceChannel = msg => {
   const voiceChannelId = msg.guild.voiceStates.cache.get(msg.client.user.id)?.channelId
-  return msg.author.id === process.env.DISCORD_OWNER || (voiceChannelId?.channelId === msg.member.voice.channelId) || msg.member.voice.deaf
+  return msg.author.id === process.env.DISCORD_OWNER || (voiceChannelId === msg.member.voice.channelId) || msg.member.voice.deaf
 }
 
 export const paginatedEmbed = async (msg, embedTemplate, embedList, emojiList = ["⏪", "◀️", "▶️", "⏩"], timeout = 120000) => {
