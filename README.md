@@ -28,7 +28,7 @@ Populate it with the following skeleton config:
 DISCORD_TOKEN = ""
 DISCORD_AUTHORAVATARURL = ""
 DISCORD_OWNER = ""
-DISCORD_FOOTER = "Created with ♥ by ME, JC, JK, DM and JW - Powered by Keef Web Services"
+DISCORD_FOOTER = "Created with ♥ by ME"
 DISCORD_PREFIX = ";"
 
 SPOTIFY_CLIENTID = ""
@@ -55,9 +55,6 @@ For example, converting Spotify links to Tidal won't work if either of their cor
 
 ### Install dependencies
 Use `npm ci` to install the Node dependencies so that you don't end up with a different package-lock.json
-
-### Set up hooks
-First time use: execute `npm run hooks` in the root of your local repository to initialize web hooks
 
 ### Linting
 Install the ESLint extension in VS Code, open it's settings and enable 'Enables ESLint as a formatter'
