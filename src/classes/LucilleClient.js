@@ -183,17 +183,18 @@ export default class LucilleClient {
     switch (type) {
       case "integer": return parseInt(value)
       case "float": return parseFloat(value)
+      case "integer": return parseInt(value)
       default: return value
     }
   }
 
   parseArguments (configArgs, userArgs) {
     const argsArr = userArgs?.split(" ")
-
     const argsMap = {}
+
     for (let idx = 0; idx < configArgs?.length; idx++) {
       const cur = configArgs[idx]
-      const strValue = argsArr?.[idx] ?? cur.default ?? ""
+      const strValue = configArgs.length - 1 === idx && cur.type === "string" ? argsArr?.slice(idx).join(" ") : (argsArr?.[idx] ?? cur.default ?? "")
       const value = this.castValue(cur.type, strValue)
 
       const valid = cur.validate ? cur.validate(value) : true
@@ -201,7 +202,12 @@ export default class LucilleClient {
         return valid ? `${cur.key} - ${valid}` : cur.prompt
       }
 
-      argsMap[cur.key] = cur.type === "integer" ? parseInt(strValue) : strValue
+      const isOneOf = cur.oneOf ? cur.oneOf.includes(value) : true
+      if (!isOneOf) {
+        return `\`${strValue}\` - Invalid value, must be one of ${cur.oneOf.map(x => `\`${x}\``).join(", ")}`
+      }
+
+      argsMap[cur.key] = value
     }
 
     return argsMap
