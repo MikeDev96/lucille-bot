@@ -14,7 +14,7 @@ export default class extends Command {
           key: "amount",
           prompt: "Amount of bass boost",
           type: "string",
-          oneOf: ["off", "low", "med", "high", "insane", "wtfbbq"],
+          oneOf: Object.keys(bassBoostToAmountMap),
         },
       ],
       guildOnly: true,
