@@ -1,4 +1,4 @@
-import { isInBotsVoiceChannel } from "../../helpers.js"
+import { isInBotsVoiceChannel, shouldIgnoreMessage } from "../../helpers.js"
 import LucilleClient from "../../classes/LucilleClient.js"
 import Command from "../../classes/Command.js"
 
@@ -24,7 +24,7 @@ export default class extends Command {
 
   async run (msg, args) {
     const music = LucilleClient.Instance.getGuildInstance(msg.guild).music
-    if (!isInBotsVoiceChannel(msg)) {
+    if (shouldIgnoreMessage(msg)) {
       msg.react("🖕")
       return
     }

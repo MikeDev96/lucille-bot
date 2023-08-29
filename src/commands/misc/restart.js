@@ -17,16 +17,16 @@ export default class extends Command {
   async run (msg) {
     if (!msg.member.roles.cache.find(role => role.name === "💪 Boss Men")) {
       msg.react("🖕")
+      return
     }
-    else {
-      msg.react("🔄")
+    
+    msg.react("🔄")
 
-      exec("pm2 reload lucille", err => {
-        if (err) {
-          msg.react("❌")
-          console.error(err.message)
-        }
-      })
-    }
+    exec("pm2 reload lucille", err => {
+      if (err) {
+        msg.react("❌")
+        console.error(err.message)
+      }
+    })
   }
 }

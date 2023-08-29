@@ -1,7 +1,7 @@
 import Command from "../../classes/Command.js"
 import LucilleClient from "../../classes/LucilleClient.js"
 import TextToSpeech from "../../classes/TextToSpeech.js"
-import { getRequestee } from "../../helpers.js"
+import { getRequestee, shouldIgnoreMessage } from "../../helpers.js"
 
 class TtsCommand extends Command {
   constructor () {
@@ -24,14 +24,13 @@ class TtsCommand extends Command {
 
   async run (msg, args) {
     try {
-      if (msg.member.voice.channel) {
-        msg.react("🎙️")
-
-        await TtsCommand.speak(msg, args.text)
-      }
-      else {
+      if (shouldIgnoreMessage(msg)) {
         msg.react("🖕")
+        return;
       }
+
+      msg.react("🎙️")
+      await TtsCommand.speak(msg, args.text)
     }
     catch (err) {
       msg.reply(err.message)

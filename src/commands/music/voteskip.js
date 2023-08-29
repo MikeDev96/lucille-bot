@@ -1,5 +1,6 @@
 import Command from "../../classes/Command.js"
 import LucilleClient from "../../classes/LucilleClient.js"
+import { shouldIgnoreMessage } from "../../helpers.js"
 
 export default class extends Command {
   constructor () {
@@ -18,7 +19,7 @@ export default class extends Command {
     const tracks = music.state.queue
 
     if (tracks.length) {
-      if (msg.member.voice.channelId !== LucilleClient.Instance.getGuildInstance(msg.guild).voice?.channelId) {
+      if (shouldIgnoreMessage(msg)) {
         msg.react("🖕")
         return
       }

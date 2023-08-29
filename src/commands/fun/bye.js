@@ -1,6 +1,6 @@
 import { PermissionsBitField } from "discord.js"
 import Command from "../../classes/Command.js"
-import { getVoiceChannel } from "../../helpers.js"
+import { getVoiceChannel, shouldIgnoreMessage } from "../../helpers.js"
 import LucilleClient from "../../classes/LucilleClient.js"
 
 export default class extends Command {
@@ -17,7 +17,7 @@ export default class extends Command {
   }
 
   async run (msg, _args) {
-    if (!msg.member.voice || !msg.member.voice.channel) {
+    if (shouldIgnoreMessage(msg)) {
       msg.react("🖕")
       return
     }

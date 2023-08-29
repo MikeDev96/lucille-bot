@@ -1,6 +1,6 @@
 import Command from "../../classes/Command.js"
 import LucilleClient from "../../classes/LucilleClient.js"
-import { getRequestee, getVoiceChannel } from "../../helpers.js"
+import { getRequestee, getVoiceChannel, shouldIgnoreMessage } from "../../helpers.js"
 import { resume } from "./resume.js"
 
 export const commandConfig = {
@@ -32,8 +32,8 @@ export default class extends Command {
 
 export const run = async (msg, args, jump) => {
   const music = LucilleClient.Instance.getGuildInstance(msg.guild).music
-
-  if (msg.author.id !== process.env.DISCORD_OWNER && (!msg.member.voice.channelId || (LucilleClient.Instance.getGuildInstance(msg.guild).voice?.channelId !== msg.member.voice.channelId) || msg.member.voice.deaf)) {
+  
+  if (shouldIgnoreMessage(msg)) {
     msg.react("🖕")
     return
   }
