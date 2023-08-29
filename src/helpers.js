@@ -79,8 +79,8 @@ export const isInBotsVoiceChannel = msg => {
 }
 
 export const shouldIgnoreMessage = msg => {
-    const guild = LucilleClient.Instance.getGuildInstance(msg.guild);
-    return !isInBotsVoiceChannel(msg) && guild.voice?.channelId
+  const guild = LucilleClient.Instance.getGuildInstance(msg.guild)
+  return !isInBotsVoiceChannel(msg) && guild.voice?.channelId
 }
 
 export const paginatedEmbed = async (msg, embedTemplate, embedList, emojiList = ["⏪", "◀️", "▶️", "⏩"], timeout = 120000) => {
