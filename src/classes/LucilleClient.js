@@ -183,7 +183,6 @@ export default class LucilleClient {
     switch (type) {
       case "integer": return parseInt(value)
       case "float": return parseFloat(value)
-      case "integer": return parseInt(value)
       default: return value
     }
   }
