@@ -1,4 +1,4 @@
-// import VoiceTracker from "./VoiceTracker.js"
+import VoiceTracker from "./VoiceTracker.js"
 import VoiceStateAdapter from "./VoiceStateAdapter.js"
 import MusicTracker from "./MusicTracker.js"
 import BangaTracker from "./BangaTracker.js"
@@ -28,7 +28,7 @@ export default class LucilleClient {
     this.guildInstances = {}
 
     this.db = new MasterDatabase()
-    // this.voiceTracker = new VoiceTracker(this)
+    this.voiceTracker = new VoiceTracker(this.client)
     this.bangaTracker = new BangaTracker()
     this.aliasTracker = new AliasTracker()
     this.voiceStateAdapter = new VoiceStateAdapter(this.client)
