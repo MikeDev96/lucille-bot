@@ -249,6 +249,23 @@ WHERE [ServerId] = @server
     `, serverId, videoId)
   }
 
+  getYouTubeStatsForAll (serverId) {
+    return this.runQuery(`
+      SELECT
+        yv.VideoTitle AS videoTitle,
+        COUNT(yv.VideoId) AS count,
+        MIN(Timestamp) AS firstPlayed,
+        MAX(Timestamp) AS lastPlayed
+      FROM YouTubeVideos yv
+      JOIN YouTubeHistory ys
+      ON ys.ServerId = $serverId
+        AND ys.VideoId = yv.VideoId
+      GROUP BY yv.VideoId
+      ORDER BY count DESC
+      LIMIT 5
+    `, { serverId })
+  }
+
   saveMusicState (serverId, state) {
     if (this.runScalarQuery("SELECT ServerId FROM MusicState WHERE ServerId = ?", serverId)) {
       this.run("UPDATE MusicState SET State = ? WHERE ServerId = ?", state, serverId)

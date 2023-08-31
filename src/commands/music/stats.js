@@ -23,6 +23,30 @@ export default class extends Command {
     })
   }
 
+  statsFor (msg, videoDetails) {
+    return [
+      {
+        name: "Stats For",
+        value: LucilleClient.Instance.getGuildInstance(msg.guild).customEmojis.youtube + " " + escapeMarkdown(videoDetails.videoTitle),
+      },
+      {
+        name: "Times Played",
+        value: `🔢 ${videoDetails.count}`,
+        inline: true,
+      },
+      {
+        name: "First Played",
+        value: `⬅️ ${videoDetails.firstPlayed}`,
+        inline: true,
+      },
+      {
+        name: "Last Played",
+        value: `➡️ ${videoDetails.lastPlayed}`,
+        inline: true,
+      },
+    ]
+  }
+
   async run (msg, args) {
     const music = LucilleClient.Instance.getGuildInstance(msg.guild).music
     const item = music.state.queue[0]
@@ -48,27 +72,7 @@ export default class extends Command {
               name: msg.member.displayName,
               icon_url: msg.author.displayAvatarURL(),
             },
-            fields: [
-              {
-                name: "Showing Stats For",
-                value: LucilleClient.Instance.getGuildInstance(msg.guild).customEmojis.youtube + " " + escapeMarkdown(videoDetails.videoTitle),
-              },
-              {
-                name: "Times Played",
-                value: `🔢 ${videoDetails.count}`,
-                inline: true,
-              },
-              {
-                name: "First Played",
-                value: `⬅️ ${videoDetails.firstPlayed}`,
-                inline: true,
-              },
-              {
-                name: "Last Played",
-                value: `➡️ ${videoDetails.lastPlayed}`,
-                inline: true,
-              },
-            ],
+            fields: this.statsFor(msg, videoDetails),
             footer: {
               text: process.env.DISCORD_FOOTER,
               icon_url: process.env.DISCORD_AUTHORAVATARURL,
@@ -78,7 +82,29 @@ export default class extends Command {
       })
     }
     else {
-      msg.reply("Coming Soon™️")
+      const videoDetails = LucilleClient.Instance.db.getYouTubeStatsForAll(msg.guild.id)
+      if (!videoDetails || videoDetails.length === 0) {
+        msg.reply("No stats available")
+        return
+      }
+
+      msg.reply({
+        embeds: [
+          {
+            color: 0xf2711c,
+            title: "Lucille Leaderboard Stats 📊",
+            author: {
+              name: msg.member.displayName,
+              icon_url: msg.author.displayAvatarURL(),
+            },
+            fields: videoDetails.flatMap(details => this.statsFor(msg, details)),
+            footer: {
+              text: process.env.DISCORD_FOOTER,
+              icon_url: process.env.DISCORD_AUTHORAVATARURL,
+            },
+          },
+        ],
+      })
     }
   }
 }
