@@ -1,4 +1,4 @@
-import { isInBotsVoiceChannel, shouldIgnoreMessage } from "../../helpers.js"
+import { shouldIgnoreMessage } from "../../helpers.js"
 import LucilleClient from "../../classes/LucilleClient.js"
 import Command from "../../classes/Command.js"
 

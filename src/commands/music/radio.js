@@ -1,5 +1,5 @@
 import Command from "../../classes/Command.js"
-import { getRequestee, getVoiceChannel, isInBotsVoiceChannel, shouldIgnoreMessage } from "../../helpers.js"
+import { getRequestee, getVoiceChannel, shouldIgnoreMessage } from "../../helpers.js"
 import { PLATFORM_RADIO } from "../../classes/TrackExtractor.js"
 import Track from "../../classes/Track.js"
 import { createRequire } from "module"

@@ -1,5 +1,6 @@
 import SQLite from "better-sqlite3"
 import CalendarDb from "../db/CalendarDb.js"
+import PPDB from "../db/PPDB.js"
 import AliasTracker from "./AliasTracker.js"
 import BangaTracker from "./BangaTracker.js"
 import StocksPortfolio from "./StocksPortfolio.js"
@@ -14,17 +15,7 @@ class MasterDatabase {
   // probably needs some proper ERD setting up..
   initTables () {
     // PenisSize command
-    this.db.exec(`
-      CREATE TABLE IF NOT EXISTS PenisSize (
-        Id          INTEGER PRIMARY KEY AUTOINCREMENT,
-        UserId      TEXT,
-        ServerId    TEXT, 
-        Size        INTEGER,
-
-        DailyPP     INTEGER DEFAULT -1
-      );
-    `)
-
+    this.db
       // DISPLAY NAME
       .exec(`
        CREATE TABLE IF NOT EXISTS UserInfo (
@@ -103,6 +94,7 @@ class MasterDatabase {
     this.initVoiceStats()
     this.initStocks()
     this.initCalendarDb()
+    this.initPPDB()
 
     console.log("Master database initialised")
   }
@@ -143,43 +135,6 @@ class MasterDatabase {
     const stmt = this.db.prepare(query)
     const result = stmt.get(...params)
     return result
-  }
-
-  /**
-   * Used for getting the Authors penis size, not server wide
-   * @param {string} user - Discord author id
-   */
-  getPenisSize (user, server, permPP, dailyPP) {
-    const rslts = this.runScalarQuery("SELECT Size, DailyPP FROM PenisSize WHERE UserId = ? AND ServerId = ?", user, server)
-
-    // if rslts is undefined we didn't find a user in the db so insert one.
-    if (!rslts) {
-      this.run("INSERT INTO PenisSize ([UserId], [ServerId], [Size], [DailyPP]) VALUES (?, ?, ?, ?)", user, server, permPP, dailyPP)
-      return permPP === -1 ? dailyPP : permPP
-    }
-    else {
-      if (rslts.Size === -1 && permPP !== -1) {
-        this.run("UPDATE PenisSize SET Size = ? WHERE UserId = ? AND ServerId = ?", permPP, user, server)
-        return permPP
-      }
-
-      if (rslts.DailyPP === -1 && dailyPP !== -1) {
-        this.run("UPDATE PenisSize SET DailyPP = ? WHERE UserId = ? AND ServerId = ?", dailyPP, user, server)
-        return dailyPP
-      }
-    }
-
-    return permPP !== -1 ? rslts.Size : rslts.DailyPP
-  }
-
-  getAllPenisSize (serverId) {
-    const rslts = this.runQuery("SELECT * FROM PenisSize ps INNER JOIN UserInfo ui ON ps.UserId = ui.UserId WHERE ui.ServerId = @serverId and ps.ServerId = @serverId", { serverId })
-    return !rslts ? [] : rslts
-  }
-
-  resetDailyPPSize (serverId) {
-    const rslts = this.run("UPDATE PenisSize SET [DailyPP] = -1 WHERE [ServerId] = ?", serverId)
-    return rslts.changes > 0
   }
 
   updateUser (userId, serverId, displayName) {
@@ -294,6 +249,23 @@ WHERE [ServerId] = @server
     `, serverId, videoId)
   }
 
+  getYouTubeStatsForAll (serverId) {
+    return this.runQuery(`
+      SELECT
+        yv.VideoTitle AS videoTitle,
+        COUNT(yv.VideoId) AS count,
+        MIN(Timestamp) AS firstPlayed,
+        MAX(Timestamp) AS lastPlayed
+      FROM YouTubeVideos yv
+      JOIN YouTubeHistory ys
+      ON ys.ServerId = $serverId
+        AND ys.VideoId = yv.VideoId
+      GROUP BY yv.VideoId
+      ORDER BY count DESC
+      LIMIT 5
+    `, { serverId })
+  }
+
   saveMusicState (serverId, state) {
     if (this.runScalarQuery("SELECT ServerId FROM MusicState WHERE ServerId = ?", serverId)) {
       this.run("UPDATE MusicState SET State = ? WHERE ServerId = ?", state, serverId)
@@ -321,5 +293,6 @@ BangaTracker.applyToClass(MasterDatabase)
 VoiceTracker.applyToClass(MasterDatabase)
 StocksPortfolio.applyToClass(MasterDatabase)
 CalendarDb.applyToClass(MasterDatabase)
+PPDB.applyToClass(MasterDatabase)
 
 export default MasterDatabase
