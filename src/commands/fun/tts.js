@@ -26,7 +26,7 @@ class TtsCommand extends Command {
     try {
       if (shouldIgnoreMessage(msg)) {
         msg.react("🖕")
-        return;
+        return
       }
 
       msg.react("🎙️")
