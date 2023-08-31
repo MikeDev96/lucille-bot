@@ -19,7 +19,7 @@ export default class extends Command {
       msg.react("🖕")
       return
     }
-    
+
     msg.react("🔄")
 
     exec("pm2 reload lucille", err => {
