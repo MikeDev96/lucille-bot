@@ -77,7 +77,7 @@ export default class RedditRipper {
       }
       else if (type === "video") {
         const fileStats = fs.statSync(filename)
-        const limit = (msg.guild.premiumTier < 2 ? 8 : msg.guild.premiumTier < 3 ? 50 : 100) * Math.pow(1024, 2) - 512 // https://www.reddit.com/r/discordapp/comments/aflp3p/the_truth_about_discord_file_upload_limits/
+        const limit = (msg.guild.premiumTier < 2 ? 25 : msg.guild.premiumTier < 3 ? 50 : 500) * Math.pow(1024, 2) - 512 // https://www.reddit.com/r/discordapp/comments/aflp3p/the_truth_about_discord_file_upload_limits/
 
         if (fileStats.size > limit) {
           await msg.reply(new URL(endpoint, process.env.PUBLIC_URL).href)
