@@ -188,12 +188,12 @@ export default class LucilleClient {
   }
 
   parseArguments (configArgs, userArgs) {
-    const argsArr = userArgs?.split(" ")
+    const argsArr = this.matchArguments(userArgs)
     const argsMap = {}
 
     for (let idx = 0; idx < configArgs?.length; idx++) {
       const cur = configArgs[idx]
-      const strValue = configArgs.length - 1 === idx && cur.type === "string" ? argsArr?.slice(idx).join(" ") : (argsArr?.[idx] ?? cur.default ?? "")
+      const strValue = this.getArgumentValue(configArgs, argsArr, idx, cur.type, cur.default)
       const value = this.castValue(cur.type, strValue)
 
       const valid = cur.validate ? cur.validate(value) : true
@@ -210,6 +210,21 @@ export default class LucilleClient {
     }
 
     return argsMap
+  }
+
+  matchArguments (args) {
+    if (!args) return null
+
+    return Array.from(args.matchAll(/[^\s"']+|"(?<doubleQuote>[^"]*)"|'(?<singleQuote>[^']*)'/g))
+      .map(({ 0: match, groups: { doubleQuote, singleQuote } }) => singleQuote ?? doubleQuote ?? match)
+  }
+
+  getArgumentValue (configArgs, argsArr, idx, type, defaultValue) {
+    if (idx === configArgs.length - 1 && type === "string") {
+      return argsArr?.slice(idx).join(" ")
+    }
+
+    return argsArr?.[idx] ?? defaultValue ?? ""
   }
 
   setupGuilds () {

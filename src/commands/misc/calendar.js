@@ -179,7 +179,7 @@ export default class extends Command {
 
       msg.reply({ embeds: [embed] })
     }
-    else if (args.arg1 === "help") {
+    else {
       msg.reply(`
 Usage:
   ${process.env.DISCORD_PREFIX}cal add once \`<start date>\` \`<event>\`
