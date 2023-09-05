@@ -1,4 +1,4 @@
-class PPDB {
+class PPDb {
   initPPDB () {
     this.db.exec(`
       CREATE TABLE IF NOT EXISTS PenisSize (
@@ -49,10 +49,10 @@ class PPDB {
   }
 
   static applyToClass (structure) {
-    for (const prop of Object.getOwnPropertyNames(PPDB.prototype).slice(1)) {
-      Object.defineProperty(structure.prototype, prop, Object.getOwnPropertyDescriptor(PPDB.prototype, prop))
+    for (const prop of Object.getOwnPropertyNames(PPDb.prototype).slice(1)) {
+      Object.defineProperty(structure.prototype, prop, Object.getOwnPropertyDescriptor(PPDb.prototype, prop))
     }
   }
 }
 
-export default PPDB
+export default PPDb

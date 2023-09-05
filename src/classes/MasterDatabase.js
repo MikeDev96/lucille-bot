@@ -1,6 +1,6 @@
 import SQLite from "better-sqlite3"
 import CalendarDb from "../db/CalendarDb.js"
-import PPDB from "../db/PPDB.js"
+import PPDb from "../db/PPDb.js"
 import AliasTracker from "./AliasTracker.js"
 import BangaTracker from "./BangaTracker.js"
 import StocksPortfolio from "./StocksPortfolio.js"
@@ -293,6 +293,6 @@ BangaTracker.applyToClass(MasterDatabase)
 VoiceTracker.applyToClass(MasterDatabase)
 StocksPortfolio.applyToClass(MasterDatabase)
 CalendarDb.applyToClass(MasterDatabase)
-PPDB.applyToClass(MasterDatabase)
+PPDb.applyToClass(MasterDatabase)
 
 export default MasterDatabase
