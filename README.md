@@ -46,8 +46,6 @@ SPEEDTEST_TOKEN = ""
 
 YOUSYNC_API_URL = "http://yousync.mikedev.uk"
 YOUSYNC_URL = "http://yousync.mikedev.uk"
-PUBLIC_URL = "http://lucille.mikedev.uk"
-PORT = "3000"
 ```
 
 > Certain features won't work without credentials provided in the .env file.

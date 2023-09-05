@@ -5,47 +5,7 @@ import { spawn } from "child_process"
 import sanitise from "sanitize-filename"
 import path from "path"
 import { globby } from "globby"
-import express from "express"
 import { AttachmentBuilder } from "discord.js"
-
-export const router = express.Router()
-
-router.get("/reddit/video/:videoId", async (req, res) => {
-  const paths = await globby(`${VIDEOS_PATH}/* ${req.params.videoId}.mp4`)
-  if (!paths.length) {
-    return res.sendStatus(404)
-  }
-
-  const path = paths[0]
-  const stat = fs.statSync(path)
-  const fileSize = stat.size
-  const range = req.headers.range
-  if (range) {
-    const parts = range.replace(/bytes=/, "").split("-")
-    const start = parseInt(parts[0], 10)
-    const end = parts[1]
-      ? parseInt(parts[1], 10)
-      : fileSize - 1
-    const chunksize = (end - start) + 1
-    const file = fs.createReadStream(path, { start, end })
-    const head = {
-      "Content-Range": `bytes ${start}-${end}/${fileSize}`,
-      "Accept-Ranges": "bytes",
-      "Content-Length": chunksize,
-      "Content-Type": "video/mp4",
-    }
-    res.writeHead(206, head)
-    file.pipe(res)
-  }
-  else {
-    const head = {
-      "Content-Length": fileSize,
-      "Content-Type": "video/mp4",
-    }
-    res.writeHead(200, head)
-    fs.createReadStream(path).pipe(res)
-  }
-})
 
 const VIDEOS_PATH = "assets/videos/reddit"
 
@@ -70,7 +30,7 @@ export default class RedditRipper {
         return
       }
 
-      const [type, filename, endpoint] = res
+      const [type, filename] = res
 
       if (type === "image") {
         await msg.reply(filename)
@@ -80,7 +40,7 @@ export default class RedditRipper {
         const limit = (msg.guild.premiumTier < 2 ? 25 : msg.guild.premiumTier < 3 ? 50 : 500) * Math.pow(1024, 2) - 512 // https://www.reddit.com/r/discordapp/comments/aflp3p/the_truth_about_discord_file_upload_limits/
 
         if (fileStats.size > limit) {
-          await msg.reply(new URL(endpoint, process.env.PUBLIC_URL).href)
+          await msg.reply("File is too large to upload")
         }
         else {
           const attach = new AttachmentBuilder(filename)
@@ -99,8 +59,6 @@ export default class RedditRipper {
     }
   }
 
-  // https://www.reddit.com/r/ProgrammerHumor/comments/k98mnh/i_just_want_to_cry_at_the_moment/
-  // https://v.redd.it/hilitbi0lc461
   async parseLink (url) {
     const shortMatch = /\bhttps?:\/\/(?:www.)?v.redd.it\/[a-zA-Z0-9-_]+?\b/.exec(url)
     if (shortMatch) {
@@ -126,7 +84,7 @@ export default class RedditRipper {
 
     const paths = await globby(`${VIDEOS_PATH}/* ${id}.mp4`)
     if (paths.length) {
-      return ["video", paths[0], `/reddit/video/${id}`]
+      return ["video", paths[0]]
     }
 
     return await (this.processing[id] = this.process(url, id))
@@ -181,7 +139,7 @@ export default class RedditRipper {
           await fsp.mkdir(VIDEOS_PATH, { recursive: true })
         }
 
-        return await this.convertVideo(videoUrl, filename, id)
+        return await this.convertVideo(videoUrl, filename)
       }
     }
     catch (err) {
@@ -194,7 +152,7 @@ export default class RedditRipper {
     }
   }
 
-  convertVideo (url, filename, id) {
+  convertVideo (url, filename) {
     return new Promise((resolve, reject) => {
       const args = [
         "-i", url,
@@ -208,7 +166,7 @@ export default class RedditRipper {
 
       ffmpeg.on("exit", code => {
         if (code === 0) {
-          resolve(["video", filename, `/reddit/video/${id}`])
+          resolve(["video", filename])
         }
         else {
           reject(new Error(`FFMpeg error code ${code}`))
