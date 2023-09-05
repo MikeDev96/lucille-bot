@@ -38,7 +38,7 @@ export default class extends Command {
     if (["list", "ls"].includes(args.arg1.toLowerCase())) {
       const listId = await this.findUserId(msg, args.arg2)
       const nickname = await this.findUsername(msg, args.arg2)
-      const bangas = LucilleClient.Instance.db.listBangas(listId)
+      const bangas = LucilleClient.Instance.db.banga.listBangas(listId)
       if (!bangas.length) {
         msg.channel.send("This person is boring and has no bangers")
         return
@@ -62,7 +62,7 @@ export default class extends Command {
       let playArr = []
       const playId = await this.findUserId(msg, args.arg2)
       if (!playId) return
-      playArr = LucilleClient.Instance.db.listBangas(playId)
+      playArr = LucilleClient.Instance.db.banga.listBangas(playId)
       const trackedMusic = playArr.map(dbSong => new Track()
         .setPlatform("search")
         .setQuery(dbSong.song)
@@ -80,7 +80,7 @@ export default class extends Command {
       if (queueItem && queueItem.radioMetadata && queueItem.radioMetadata.title && queueItem.radioMetadata.artist) currTrack = queueItem.radioMetadata.artist + " - " + queueItem.radioMetadata.title
       if (queueItem && queueItem.platform === "soundcloud") currTrack = queueItem.title
 
-      const grug = LucilleClient.Instance.db.findBanga(args.arg2 !== "" ? args.arg2 : currTrack, msg.author.id)
+      const grug = LucilleClient.Instance.db.banga.findBanga(args.arg2 !== "" ? args.arg2 : currTrack, msg.author.id)
 
       if (!grug) {
         msg.channel.send("Nice try")
@@ -99,14 +99,14 @@ export default class extends Command {
         if (firstKey === "☑️") {
           if (args.arg2 === "") {
             if (currTrack) {
-              LucilleClient.Instance.db.removeBanga(currTrack, msg.author.id)
+              LucilleClient.Instance.db.banga.removeBanga(currTrack, msg.author.id)
             }
             else {
               msg.react("🖕")
             }
           }
           else {
-            LucilleClient.Instance.db.removeBanga(args.arg2, msg.author.id)
+            LucilleClient.Instance.db.banga.removeBanga(args.arg2, msg.author.id)
           }
         }
       }
@@ -129,7 +129,7 @@ export default class extends Command {
       return
     }
 
-    const checkEx = LucilleClient.Instance.db.checkForBanga(currTrack)
+    const checkEx = LucilleClient.Instance.db.banga.checkForBanga(currTrack)
 
     if (args.arg1 === "?") {
       msg.channel.send(`${this.findUsers(msg.client, checkEx).join(", ")} thinks its a banger`)
@@ -145,7 +145,7 @@ export default class extends Command {
         msg.channel.send("You've already said this was a banger")
       }
       else {
-        LucilleClient.Instance.db.updateBangaUsers(currTrack, msg.author.id)
+        LucilleClient.Instance.db.banga.updateBangaUsers(currTrack, msg.author.id)
         msg.react("👍")
         if (bangerStampExists) {
           msg.channel.send({ files: [bangerStampImg] })
@@ -153,7 +153,7 @@ export default class extends Command {
       }
     }
     else {
-      LucilleClient.Instance.db.writeBanga(queueItem.spotifyUri, currTrack, msg.author.id)
+      LucilleClient.Instance.db.banga.writeBanga(queueItem.spotifyUri, currTrack, msg.author.id)
       msg.react("👍")
       if (bangerStampExists) {
         msg.channel.send({ files: [bangerStampImg] })
@@ -251,7 +251,7 @@ export default class extends Command {
       return
     }
 
-    const songsArr = LucilleClient.Instance.db.listBangas(UserId).reduce((acc, song) => {
+    const songsArr = LucilleClient.Instance.db.banga.listBangas(UserId).reduce((acc, song) => {
       if (song.spotifyUri) {
         if (song.spotifyUri.length) {
           acc.push(song.spotifyUri)

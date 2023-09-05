@@ -1,6 +1,11 @@
 class BangaTracker {
-  initBanga () {
-    this.db.exec(`
+  constructor (db) {
+    this.db = db
+    this.init()
+  }
+
+  init () {
+    this.db.db.exec(`
       CREATE TABLE IF NOT EXISTS Banga
       (
         BangaId     INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -9,7 +14,7 @@ class BangaTracker {
       )
     `)
 
-    this.db.exec(`
+    this.db.db.exec(`
       CREATE TABLE IF NOT EXISTS BangaUser
       (
         BangaId     INTEGER,
@@ -21,12 +26,12 @@ class BangaTracker {
   }
 
   writeBanga (spotifyUri, banger, user) {
-    const { lastInsertRowid } = this.run("INSERT INTO Banga (Title, SpotifyUri) VALUES (?, ?)", banger, spotifyUri || "")
-    this.run("INSERT INTO BangaUser (BangaId, UserId) VALUES (?, ?)", lastInsertRowid, user)
+    const { lastInsertRowid } = this.db.run("INSERT INTO Banga (Title, SpotifyUri) VALUES (?, ?)", banger, spotifyUri || "")
+    this.db.run("INSERT INTO BangaUser (BangaId, UserId) VALUES (?, ?)", lastInsertRowid, user)
   }
 
   checkForBanga (banger) {
-    return this.reduceBangas(this.runQuery(`
+    return this.reduceBangas(this.db.runQuery(`
       SELECT b.Title AS song, b.SpotifyUri AS spotifyUri, bu.UserId AS userId
       FROM Banga b
       JOIN BangaUser bu
@@ -36,7 +41,7 @@ class BangaTracker {
   }
 
   updateBangaUsers (banger, user) {
-    this.run(`
+    this.db.run(`
       INSERT INTO BangaUser VALUES
       (
         (SELECT BangaId FROM Banga WHERE Title = ?),
@@ -46,13 +51,13 @@ class BangaTracker {
   }
 
   removeBanga (banger, user) {
-    this.run(`
+    this.db.run(`
       DELETE FROM BangaUser AS bu
       WHERE bu.BangaId IN (SELECT b.BangaId FROM Banga b WHERE b.Title = ? COLLATE NOCASE)
         AND bu.UserId = ?
     `, banger, user)
 
-    this.run(`
+    this.db.run(`
       DELETE FROM Banga AS b
       WHERE b.Title = ? COLLATE NOCASE
         AND NOT EXISTS(SELECT bu.BangaId FROM BangaUser bu WHERE bu.BangaId = b.BangaId)
@@ -60,7 +65,7 @@ class BangaTracker {
   }
 
   findBanga (banger, user) {
-    let [data] = this.reduceBangas(this.runQuery(`
+    let [data] = this.reduceBangas(this.db.runQuery(`
       SELECT b.Title AS song, b.SpotifyUri AS spotifyUri, bu.UserId AS userId
       FROM Banga b
       JOIN BangaUser bu
@@ -75,7 +80,7 @@ class BangaTracker {
   }
 
   listBangas (user) {
-    return this.runQuery(`
+    return this.db.runQuery(`
       SELECT b.Title AS song, b.SpotifyUri AS spotifyUri
       FROM Banga b
       JOIN BangaUser bu
@@ -94,12 +99,6 @@ class BangaTracker {
 
       return [map, arr]
     }, [new Map(), []])[1]
-  }
-
-  static applyToClass (structure) {
-    for (const prop of Object.getOwnPropertyNames(BangaTracker.prototype).slice(1)) {
-      Object.defineProperty(structure.prototype, prop, Object.getOwnPropertyDescriptor(BangaTracker.prototype, prop))
-    }
   }
 }
 

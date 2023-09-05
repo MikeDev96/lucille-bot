@@ -1,7 +1,6 @@
 import VoiceTracker from "./VoiceTracker.js"
 import VoiceStateAdapter from "./VoiceStateAdapter.js"
 import MusicTracker from "./MusicTracker.js"
-import BangaTracker from "./BangaTracker.js"
 import AliasTracker from "./AliasTracker.js"
 import DailyTracker from "./DailyTracker.js"
 import MasterDatabase from "./MasterDatabase.js"
@@ -28,7 +27,6 @@ export default class LucilleClient {
 
     this.db = new MasterDatabase()
     this.voiceTracker = new VoiceTracker(this.client)
-    this.bangaTracker = new BangaTracker()
     this.aliasTracker = new AliasTracker()
     this.voiceStateAdapter = new VoiceStateAdapter(this.client)
     this.stocksPortfolio = new StocksPortfolio()

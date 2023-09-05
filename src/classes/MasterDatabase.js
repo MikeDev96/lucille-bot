@@ -8,8 +8,10 @@ import VoiceTracker from "./VoiceTracker.js"
 
 class MasterDatabase {
   constructor () {
-    this.db = new SQLite("main.db", { readonly: false })
+    const db = new SQLite("main.db", { readonly: false })
+    this.db = db
     this.initTables()
+    this.initModules()
   }
 
   // probably needs some proper ERD setting up..
@@ -90,13 +92,16 @@ class MasterDatabase {
     this.db.exec("DROP TABLE IF EXISTS YouTubeLinks")
 
     this.initAlias()
-    this.initBanga()
     this.initVoiceStats()
     this.initStocks()
     this.initCalendarDb()
     this.initPPDB()
 
     console.log("Master database initialised")
+  }
+
+  initModules () {
+    this.banga = new BangaTracker(this)
   }
 
   columnExists (tblName, clmName) {
@@ -289,7 +294,7 @@ WHERE [ServerId] = @server
 }
 
 AliasTracker.applyToClass(MasterDatabase)
-BangaTracker.applyToClass(MasterDatabase)
+// BangaTracker.applyToClass(MasterDatabase)
 VoiceTracker.applyToClass(MasterDatabase)
 StocksPortfolio.applyToClass(MasterDatabase)
 CalendarDb.applyToClass(MasterDatabase)
