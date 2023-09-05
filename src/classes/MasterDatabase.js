@@ -91,7 +91,6 @@ class MasterDatabase {
     this.db.exec("DELETE FROM YouTubeHistory WHERE VideoId IS NULL")
     this.db.exec("DROP TABLE IF EXISTS YouTubeLinks")
 
-    this.initAlias()
     this.initVoiceStats()
     this.initStocks()
     this.initCalendarDb()
@@ -102,6 +101,7 @@ class MasterDatabase {
 
   initModules () {
     this.banga = new BangaTracker(this)
+    this.alias = new AliasTracker(this)
   }
 
   columnExists (tblName, clmName) {
@@ -293,8 +293,6 @@ WHERE [ServerId] = @server
   }
 }
 
-AliasTracker.applyToClass(MasterDatabase)
-// BangaTracker.applyToClass(MasterDatabase)
 VoiceTracker.applyToClass(MasterDatabase)
 StocksPortfolio.applyToClass(MasterDatabase)
 CalendarDb.applyToClass(MasterDatabase)

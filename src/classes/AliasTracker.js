@@ -1,6 +1,11 @@
 class AliasTracker {
-  initAlias () {
-    this.db.exec(`
+  constructor (db) {
+    this.db = db
+    this.init()
+  }
+
+  init () {
+    this.db.db.exec(`
       CREATE TABLE IF NOT EXISTS Alias
       (
         AliasId     INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -8,7 +13,7 @@ class AliasTracker {
       )
     `)
 
-    this.db.exec(`
+    this.db.db.exec(`
       CREATE TABLE IF NOT EXISTS AliasCommand
       (
         AliasCommandId     INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -25,18 +30,18 @@ class AliasTracker {
     aliascommand = aliascommand.filter(cmd => cmd !== "")
 
     if (aliascommand.length) {
-      const { lastInsertRowid } = this.run("INSERT INTO Alias (Name) VALUES (?)", alias)
-      aliascommand.forEach(cmd => this.run("INSERT INTO AliasCommand (AliasId, Command) VALUES (?, ?)", lastInsertRowid, cmd))
+      const { lastInsertRowid } = this.db.run("INSERT INTO Alias (Name) VALUES (?)", alias)
+      aliascommand.forEach(cmd => this.db.run("INSERT INTO AliasCommand (AliasId, Command) VALUES (?, ?)", lastInsertRowid, cmd))
     }
   }
 
   removeAlias (alias) {
-    this.run("DELETE FROM Alias WHERE Name = ?", alias)
+    this.db.run("DELETE FROM Alias WHERE Name = ?", alias)
   }
 
   listAliases (aliasvalue) {
     if (aliasvalue !== "") {
-      return this.reduceAliases(this.runQuery(`
+      return this.reduceAliases(this.db.runQuery(`
         SELECT Name AS name, Command AS command
         FROM Alias a
         JOIN AliasCommand ac
@@ -45,7 +50,7 @@ class AliasTracker {
     `, aliasvalue + "%"))
     }
 
-    return this.reduceAliases(this.runQuery(`
+    return this.reduceAliases(this.db.runQuery(`
       SELECT Name AS name, Command AS command
       FROM Alias a
       JOIN AliasCommand ac
@@ -54,7 +59,7 @@ class AliasTracker {
   }
 
   checkForAlias (alias) {
-    return this.reduceAliases(this.runQuery(`
+    return this.reduceAliases(this.db.runQuery(`
       SELECT Name AS name, Command AS command
       FROM Alias a
       JOIN AliasCommand ac
@@ -73,12 +78,6 @@ class AliasTracker {
 
       return [map, arr]
     }, [new Map(), []])[1]
-  }
-
-  static applyToClass (structure) {
-    for (const prop of Object.getOwnPropertyNames(AliasTracker.prototype).slice(1)) {
-      Object.defineProperty(structure.prototype, prop, Object.getOwnPropertyDescriptor(AliasTracker.prototype, prop))
-    }
   }
 }
 

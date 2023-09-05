@@ -60,7 +60,7 @@ export default class Alias extends Command {
     const Prefix = LucilleClient.Instance.commandPrefix
 
     if (aliasname === "list") {
-      const List = LucilleClient.Instance.db.listAliases(aliasvalue)
+      const List = LucilleClient.Instance.db.alias.listAliases(aliasvalue)
 
       if (List.length) {
         paginatedEmbed(msg, {
@@ -75,8 +75,8 @@ export default class Alias extends Command {
       else msg.reply("No aliases have been added yet")
     }
     else if (aliasvalue === "") {
-      if (LucilleClient.Instance.db.checkForAlias(aliasname).length) {
-        const AliasCommand = LucilleClient.Instance.db.checkForAlias(aliasname)[0].command
+      if (LucilleClient.Instance.db.alias.checkForAlias(aliasname).length) {
+        const AliasCommand = LucilleClient.Instance.db.alias.checkForAlias(aliasname)[0].command
 
         AliasCommand.forEach((command, index) => {
           if (command.length !== 0) {
@@ -95,20 +95,20 @@ export default class Alias extends Command {
     }
     else {
       if (aliasname === "delete" || aliasname === "remove" || aliasname === "rm") {
-        if (LucilleClient.Instance.db.checkForAlias(aliasvalue).length) {
-          LucilleClient.Instance.db.removeAlias(aliasvalue)
+        if (LucilleClient.Instance.db.alias.checkForAlias(aliasvalue).length) {
+          LucilleClient.Instance.db.alias.removeAlias(aliasvalue)
           msg.reply(`Deleted alias '${aliasvalue}' :)`)
         }
         else {
           msg.reply(`Alias '${aliasvalue}' not found`)
         }
       }
-      else if (LucilleClient.Instance.db.checkForAlias(aliasname).length) {
+      else if (LucilleClient.Instance.db.alias.checkForAlias(aliasname).length) {
         msg.reply("This alias already exists :(")
       }
       else {
         if (aliasvalue.split("&").filter(cmd => cmd !== "").length) {
-          LucilleClient.Instance.db.writeAlias(aliasname, aliasvalue)
+          LucilleClient.Instance.db.alias.writeAlias(aliasname, aliasvalue)
           msg.reply("Alias added :)")
         }
         else {
