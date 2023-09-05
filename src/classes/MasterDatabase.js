@@ -1,8 +1,8 @@
 import SQLite from "better-sqlite3"
 import PPDb from "../db/PPDb.js"
-import AliasTracker from "./AliasTracker.js"
-import BangaTracker from "./BangaTracker.js"
-import StocksPortfolio from "./StocksPortfolio.js"
+import AliasTracker from "../db/AliasTracker.js"
+import BangaTracker from "../db/BangaTracker.js"
+import StocksPortfolio from "../db/StocksPortfolio.js"
 import CalendarDb from "../db/CalendarDb.js"
 import VoiceDb from "../db/VoiceDb.js"
 
