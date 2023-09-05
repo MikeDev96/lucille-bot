@@ -1,6 +1,11 @@
 class StocksPortfolio {
-  initStocks () {
-    this.db.exec(`
+  constructor (db) {
+    this.db = db
+    this.init()
+  }
+
+  init () {
+    this.db.db.exec(`
       CREATE TABLE IF NOT EXISTS Stock
       (
         StockId  INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -8,7 +13,7 @@ class StocksPortfolio {
       )
     `)
 
-    this.db.exec(`
+    this.db.db.exec(`
       CREATE TABLE IF NOT EXISTS StockUser
       (
         StockUserId  INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -21,7 +26,7 @@ class StocksPortfolio {
   }
 
   checkForStock (symbol) {
-    return this.reduceStocks(this.runQuery(`
+    return this.reduceStocks(this.db.runQuery(`
       SELECT s.Symbol AS symbol, su.UserId AS userId
       FROM Stock s
       LEFT JOIN StockUser su
@@ -31,7 +36,7 @@ class StocksPortfolio {
   }
 
   writeStock (symbol) {
-    this.run("INSERT INTO Stock (Symbol) VALUES (?)", symbol)
+    this.db.run("INSERT INTO Stock (Symbol) VALUES (?)", symbol)
   }
 
   checkForUser (symbol, user) {
@@ -52,7 +57,7 @@ class StocksPortfolio {
       return false
     }
     else {
-      this.run(`INSERT INTO StockUser (StockId, UserId) VALUES ((SELECT StockId FROM Stock WHERE Symbol = ?), ?)`, symbol, user)
+      this.db.run(`INSERT INTO StockUser (StockId, UserId) VALUES ((SELECT StockId FROM Stock WHERE Symbol = ?), ?)`, symbol, user)
       return true
     }
   }
@@ -67,13 +72,13 @@ class StocksPortfolio {
     const userExists = this.checkForUser(symbol, user)
 
     if (userExists) {
-      this.run(`
+      this.db.run(`
         DELETE FROM StockUser AS su
         WHERE su.StockId IN (SELECT s.StockId FROM Stock s WHERE s.Symbol = ?)
           AND su.UserId = ?
       `, symbol, user)
 
-      this.run(`
+      this.db.run(`
         DELETE FROM Stock AS s
         WHERE s.Symbol = ?
           AND NOT EXISTS(SELECT su.StockId FROM StockUser su WHERE su.StockId = s.StockId)
@@ -87,7 +92,7 @@ class StocksPortfolio {
   }
 
   listStocks (user) {
-    return this.runQuery(`
+    return this.db.runQuery(`
       SELECT s.Symbol AS symbol
       FROM Stock s
       JOIN StockUser su
@@ -108,12 +113,6 @@ class StocksPortfolio {
 
       return [map, arr]
     }, [new Map(), []])[1]
-  }
-
-  static applyToClass (structure) {
-    for (const prop of Object.getOwnPropertyNames(StocksPortfolio.prototype).slice(1)) {
-      Object.defineProperty(structure.prototype, prop, Object.getOwnPropertyDescriptor(StocksPortfolio.prototype, prop))
-    }
   }
 }
 

@@ -8,7 +8,6 @@ import MessageInterceptor from "./MessageInterceptor.js"
 import AmazonRipper from "./AmazonRipper.js"
 import { ppResetDaily } from "../commands/fun/pp.js"
 import TextToSpeech from "./TextToSpeech.js"
-import StocksPortfolio from "./StocksPortfolio.js"
 // import VoiceCommands from "./VoiceCommands.js"
 import { globby } from "globby"
 import { Client, Events, GatewayIntentBits } from "discord.js"
@@ -27,7 +26,6 @@ export default class LucilleClient {
     this.db = new MasterDatabase()
     this.voiceTracker = new VoiceTracker(this.client)
     this.voiceStateAdapter = new VoiceStateAdapter(this.client)
-    this.stocksPortfolio = new StocksPortfolio()
     // this.voiceCommands = new VoiceCommands(this)
 
     this.createMessageInterceptor()

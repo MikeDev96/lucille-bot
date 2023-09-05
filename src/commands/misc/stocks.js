@@ -33,7 +33,7 @@ export default class extends Command {
 
   async run (msg, args) {
     if (args.action === "add") {
-      const success = LucilleClient.Instance.db.addUser(args.symbol.toUpperCase(), msg.author.id)
+      const success = LucilleClient.Instance.db.stocks.addUser(args.symbol.toUpperCase(), msg.author.id)
 
       if (success) {
         msg.react("👍")
@@ -44,7 +44,7 @@ export default class extends Command {
       }
     }
     else if (args.action === "remove" || args.action === "rm" || args.action === "delete") {
-      const success = LucilleClient.Instance.db.removeUser(args.symbol.toUpperCase(), msg.author.id)
+      const success = LucilleClient.Instance.db.stocks.removeUser(args.symbol.toUpperCase(), msg.author.id)
 
       if (success) {
         msg.react("👍")
@@ -62,24 +62,20 @@ export default class extends Command {
           msg.reply("Could not find user ID")
           return
         }
-        const list = LucilleClient.Instance.db.listStocks(listId)
+        const list = LucilleClient.Instance.db.stocks.listStocks(listId)
         if (list.length > 0) {
           const tempArr = this.list(list, nickname)
           const embed = {
-            embeds: [
-              {
-                color: 0x0099ff,
-                title: "Lucille Stonk Exchange",
-                author: {
-                  name: msg.member.displayName,
-                  icon_url: msg.author.displayAvatarURL(),
-                },
-                fields: tempArr,
-                footer: {
-                  text: process.env.DISCORD_FOOTER,
-                },
-              },
-            ],
+            color: 0x0099ff,
+            title: "Lucille Stonk Exchange",
+            author: {
+              name: msg.member.displayName,
+              icon_url: msg.author.displayAvatarURL(),
+            },
+            fields: tempArr,
+            footer: {
+              text: process.env.DISCORD_FOOTER,
+            },
           }
           msg.reply({ embeds: [embed] })
         }

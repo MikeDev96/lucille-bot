@@ -92,7 +92,6 @@ class MasterDatabase {
     this.db.exec("DROP TABLE IF EXISTS YouTubeLinks")
 
     this.initVoiceStats()
-    this.initStocks()
 
     console.log("Master database initialised")
   }
@@ -102,6 +101,7 @@ class MasterDatabase {
     this.alias = new AliasTracker(this)
     this.calendar = new CalendarDb(this)
     this.pp = new PPDb(this)
+    this.stocks = new StocksPortfolio(this)
   }
 
   columnExists (tblName, clmName) {
@@ -294,6 +294,5 @@ WHERE [ServerId] = @server
 }
 
 VoiceTracker.applyToClass(MasterDatabase)
-StocksPortfolio.applyToClass(MasterDatabase)
 
 export default MasterDatabase
