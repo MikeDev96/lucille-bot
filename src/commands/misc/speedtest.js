@@ -1,5 +1,5 @@
 import FastSpeedtest from "fast-speedtest-api"
-import Command from "../../classes/Command.js"
+import Command from "../../models/Command.js"
 
 export default class extends Command {
   constructor () {

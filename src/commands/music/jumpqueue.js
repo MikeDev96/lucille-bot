@@ -1,4 +1,4 @@
-import Command from "../../classes/Command.js"
+import Command from "../../models/Command.js"
 import { commandConfig, run } from "./play.js"
 
 export default class PlayCommand extends Command {

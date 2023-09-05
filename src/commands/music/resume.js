@@ -1,4 +1,4 @@
-import Command from "../../classes/Command.js"
+import Command from "../../models/Command.js"
 import LucilleClient from "../../classes/LucilleClient.js"
 
 export default class extends Command {

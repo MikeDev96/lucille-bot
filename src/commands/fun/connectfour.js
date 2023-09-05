@@ -1,4 +1,4 @@
-import Command from "../../classes/Command.js"
+import Command from "../../models/Command.js"
 import ConnectFour from "../../classes/ConnectFour.js"
 import LucilleClient from "../../classes/LucilleClient.js"
 

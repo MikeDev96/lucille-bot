@@ -1,6 +1,6 @@
 import parse from "parse-duration"
 import { DateTime } from "luxon"
-import Command from "../../classes/Command.js"
+import Command from "../../models/Command.js"
 
 const timeValidationRegex = /(?:[0-1]\d|2[0-3]):(?:[0-5]\d)(?::(?:[0-5]\d))?/
 

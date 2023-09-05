@@ -1,4 +1,4 @@
-import Command from "../../classes/Command.js"
+import Command from "../../models/Command.js"
 
 export default class LocalTime extends Command {
   constructor () {

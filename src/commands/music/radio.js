@@ -1,7 +1,7 @@
-import Command from "../../classes/Command.js"
+import Command from "../../models/Command.js"
 import { getRequestee, getVoiceChannel, shouldIgnoreMessage } from "../../helpers.js"
 import { PLATFORM_RADIO } from "../../classes/TrackExtractor.js"
-import Track from "../../classes/Track.js"
+import Track from "../../models/Track.js"
 import { createRequire } from "module"
 import LucilleClient from "../../classes/LucilleClient.js"
 

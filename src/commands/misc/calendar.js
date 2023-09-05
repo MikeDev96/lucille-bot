@@ -4,7 +4,7 @@ import rrule from "rrule"
 import humanizeDuration from "humanize-duration"
 import chrono from "chrono-node"
 import LucilleClient from "../../classes/LucilleClient.js"
-import Command from "../../classes/Command.js"
+import Command from "../../models/Command.js"
 const { RRule } = rrule
 
 export default class extends Command {

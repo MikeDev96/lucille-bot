@@ -1,6 +1,6 @@
 import { AttachmentBuilder } from "discord.js"
 import fs from "fs"
-import Command from "../../classes/Command.js"
+import Command from "../../models/Command.js"
 
 export default class extends Command {
   constructor () {

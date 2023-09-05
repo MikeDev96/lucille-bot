@@ -1,6 +1,6 @@
 import SpotifyWebApi from "spotify-web-api-node"
 import fetch from "node-fetch"
-import Track from "./Track.js"
+import Track from "../models/Track.js"
 import parseDuration from "parse-duration"
 import { Client, Video } from "youtubei"
 import { URL } from "url"

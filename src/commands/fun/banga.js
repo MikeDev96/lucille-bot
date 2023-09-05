@@ -1,11 +1,11 @@
 import { getRequestee, getVoiceChannel, shuffle, paginatedEmbed, splitMessage } from "../../helpers.js"
-import Track from "../../classes/Track.js"
+import Track from "../../models/Track.js"
 import { AttachmentBuilder, escapeMarkdown } from "discord.js"
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb"
 import { DynamoDBDocumentClient, PutCommand } from "@aws-sdk/lib-dynamodb"
 import { existsSync } from "fs"
 import LucilleClient from "../../classes/LucilleClient.js"
-import Command from "../../classes/Command.js"
+import Command from "../../models/Command.js"
 
 export default class extends Command {
   constructor () {

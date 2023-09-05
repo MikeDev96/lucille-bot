@@ -1,6 +1,6 @@
 import { DateTime } from "luxon"
 import Tenor from "tenorjs"
-import Command from "../../classes/Command.js"
+import Command from "../../models/Command.js"
 
 let gifpairing = {}
 let prevDate = DateTime.local().toISODate()

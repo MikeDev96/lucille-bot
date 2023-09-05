@@ -1,7 +1,7 @@
 import { proxyCommand } from "../../classes/DiscordJSHelpers.js"
 import { paginatedEmbed, splitMessage } from "../../helpers.js"
 import LucilleClient from "../../classes/LucilleClient.js"
-import Command from "../../classes/Command.js"
+import Command from "../../models/Command.js"
 
 export default class Alias extends Command {
   constructor () {

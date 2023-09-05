@@ -1,6 +1,6 @@
 import { shouldIgnoreMessage } from "../../helpers.js"
 import LucilleClient from "../../classes/LucilleClient.js"
-import Command from "../../classes/Command.js"
+import Command from "../../models/Command.js"
 
 export default class extends Command {
   constructor () {

@@ -1,6 +1,6 @@
 import { throttle } from "lodash-es"
-import Track from "./Track.js"
-import Requestee from "./Requestee.js"
+import Track from "../models/Track.js"
+import Requestee from "../models/Requestee.js"
 import { createRequire } from "module"
 import LucilleClient from "./LucilleClient.js"
 

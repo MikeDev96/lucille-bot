@@ -1,6 +1,6 @@
 // import { Util } from "discord.js"
 import { PassThrough, Readable } from "stream"
-import Requestee from "./classes/Requestee.js"
+import Requestee from "./models/Requestee.js"
 import fetch from "node-fetch"
 import { Duration } from "luxon"
 import { Client } from "youtubei"

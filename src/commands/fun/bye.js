@@ -1,5 +1,5 @@
 import { PermissionsBitField } from "discord.js"
-import Command from "../../classes/Command.js"
+import Command from "../../models/Command.js"
 import { getVoiceChannel, shouldIgnoreMessage } from "../../helpers.js"
 import LucilleClient from "../../classes/LucilleClient.js"
 

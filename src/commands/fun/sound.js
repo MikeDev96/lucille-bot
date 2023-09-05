@@ -2,11 +2,11 @@ import fetch from "node-fetch"
 import fs from "fs"
 import { getAudioDurationInSeconds } from "get-audio-duration"
 import { getRequestee, getVoiceChannel, splitMessage } from "../../helpers.js"
-import Track from "../../classes/Track.js"
+import Track from "../../models/Track.js"
 import { PLATFORM_OTHER } from "../../classes/TrackExtractor.js"
 import { AttachmentBuilder, escapeMarkdown } from "discord.js"
 import AdmZip from "adm-zip"
-import Command from "../../classes/Command.js"
+import Command from "../../models/Command.js"
 import LucilleClient from "../../classes/LucilleClient.js"
 
 export default class extends Command {

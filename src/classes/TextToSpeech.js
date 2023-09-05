@@ -1,6 +1,6 @@
 import LucilleClient from "./LucilleClient.js"
-import Requestee from "./Requestee.js"
-import Track from "./Track.js"
+import Requestee from "../models/Requestee.js"
+import Track from "../models/Track.js"
 import { PLATFORM_TTS } from "./TrackExtractor.js"
 /*
 * TODO:

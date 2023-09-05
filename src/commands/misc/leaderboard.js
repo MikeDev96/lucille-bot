@@ -1,7 +1,7 @@
 import { paginatedEmbed, splitMessage } from "../../helpers.js"
 import { escapeMarkdown } from "discord.js"
 import humanizeDuration from "humanize-duration"
-import Command from "../../classes/Command.js"
+import Command from "../../models/Command.js"
 import LucilleClient from "../../classes/LucilleClient.js"
 
 export default class extends Command {

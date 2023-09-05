@@ -1,6 +1,6 @@
 import fetch from "node-fetch"
 import LucilleClient from "../../classes/LucilleClient.js"
-import Command from "../../classes/Command.js"
+import Command from "../../models/Command.js"
 
 const YOUTUBE_REGEX_PATTERN = /(?:https?:\/\/www.)?youtu(?:be.com\/watch\?v=|.be\/)([\w-]+)/
 

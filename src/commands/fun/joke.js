@@ -1,7 +1,7 @@
 import fetch from "node-fetch"
 import { sleep } from "../../helpers.js"
 import TtsCommand from "./tts.js"
-import Command from "../../classes/Command.js"
+import Command from "../../models/Command.js"
 import LucilleClient from "../../classes/LucilleClient.js"
 
 export default class extends Command {

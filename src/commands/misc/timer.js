@@ -1,6 +1,6 @@
 import parse from "parse-duration"
 import { msToTimestamp } from "../../helpers.js"
-import Command from "../../classes/Command.js"
+import Command from "../../models/Command.js"
 
 export default class extends Command {
   constructor () {
