@@ -16,7 +16,7 @@ import { escapeMarkdown } from "discord.js"
 
 const PLATFORMS_REQUIRE_YT_SEARCH = [PLATFORM_SPOTIFY, PLATFORM_TIDAL, PLATFORM_APPLE, PLATFORM_YOUTUBE, "search"]
 
-export default class Music extends MusicState {
+export default class MusicPlayer extends MusicState {
   constructor (guild) {
     super(guild, {
       voiceChannel: null,

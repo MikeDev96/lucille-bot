@@ -1,6 +1,6 @@
 import Command from "../../models/Command.js"
 import LucilleClient from "../../classes/LucilleClient.js"
-import { mapRepeatTypeToEmoji } from "../../classes/Music.js"
+import { mapRepeatTypeToEmoji } from "../../classes/MusicPlayer.js"
 
 export default class extends Command {
   constructor () {
