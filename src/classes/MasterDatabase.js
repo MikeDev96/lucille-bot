@@ -3,8 +3,8 @@ import PPDb from "../db/PPDb.js"
 import AliasTracker from "./AliasTracker.js"
 import BangaTracker from "./BangaTracker.js"
 import StocksPortfolio from "./StocksPortfolio.js"
-import VoiceTracker from "./VoiceTracker.js"
 import CalendarDb from "../db/CalendarDb.js"
+import VoiceDb from "../db/VoiceDb.js"
 
 class MasterDatabase {
   constructor () {
@@ -91,8 +91,6 @@ class MasterDatabase {
     this.db.exec("DELETE FROM YouTubeHistory WHERE VideoId IS NULL")
     this.db.exec("DROP TABLE IF EXISTS YouTubeLinks")
 
-    this.initVoiceStats()
-
     console.log("Master database initialised")
   }
 
@@ -102,6 +100,7 @@ class MasterDatabase {
     this.calendar = new CalendarDb(this)
     this.pp = new PPDb(this)
     this.stocks = new StocksPortfolio(this)
+    this.voice = new VoiceDb(this)
   }
 
   columnExists (tblName, clmName) {
@@ -292,7 +291,5 @@ WHERE [ServerId] = @server
     `, videoId)
   }
 }
-
-VoiceTracker.applyToClass(MasterDatabase)
 
 export default MasterDatabase

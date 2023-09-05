@@ -11,57 +11,6 @@ class VoiceTracker {
     this.initClient()
   }
 
-  initVoiceStats () {
-    this.db.exec(`
-      CREATE TABLE IF NOT EXISTS VoiceStats
-      (
-        ServerId    TEXT,
-        UserId      TEXT,
-        SelfMute    INTEGER,
-        SelfDeaf    INTEGER,
-        ServerMute  INTEGER,
-        ServerDeaf  INTEGER,
-        Afk         INTEGER,
-        SelfMuteMax INTEGER,
-        SelfDeafMax INTEGER,
-        AfkMax      INTEGER,
-        Active      INTEGER,
-        Status      STRING,
-        Speaking    INTEGER,
-        SpeakingMax INTEGER,
-        PRIMARY KEY (ServerId, UserId)
-      )
-    `)
-
-    try {
-      this.db.exec(`SELECT Status FROM VoiceStats`)
-    }
-    catch {
-      this.db.exec(`ALTER TABLE VoiceStats ADD COLUMN Status STRING DEFAULT 'show'`)
-    }
-
-    try {
-      this.db.exec(`SELECT Active FROM VoiceStats`)
-    }
-    catch (error) {
-      this.db.exec(`ALTER TABLE VoiceStats ADD COLUMN Active INTEGER DEFAULT 0`)
-    }
-
-    try {
-      this.db.exec(`SELECT Speaking FROM VoiceStats`)
-    }
-    catch (error) {
-      this.db.exec(`ALTER TABLE VoiceStats ADD COLUMN Speaking INTEGER DEFAULT 0`)
-    }
-
-    try {
-      this.db.exec(`SELECT SpeakingMax FROM VoiceStats`)
-    }
-    catch (error) {
-      this.db.exec(`ALTER TABLE VoiceStats ADD COLUMN SpeakingMax INTEGER DEFAULT 0`)
-    }
-  }
-
   initClient () {
     this.client.once(Events.ClientReady, this.initiateMonitor.bind(this))
     this.client.on(Events.VoiceStateUpdate, this.voiceStateUpdate.bind(this))
@@ -106,13 +55,7 @@ class VoiceTracker {
       for (const [userId, { serverId, active }] of users) {
         if (active) {
           const newTime = curTime - active
-          LucilleClient.Instance.db.run(`
-            UPDATE VoiceStats
-            SET
-              Active = Active + ?
-            WHERE ServerId = ?
-              AND UserId = ?
-          `, newTime, serverId, userId)
+          LucilleClient.Instance.db.voice.updateActiveTimeForUser(serverId, userId, newTime)
 
           this.monitor[userId].active = curTime
         }
@@ -271,23 +214,7 @@ class VoiceTracker {
       const serverId = oldMember.guild.id
       const userId = oldMember.id
 
-      LucilleClient.Instance.db.run(`
-        INSERT INTO VoiceStats VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        ON CONFLICT(ServerId, UserId) DO UPDATE
-        SET
-          SelfMute = SelfMute + ?,
-          SelfDeaf = SelfDeaf + ?,
-          ServerMute = ServerMute + ?,
-          ServerDeaf = ServerDeaf + ?,
-          Afk = Afk + ?,
-          SelfMuteMax = CASE WHEN ? > SelfMuteMax THEN ? ELSE SelfMuteMax END,
-          SelfDeafMax = CASE WHEN ? > SelfDeafMax THEN ? ELSE SelfDeafMax END,
-          AfkMax = CASE WHEN ? > AfkMax THEN ? ELSE AfkMax END,
-          Active = Active + ?
-        WHERE ServerId = ?
-          AND UserId = ?
-      `, serverId, userId, changes.selfMute, changes.selfDeaf, changes.serverMute, changes.serverDeaf, changes.afk, changes.selfMute, changes.selfDeaf, changes.afk, changes.active, "show", 0, 0,
-      changes.selfMute, changes.selfDeaf, changes.serverMute, changes.serverDeaf, changes.afk, changes.selfMute, changes.selfMute, changes.selfDeaf, changes.selfDeaf, changes.afk, changes.afk, changes.active, serverId, userId)
+      LucilleClient.Instance.db.voice.updateVoiceStatsForUser(serverId, userId, changes)
     }
   }
 
@@ -315,46 +242,17 @@ class VoiceTracker {
   async updateStatus (serverId, msg, status, userId) {
     try {
       if (status === "off") {
-        LucilleClient.Instance.db.run(`UPDATE VoiceStats
-          SET
-            SelfMute = NULL,
-            SelfDeaf = NULL,
-            ServerMute = NULL,
-            ServerDeaf = NULL,
-            Afk = NULL,
-            SelfMuteMax = NULL,
-            SelfDeafMax = NULL,
-            AfkMax = NULL,
-            Active = NULL,
-            Speaking = NULL,
-            SpeakingMax = NULL
-          WHERE ServerId = ${serverId} AND UserId = ${userId}`)
+        LucilleClient.Instance.db.voice.disableVoiceStatsForUser(serverId, userId)
       }
       else {
-        const response = LucilleClient.Instance.db.runQuery(`
-        SELECT Status FROM VoiceStats WHERE ServerId = ? AND UserId = ?
-      `, serverId, userId)
+        const response = LucilleClient.Instance.db.voice.getStatusForUser(serverId, userId)
 
-        if (response[0].Status === "off") {
-          LucilleClient.Instance.db.run(`UPDATE VoiceStats
-            SET
-              SelfMute = 0,
-              SelfDeaf = 0,
-              ServerMute = 0,
-              ServerDeaf = 0,
-              Afk = 0,
-              SelfMuteMax = 0,
-              SelfDeafMax = 0,
-              AfkMax = 0,
-              Active = 0,
-              Speaking = 0,
-              SpeakingMax = 0
-            WHERE ServerId = ? AND UserId = ?
-          `, serverId, userId)
+        if (response === "off") {
+          LucilleClient.Instance.db.voice.enableVoiceStatsForUser(serverId, userId)
         }
       }
 
-      LucilleClient.Instance.db.run(`UPDATE VoiceStats SET Status='${status}' WHERE ServerId = ${serverId} AND UserId = ${userId}`)
+      LucilleClient.Instance.db.voice.updateStatus(serverId, userId, status)
       msg.reply(`Your status has been updated to ${status}`)
     }
     catch (error) {
@@ -365,7 +263,7 @@ class VoiceTracker {
 
   async getLeaderboard (serverId, author = {}, members = {}) {
     const currentServer = this.client.guilds.cache.get(serverId)
-    const server = LucilleClient.Instance.db.runQuery(`SELECT * FROM VoiceStats WHERE ServerId = ${serverId} AND Status = 'show'`)
+    const server = LucilleClient.Instance.db.voice.getVoiceStatsForServer(serverId)
     if (!server) {
       return false
     }
@@ -478,14 +376,10 @@ class VoiceTracker {
   getIndividualUser (serverId, userId, statType) {
     let response
     if (userId) {
-      response = LucilleClient.Instance.db.runQuery(`
-        SELECT ${statType} FROM VoiceStats WHERE ServerId = ? AND UserId = ?
-      `, serverId, userId)
+      response = LucilleClient.Instance.db.voice.getVoiceStatForUser(serverId, userId, statType)
     }
     else {
-      response = LucilleClient.Instance.db.runQuery(`
-        SELECT ${statType}, UserId FROM VoiceStats WHERE ServerId = ? AND Status = 'show' AND ${statType} IS NOT NULL
-      `, serverId)
+      response = LucilleClient.Instance.db.voice.getVoiceStatForServer(serverId, statType)
     }
     if (!response.length) {
       response = [{ [statType]: 0, UserId: "None", Status: null }]
@@ -495,15 +389,7 @@ class VoiceTracker {
   }
 
   getStatus (serverId, userId) {
-    let response = LucilleClient.Instance.db.runQuery(`
-        SELECT Status FROM VoiceStats WHERE ServerId = ? AND UserId = ?
-      `, serverId, userId)
-
-    if (!response.length) {
-      response = [{ Status: null }]
-    }
-
-    return response[0].Status
+    return LucilleClient.Instance.db.voice.getStatusForUser(serverId, userId)
   }
 
   round1000 (num) {
@@ -544,22 +430,7 @@ class VoiceTracker {
   }
 
   updateSpeech (guild, user, duration) {
-    LucilleClient.Instance.db.run(`
-      INSERT INTO VoiceStats VALUES (?, ?, 0, 0, 0, 0, 0, 0, 0, 0, 0, 'show', ?, ?)
-      ON CONFLICT(ServerId, UserId) DO UPDATE
-      SET
-        Speaking = Speaking + ?,
-        SpeakingMax = CASE WHEN ? > SpeakingMax THEN ? ELSE SpeakingMax END
-      WHERE ServerId = ?
-        AND UserId = ?
-        AND Status != 'off'
-    `, guild, user, duration, duration, duration, duration, duration, guild, user)
-  }
-
-  static applyToClass (structure) {
-    for (const prop of Object.getOwnPropertyNames(VoiceTracker.prototype).slice(1)) {
-      Object.defineProperty(structure.prototype, prop, Object.getOwnPropertyDescriptor(VoiceTracker.prototype, prop))
-    }
+    LucilleClient.Instance.db.voice.updateSpeech(guild, user, duration)
   }
 }
 

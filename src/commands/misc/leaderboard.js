@@ -196,7 +196,7 @@ __**${prefix}lb command:**__
 
     function formatDbData (data, statType) {
       data.sort((a, b) => b[statType] - a[statType])
-      return splitMessage(data.map((obj, index) => (index + 1) + ". " + escapeMarkdown(findUsernameFromId(obj.UserId) + " has been  " + statType + " for " + humanizeDuration(round1000(obj[statType])))), { maxLength: 1024 }).map((str, idx) => ({
+      return splitMessage(data.map((obj, index) => (index + 1) + ". " + escapeMarkdown(findUsernameFromId(obj.UserId) + " has been " + statType + " for " + humanizeDuration(round1000(obj[statType])))), { maxLength: 1024 }).map((str, idx) => ({
         name: `${statType} Lb ${idx + 1}`,
         value: str,
       }))
