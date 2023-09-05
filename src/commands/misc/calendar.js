@@ -70,7 +70,7 @@ export default class extends Command {
         }
 
         const dtStart = this.toRRuleDate(date)
-        LucilleClient.Instance.db.addCalendarEvent(`DTSTART:${dtStart}\nRRULE:FREQ=DAILY;COUNT=1;INTERVAL=1;WKST=MO`, args.arg4, msg.author.id, msg.guild.id)
+        LucilleClient.Instance.db.calendar.addCalendarEvent(`DTSTART:${dtStart}\nRRULE:FREQ=DAILY;COUNT=1;INTERVAL=1;WKST=MO`, args.arg4, msg.author.id, msg.guild.id)
 
         msg.react("👌")
       }
@@ -103,7 +103,7 @@ export default class extends Command {
         }
 
         const dtStart = this.toRRuleDate(date)
-        LucilleClient.Instance.db.addCalendarEvent(`DTSTART:${dtStart}\n${rrule.toString()}`, args.arg5, msg.author.id, msg.guild.id)
+        LucilleClient.Instance.db.calendar.addCalendarEvent(`DTSTART:${dtStart}\n${rrule.toString()}`, args.arg5, msg.author.id, msg.guild.id)
 
         msg.react("👌")
       }
@@ -114,7 +114,7 @@ export default class extends Command {
         return
       }
 
-      const event = LucilleClient.Instance.db.findCalendarEvent(msg.guild.id, args.arg2)
+      const event = LucilleClient.Instance.db.calendar.findCalendarEvent(msg.guild.id, args.arg2)
       if (!event) {
         msg.reply(`Couldn't find an event for \`${args.arg2}\``)
         return
@@ -130,7 +130,7 @@ export default class extends Command {
         if (firstMsg) {
           if (/y/i.test(firstMsg.content)) {
             firstMsg.react("🗑️")
-            LucilleClient.Instance.db.removeCalendarEvent(event.calendarId)
+            LucilleClient.Instance.db.calendar.removeCalendarEvent(event.calendarId)
           }
         }
       }
@@ -139,7 +139,7 @@ export default class extends Command {
       }
     }
     else if (args.arg1 === "list" || args.arg1 === "ls") {
-      const events = LucilleClient.Instance.db.getCalendarEvents(msg.guild.id)
+      const events = LucilleClient.Instance.db.calendar.getCalendarEvents(msg.guild.id)
 
       const reducedEvents = events.reduce((acc, event) => {
         const rrule = RRule.fromString(event.rrule)

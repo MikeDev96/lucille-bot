@@ -1,10 +1,10 @@
 import SQLite from "better-sqlite3"
-import CalendarDb from "../db/CalendarDb.js"
 import PPDb from "../db/PPDb.js"
 import AliasTracker from "./AliasTracker.js"
 import BangaTracker from "./BangaTracker.js"
 import StocksPortfolio from "./StocksPortfolio.js"
 import VoiceTracker from "./VoiceTracker.js"
+import CalendarDb from "../db/CalendarDb.js"
 
 class MasterDatabase {
   constructor () {
@@ -93,7 +93,6 @@ class MasterDatabase {
 
     this.initVoiceStats()
     this.initStocks()
-    this.initCalendarDb()
     this.initPPDB()
 
     console.log("Master database initialised")
@@ -102,6 +101,7 @@ class MasterDatabase {
   initModules () {
     this.banga = new BangaTracker(this)
     this.alias = new AliasTracker(this)
+    this.calendar = new CalendarDb(this)
   }
 
   columnExists (tblName, clmName) {
@@ -295,7 +295,6 @@ WHERE [ServerId] = @server
 
 VoiceTracker.applyToClass(MasterDatabase)
 StocksPortfolio.applyToClass(MasterDatabase)
-CalendarDb.applyToClass(MasterDatabase)
 PPDb.applyToClass(MasterDatabase)
 
 export default MasterDatabase
