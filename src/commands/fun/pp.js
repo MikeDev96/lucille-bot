@@ -77,18 +77,18 @@ ${LucilleClient.Instance.commandPrefix}pp perm \`lb\` gets the pp leaderboard, s
     let realLength = Math.ceil(Math.random() * 15)
 
     if (isPerm) {
-      realLength = LucilleClient.Instance.db.getPenisSize(authorId, guildId, realLength, -1)
+      realLength = LucilleClient.Instance.db.pp.getPenisSize(authorId, guildId, realLength, -1)
     }
 
     if (isDaily) {
-      realLength = LucilleClient.Instance.db.getPenisSize(authorId, guildId, -1, realLength)
+      realLength = LucilleClient.Instance.db.pp.getPenisSize(authorId, guildId, -1, realLength)
     }
 
     return realLength
   }
 
   getLeaderboard (msg, isDaily) {
-    const all = LucilleClient.Instance.db.getAllPenisSize(msg.guild.id)
+    const all = LucilleClient.Instance.db.pp.getAllPenisSize(msg.guild.id)
     const fields = all.sort((pp1, pp2) => {
       return !isDaily ? pp2.Size - pp1.Size : pp2.DailyPP - pp1.DailyPP
     })
@@ -148,7 +148,7 @@ __**${prefix}PP command:**__
 }
 
 export const ppResetDaily = (client, guild) => {
-  const all = LucilleClient.Instance.db.getAllPenisSize(guild.id)
+  const all = LucilleClient.Instance.db.pp.getAllPenisSize(guild.id)
 
   const groupedBySize = all.reduce((acc, cur) => {
     if (!acc.has(cur.DailyPP)) {
@@ -195,5 +195,5 @@ export const ppResetDaily = (client, guild) => {
 
   guild.systemChannel.send({ embeds: [dailyEmbed] })
 
-  LucilleClient.Instance.db.resetDailyPPSize(guild.id)
+  LucilleClient.Instance.db.pp.resetDailyPPSize(guild.id)
 }

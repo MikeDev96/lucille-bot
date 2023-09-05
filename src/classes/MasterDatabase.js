@@ -93,7 +93,6 @@ class MasterDatabase {
 
     this.initVoiceStats()
     this.initStocks()
-    this.initPPDB()
 
     console.log("Master database initialised")
   }
@@ -102,6 +101,7 @@ class MasterDatabase {
     this.banga = new BangaTracker(this)
     this.alias = new AliasTracker(this)
     this.calendar = new CalendarDb(this)
+    this.pp = new PPDb(this)
   }
 
   columnExists (tblName, clmName) {
@@ -295,6 +295,5 @@ WHERE [ServerId] = @server
 
 VoiceTracker.applyToClass(MasterDatabase)
 StocksPortfolio.applyToClass(MasterDatabase)
-PPDb.applyToClass(MasterDatabase)
 
 export default MasterDatabase
