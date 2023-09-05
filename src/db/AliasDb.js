@@ -1,4 +1,4 @@
-class AliasTracker {
+class AliasDb {
   constructor (db) {
     this.db = db
     this.init()
@@ -81,4 +81,4 @@ class AliasTracker {
   }
 }
 
-export default AliasTracker
+export default AliasDb

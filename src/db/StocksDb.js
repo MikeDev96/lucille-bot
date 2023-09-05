@@ -1,4 +1,4 @@
-class StocksPortfolio {
+class StocksDb {
   constructor (db) {
     this.db = db
     this.init()
@@ -116,4 +116,4 @@ class StocksPortfolio {
   }
 }
 
-export default StocksPortfolio
+export default StocksDb

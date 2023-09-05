@@ -1,4 +1,4 @@
-class BangaTracker {
+class BangaDb {
   constructor (db) {
     this.db = db
     this.init()
@@ -102,4 +102,4 @@ class BangaTracker {
   }
 }
 
-export default BangaTracker
+export default BangaDb
