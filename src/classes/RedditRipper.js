@@ -87,6 +87,9 @@ export default class RedditRipper {
           await msg.reply({ files: [attach] })
         }
       }
+      else if (type === "link") {
+        await msg.reply(filename)
+      }
 
       reaction.then(r => r.remove())
     }
@@ -139,29 +142,35 @@ export default class RedditRipper {
         return await this.process(url, id, 1)
       }
 
-      const titleMatch = /<meta\s+?property="og:title"\s+?content="(.+?)"\s*?\/>/.exec(html)
-      const jsonMatch = /(?<=<script id="data">window\.___r = ).+?(?=;<\/script>)/s.exec(html)
+      const dataMatch = /<shreddit-screenview-data\s*data="(.+?)"\s*><\/shreddit-screenview-data>/s.exec(html)
+      if (!dataMatch) return
 
-      if (!titleMatch || !jsonMatch) {
-        return
+      const [, json] = dataMatch
+      const decodedJson = json.replace(/&quot;/g, `"`)
+      const data = JSON.parse(decodedJson)
+
+      if (data.post.type === "image" || data.post.type === "gif") {
+        return ["image", data.post.url]
       }
+      else if (data.post.type === "link") {
+        return ["link", data.post.url]
+      }
+      else if (data.post.type === "crosspost") {
+        const crosspostMatch = /<shreddit-post.+?content-href="(.+?)"/s.exec(html)
+        if (!crosspostMatch) return
 
-      const [json] = jsonMatch
-      const data = JSON.parse(json)
+        const crosspostUrl = `https://reddit.com${crosspostMatch[1]}`
 
-      const model = data.posts.models[`t3_${id}`]
-      const media = model.crosspostParentId ? data.posts.models[model.crosspostParentId].media : model.media
-
-      if (media) {
-        if (media.type === "image") {
-          return ["image", media.content]
-        }
-        else if (media.type !== "video" && media.type !== "gifvideo") {
-          return
-        }
+        return await this.process(crosspostUrl, id, 1)
+      }
+      else if (data.post.type === "video") {
+        const titleMatch = /<shreddit-title title="(.+?)"><\/shreddit-title>/.exec(html)
+        const videoMatch = /(?<=<shreddit-player\s+data-post-click-location="video-player"\s+src=").+?(?=")/s.exec(html)
+        if (!titleMatch || !videoMatch) return
 
         const [, title] = titleMatch
-        const key = media.type === "video" ? "dashUrl" : "content"
+        const [videoUrl] = videoMatch
+
         const filename = path.join(VIDEOS_PATH, `${sanitise(title)} ${id}.mp4`)
 
         try {
@@ -172,12 +181,7 @@ export default class RedditRipper {
           await fsp.mkdir(VIDEOS_PATH, { recursive: true })
         }
 
-        return await this.convertVideo(media[key], filename, id)
-      }
-      else {
-        if (model.source && model.source.url) {
-          return ["image", model.source.url]
-        }
+        return await this.convertVideo(videoUrl, filename, id)
       }
     }
     catch (err) {
@@ -213,3 +217,20 @@ export default class RedditRipper {
     })
   }
 }
+
+// Links to test if the Reddit ripper is working
+
+// crosspost to a gif
+// https://www.reddit.com/r/gif/comments/165evkf/fashion_cup/
+// crosspost to a video
+// https://www.reddit.com/r/gif/comments/166o5ii/she_has_muscles_in_places_i_dont_even_have_places/
+// video
+// https://www.reddit.com/r/davinciresolve/comments/169g7kk/how_did_they_do_this_shot/
+// image
+// https://www.reddit.com/r/ProgrammerHumor/comments/130zdy6/give_it_a_try/
+// gif
+// https://www.reddit.com/r/EAF/comments/7lffjk/fashion_cup/
+// link - youtube
+// https://www.reddit.com/r/videos/comments/169xh5i/all_star_but_they_dont_stop_coming_pitch_rip/
+// short link
+// https://v.redd.it/hilitbi0lc461
