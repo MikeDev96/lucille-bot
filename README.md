@@ -14,9 +14,10 @@ When initially creating your bot, ensure that your bot has the approriate gatewa
 ## How to set up a development environment
 ### Prerequisites
 - **Windows Build Tools**  
-Lucille uses SQLite which requires WBT.  
-Follow the installation guide here: https://github.com/nodejs/node-gyp#on-windows  
-Alternatively just install run ```npm i -g windows-build-tools``` (https://github.com/felixrieseberg/windows-build-tools)
+Lucille uses SQLite which requires WBT.
+Browse to your nodejs installation directory (usually here: C:\Program Files\nodejs)
+Run install_tools.bat
+This will install chocolatey, python & wbt.
 ### Clone the repository
 ```bash
 git clone https://github.com/MikeDev96/lucille-bot.git
