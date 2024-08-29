@@ -51,7 +51,7 @@
     "tenorjs": "^1.0.10",
     "utf-8-validate": "^5.0.9",
     "ws": "^8.8.1",
-    "youtubei": "^1.1.2",
+    "youtubei": "^1.5.4",
     "zlib-sync": "^0.1.7"
   },
   "devDependencies": {
