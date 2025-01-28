@@ -17,4 +17,4 @@ jobs:
           key: ${{ secrets.KEY }}
           port: ${{ secrets.PORT }}
           script: |
-            cd /home/${{ secrets.USERNAME }}/apps/lucille-bot && export NVM_DIR=~/.nvm && source ~/.nvm/nvm.sh && git pull && npm i && git reset --hard && pm2 reload lucille
+            cd /home/${{ secrets.USERNAME }}/docker_images/lucille-bot && docker build -t lucille . && cd /home/${{ secrets.USERNAME }}/docker/lucille-bot && docker compose up -d
