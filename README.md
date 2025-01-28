@@ -68,6 +68,31 @@ You should now be good to go, run `npm start` to get going!
 
 ---
 
+## How to host the bot
+1. CD to somewhere you'd like to store a docker image
+2. Clone the repo
+3. Build the lucille docker image
+    `docker build -t lucille .`
+4. CD to somewhere you'd like to create the docker container
+5. Create a docker-compose.yml file
+6. Use this snippet as a starter
+    ```yml
+    services:
+    lucille:
+        image: lucille
+        container_name: lucille
+        restart: unless-stopped
+        env_file:
+        - .env
+        volumes:
+        - .:/config
+    ```
+7. Create a .env file, see above for more details
+8. Run docker compose up -d
+9. Done
+
+---
+
 ## Add bot to server
 Replace the `client_id` param with your bot's client id and open the link.
 https://discordapp.com/oauth2/authorize?&client_id=000000000000000000&scope=bot&permissions=8
