@@ -17,4 +17,4 @@ jobs:
           key: ${{ secrets.KEY }}
           port: ${{ secrets.PORT }}
           script: |
-            cd /home/${{ secrets.USERNAME }}/docker_images/lucille-bot && docker build -t lucille . && cd /home/${{ secrets.USERNAME }}/docker/lucille-bot && docker compose up -d
+            cd /home/${{ secrets.USERNAME }}/docker_images/lucille-bot && git pull && docker build -t lucille . && cd /home/${{ secrets.USERNAME }}/docker/lucille-bot && docker compose up -d
