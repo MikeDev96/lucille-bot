@@ -62,7 +62,7 @@ export default class extends Command {
 
       const key = typeMap[args.arg2.toLowerCase()]
       if (key) {
-        const filename = `./assets/sounds/${key}/${file.name}`
+        const filename = `/config/assets/sounds/${key}/${file.name}`
 
         fs.stat(filename, async (err, stats) => {
           if (!err && stats.isFile()) {
@@ -95,14 +95,14 @@ export default class extends Command {
     else if (["list", "l"].includes(arg1)) {
       const key = typeMap[args.arg2.toLowerCase()]
       if (key) {
-        const embed = await this.getFilesEmbed(msg, `./assets/sounds/${key}`, key)
+        const embed = await this.getFilesEmbed(msg, `/config/assets/sounds/${key}`, key)
         msg.reply({ embeds: [embed] })
       }
     }
     else if (["play", "p"].includes(arg1)) {
       const key = typeMap[args.arg2.toLowerCase()]
       if (key) {
-        fs.readdir(`./assets/sounds/${key}`, (err, files) => {
+        fs.readdir(`/config/assets/sounds/${key}`, (err, files) => {
           if (!err) {
             if (args.arg3) {
               const file = files.find(f => f.toLowerCase().includes(args.arg3.toLowerCase()))
@@ -111,7 +111,7 @@ export default class extends Command {
                 const tracks = [
                   new Track("", file, "")
                     .setPlatform(PLATFORM_OTHER)
-                    .setLink(`./assets/sounds/${key}/${file}`)
+                    .setLink(`/config/assets/sounds/${key}/${file}`)
                     .setDuration(0),
                 ]
 
@@ -126,7 +126,7 @@ export default class extends Command {
               const tracks = files.map(f =>
                 new Track("", f, "")
                   .setPlatform(PLATFORM_OTHER)
-                  .setLink(`./assets/sounds/${key}/${f}`)
+                  .setLink(`/config/assets/sounds/${key}/${f}`)
                   .setDuration(0),
               )
 
@@ -143,7 +143,7 @@ export default class extends Command {
       const key = typeMap[args.arg2.toLowerCase()]
       if (key) {
         const waitReact = msg.react("⏳")
-        const path = `./assets/sounds/${key}`
+        const path = `/config/assets/sounds/${key}`
         fs.readdir(path, (err, files) => {
           if (!err) {
             if (args.arg3) {
@@ -191,11 +191,13 @@ export default class extends Command {
           reject(err)
         }
         else {
+          console.log("files", files)
           return resolve({
             embeds: [
               {
                 color: 0x0099ff,
                 title: "Lucille 🎵",
+                description: "",
                 author: {
                   name: msg.member.displayName,
                   icon_url: msg.author.displayAvatarURL(),

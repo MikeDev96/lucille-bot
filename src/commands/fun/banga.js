@@ -136,7 +136,7 @@ export default class extends Command {
       return
     }
 
-    const bangerStampPath = `./assets/images/bangerstamps/${msg.author.id}.png`
+    const bangerStampPath = `/config/assets/images/bangerstamps/${msg.author.id}.png`
     const bangerStampExists = existsSync(bangerStampPath)
     const bangerStampImg = new AttachmentBuilder(bangerStampPath)
 

@@ -7,7 +7,7 @@ import path from "path"
 import { globby } from "globby"
 import { AttachmentBuilder } from "discord.js"
 
-const VIDEOS_PATH = "assets/videos/reddit"
+const VIDEOS_PATH = "/config/assets/videos/reddit"
 
 export default class RedditRipper {
   constructor () {

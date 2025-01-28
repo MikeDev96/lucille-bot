@@ -8,7 +8,7 @@ import VoiceDb from "../db/VoiceDb.js"
 
 class MasterDatabase {
   constructor () {
-    const db = new SQLite("main.db", { readonly: false })
+    const db = new SQLite("/config/main.db", { readonly: false })
     this.db = db
     this.initTables()
     this.initModules()
@@ -80,12 +80,6 @@ class MasterDatabase {
           State       TEXT
         )
       `)
-
-    // probably should use some sort of versioning? maybe user_version
-    if (!this.columnExists("PenisSize", "DailyPP")) {
-      this.db.exec("ALTER TABLE PenisSize ADD COLUMN DailyPP INTEGER DEFAULT -1")
-      console.log("Added DailyPP to PenisSize.")
-    }
 
     this.db.exec("DELETE FROM YouTubeVideos WHERE VideoId IS NULL")
     this.db.exec("DELETE FROM YouTubeHistory WHERE VideoId IS NULL")

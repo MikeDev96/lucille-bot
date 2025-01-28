@@ -14,6 +14,12 @@ class PPDb {
         DailyPP     INTEGER DEFAULT -1
       );
     `)
+
+    // probably should use some sort of versioning? maybe user_version
+    if (!this.db.columnExists("PenisSize", "DailyPP")) {
+      this.db.db.exec("ALTER TABLE PenisSize ADD COLUMN DailyPP INTEGER DEFAULT -1")
+      console.log("Added DailyPP to PenisSize.")
+    }
   }
 
   /**

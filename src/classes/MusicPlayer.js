@@ -170,7 +170,7 @@ export default class MusicPlayer extends MusicState {
       this.state.messagePump.setChannel(textChannel)
 
       if (!isTts) {
-        const connectPath = "assets/sounds/connect"
+        const connectPath = "/config/assets/sounds/connect"
         const connectSounds = fs.existsSync(connectPath) && fs.readdirSync(connectPath)
         const randomConnectSound = selectRandom(connectSounds)
 
@@ -408,7 +408,7 @@ export default class MusicPlayer extends MusicState {
   async processQueue () {
     const item = this.state.queue[0]
 
-    const disconnectPath = "assets/sounds/disconnect"
+    const disconnectPath = "/config/assets/sounds/disconnect"
     const disconnectSounds = fs.existsSync(disconnectPath) ? fs.readdirSync(disconnectPath) : []
     const isDisconnectSound = !disconnectSounds.length || (this.state.queue[0] && this.state.queue[0].platform === PLATFORM_DISCONNECT)
 
