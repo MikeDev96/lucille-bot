@@ -1,13 +1,14 @@
 import fetch from "node-fetch"
 import fs from "fs"
 import { getAudioDurationInSeconds } from "get-audio-duration"
-import { getRequestee, getVoiceChannel, splitMessage } from "../../helpers.js"
+import { getConfig, getVoiceChannel, splitMessage } from "../../helpers.js"
 import Track from "../../models/Track.js"
 import { PLATFORM_OTHER } from "../../classes/TrackExtractor.js"
 import { AttachmentBuilder, escapeMarkdown } from "discord.js"
 import AdmZip from "adm-zip"
 import Command from "../../models/Command.js"
 import LucilleClient from "../../classes/LucilleClient.js"
+import Requestee from "../../models/Requestee.js"
 
 export default class extends Command {
   constructor () {
@@ -62,7 +63,7 @@ export default class extends Command {
 
       const key = typeMap[args.arg2.toLowerCase()]
       if (key) {
-        const filename = `/config/assets/sounds/${key}/${file.name}`
+        const filename = getConfig(`assets/sounds/${key}/${file.name}`)
 
         fs.stat(filename, async (err, stats) => {
           if (!err && stats.isFile()) {
@@ -95,14 +96,14 @@ export default class extends Command {
     else if (["list", "l"].includes(arg1)) {
       const key = typeMap[args.arg2.toLowerCase()]
       if (key) {
-        const embed = await this.getFilesEmbed(msg, `/config/assets/sounds/${key}`, key)
+        const embed = await this.getFilesEmbed(msg, getConfig(`assets/sounds/${key}`), key)
         msg.reply({ embeds: [embed] })
       }
     }
     else if (["play", "p"].includes(arg1)) {
       const key = typeMap[args.arg2.toLowerCase()]
       if (key) {
-        fs.readdir(`/config/assets/sounds/${key}`, (err, files) => {
+        fs.readdir(getConfig(`assets/sounds/${key}`), (err, files) => {
           if (!err) {
             if (args.arg3) {
               const file = files.find(f => f.toLowerCase().includes(args.arg3.toLowerCase()))
@@ -111,11 +112,11 @@ export default class extends Command {
                 const tracks = [
                   new Track("", file, "")
                     .setPlatform(PLATFORM_OTHER)
-                    .setLink(`/config/assets/sounds/${key}/${file}`)
+                    .setLink(getConfig(`assets/sounds/${key}/${file}`))
                     .setDuration(0),
                 ]
 
-                music.add(tracks, getRequestee(msg), getVoiceChannel(msg), false, msg.channel)
+                music.add(tracks, Requestee.create(msg), getVoiceChannel(msg), false, msg.channel)
               }
               else {
                 msg.reply(`Couldn't find a ${key} sound for \`${args.arg3}\``)
@@ -126,11 +127,11 @@ export default class extends Command {
               const tracks = files.map(f =>
                 new Track("", f, "")
                   .setPlatform(PLATFORM_OTHER)
-                  .setLink(`/config/assets/sounds/${key}/${f}`)
+                  .setLink(getConfig(`assets/sounds/${key}/${f}`))
                   .setDuration(0),
               )
 
-              music.add(tracks, getRequestee(msg), getVoiceChannel(msg), false, msg.channel)
+              music.add(tracks, Requestee.create(msg), getVoiceChannel(msg), false, msg.channel)
             }
           }
           else {
@@ -143,7 +144,7 @@ export default class extends Command {
       const key = typeMap[args.arg2.toLowerCase()]
       if (key) {
         const waitReact = msg.react("⏳")
-        const path = `/config/assets/sounds/${key}`
+        const path = getConfig(`assets/sounds/${key}`)
         fs.readdir(path, (err, files) => {
           if (!err) {
             if (args.arg3) {

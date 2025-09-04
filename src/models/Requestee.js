@@ -4,4 +4,8 @@ export default class Requestee {
     this.avatar = avatar
     this.id = id
   }
+
+  static create (msg) {
+    return new Requestee(msg.member.displayName, msg.author.displayAvatarURL(), msg.author.id)
+  }
 };

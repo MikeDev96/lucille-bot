@@ -6,7 +6,7 @@
   "type": "module",
   "engines": {
     "npm": ">=8.11.0",
-    "node": ">=16.16.0"
+    "node": ">=18.20.8"
   },
   "scripts": {
     "start": "npx eslint --fix **/*.js & node src/index.js",
@@ -52,6 +52,7 @@
     "utf-8-validate": "^5.0.9",
     "ws": "^8.8.1",
     "youtubei": "^1.5.4",
+    "youtubei.js": "^15.0.1",
     "zlib-sync": "^0.1.7"
   },
   "devDependencies": {

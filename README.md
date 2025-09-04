@@ -47,6 +47,9 @@ SPEEDTEST_TOKEN = ""
 
 YOUSYNC_API_URL = "http://yousync.mikedev.uk"
 YOUSYNC_URL = "http://yousync.mikedev.uk"
+
+# If using docker, supply config dir
+CONFIG_DIR = /config
 ```
 
 > Certain features won't work without credentials provided in the .env file.

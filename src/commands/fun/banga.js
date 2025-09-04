@@ -1,4 +1,4 @@
-import { getRequestee, getVoiceChannel, shuffle, paginatedEmbed, splitMessage } from "../../helpers.js"
+import { getVoiceChannel, shuffle, paginatedEmbed, splitMessage, getConfig } from "../../helpers.js"
 import Track from "../../models/Track.js"
 import { AttachmentBuilder, escapeMarkdown } from "discord.js"
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb"
@@ -6,6 +6,7 @@ import { DynamoDBDocumentClient, PutCommand } from "@aws-sdk/lib-dynamodb"
 import { existsSync } from "fs"
 import LucilleClient from "../../classes/LucilleClient.js"
 import Command from "../../models/Command.js"
+import Requestee from "../../models/Requestee.js"
 
 export default class extends Command {
   constructor () {
@@ -68,7 +69,7 @@ export default class extends Command {
         .setQuery(dbSong.song)
         .setYouTubeTitle(dbSong.song))
       shuffle(trackedMusic)
-      music.add(trackedMusic, getRequestee(msg), getVoiceChannel(msg), false, msg.channel)
+      music.add(trackedMusic, Requestee.create(msg), getVoiceChannel(msg), false, msg.channel)
       return
     }
 
@@ -136,7 +137,7 @@ export default class extends Command {
       return
     }
 
-    const bangerStampPath = `/config/assets/images/bangerstamps/${msg.author.id}.png`
+    const bangerStampPath = getConfig(`assets/images/bangerstamps/${msg.author.id}.png`)
     const bangerStampExists = existsSync(bangerStampPath)
     const bangerStampImg = new AttachmentBuilder(bangerStampPath)
 

@@ -1,12 +1,11 @@
-// import { Util } from "discord.js"
-import { PassThrough, Readable } from "stream"
-import Requestee from "./models/Requestee.js"
+import { Readable } from "stream"
 import fetch from "node-fetch"
 import { Duration } from "luxon"
 import { Client } from "youtubei"
 import gtts from "google-tts-api"
 import { ChannelType } from "discord.js"
-import LucilleClient from "./classes/LucilleClient.js"
+import { fileURLToPath } from "url"
+import { dirname, join, resolve } from "path"
 
 export const noop = () => { }
 
@@ -65,22 +64,18 @@ export const textToStream = text => {
     .then(data => Readable.from(Buffer.from(data, "base64")))
 }
 
-export const getRequestee = msg => {
-  return new Requestee(msg.member.displayName, msg.author.displayAvatarURL(), msg.author.id)
-}
-
 export const getVoiceChannel = msg => {
   return msg.member.voice.channel || msg.guild.channels.cache.find(c => c.type === ChannelType.GuildVoice)
 }
 
-export const isInBotsVoiceChannel = msg => {
-  const voiceChannelId = LucilleClient.Instance.getGuildInstance(msg.guild).voice?.channelId
+export const isInBotsVoiceChannel = (lucille, msg) => {
+  const voiceChannelId = lucille.getGuildInstance(msg.guild).voice?.channelId
   return msg.author.id === process.env.DISCORD_OWNER || (voiceChannelId === msg.member.voice.channelId) || msg.member.voice.deaf
 }
 
-export const shouldIgnoreMessage = msg => {
-  const guild = LucilleClient.Instance.getGuildInstance(msg.guild)
-  return !isInBotsVoiceChannel(msg) && guild.voice?.channelId
+export const shouldIgnoreMessage = (lucille, msg) => {
+  const guild = lucille.getGuildInstance(msg.guild)
+  return !isInBotsVoiceChannel(lucille, msg) && guild.voice?.channelId
 }
 
 export const paginatedEmbed = async (msg, embedTemplate, embedList, emojiList = ["⏪", "◀️", "▶️", "⏩"], timeout = 120000) => {
@@ -159,18 +154,6 @@ export const getHRTimeDiff = time => {
   return elapsed2[0] + (elapsed2[1] / 1e9)
 }
 
-export const playDlDiscord12CompatabilityWrapper = stream => {
-  const wrapperStream = new PassThrough()
-    .on("close", () => stream.stream.destroy())
-
-  stream.stream
-    .on("data", chunk => wrapperStream.push(chunk))
-    .on("finish", () => wrapperStream.push(null))
-    // .on("error", err => wrapperStream.destroy(err))
-
-  return { ...stream, stream: wrapperStream }
-}
-
 export const getEpoch = () => Date.now() / 1000
 
 export const logarithmic = value => Math.pow(value, 1.660964)
@@ -196,4 +179,11 @@ export const resolveString = data => {
   if (typeof data === "string") return data
   if (Array.isArray(data)) return data.join("\n")
   return String(data)
+}
+
+export const getConfig = path => {
+  const __filename = fileURLToPath(import.meta.url)
+  const __dirname = dirname(__filename)
+  const configDir = process.env.CONFIG_DIR || resolve(__dirname, "../")
+  return join(configDir, path)
 }

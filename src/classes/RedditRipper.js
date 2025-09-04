@@ -6,8 +6,9 @@ import sanitise from "sanitize-filename"
 import path from "path"
 import { globby } from "globby"
 import { AttachmentBuilder } from "discord.js"
+import { getConfig } from "../helpers.js"
 
-const VIDEOS_PATH = "/config/assets/videos/reddit"
+const VIDEOS_PATH = getConfig("assets/videos/reddit")
 
 export default class RedditRipper {
   constructor () {

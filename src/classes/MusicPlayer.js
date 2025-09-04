@@ -1,6 +1,6 @@
 // import { Util } from "discord.js"
 import TopMostMessagePump from "./TopMostMessagePump.js"
-import { safeJoin, msToTimestamp, selectRandom, searchYouTube, textToStream, splitMessage } from "../helpers.js"
+import { safeJoin, msToTimestamp, selectRandom, searchYouTube, textToStream, splitMessage, getConfig } from "../helpers.js"
 import TrackExtractor, { PLATFORM_YOUTUBE, PLATFORM_RADIO, PLATFORM_SPOTIFY, PLATFORM_TIDAL, PLATFORM_APPLE, PLATFORM_CONNECT, PLATFORM_DISCONNECT, PLATFORM_TTS } from "./TrackExtractor.js"
 import Track from "../models/Track.js"
 import fs from "fs"
@@ -170,7 +170,7 @@ export default class MusicPlayer extends MusicState {
       this.state.messagePump.setChannel(textChannel)
 
       if (!isTts) {
-        const connectPath = "/config/assets/sounds/connect"
+        const connectPath = getConfig("assets/sounds/connect")
         const connectSounds = fs.existsSync(connectPath) && fs.readdirSync(connectPath)
         const randomConnectSound = selectRandom(connectSounds)
 
@@ -408,7 +408,7 @@ export default class MusicPlayer extends MusicState {
   async processQueue () {
     const item = this.state.queue[0]
 
-    const disconnectPath = "/config/assets/sounds/disconnect"
+    const disconnectPath = getConfig("assets/sounds/disconnect")
     const disconnectSounds = fs.existsSync(disconnectPath) ? fs.readdirSync(disconnectPath) : []
     const isDisconnectSound = !disconnectSounds.length || (this.state.queue[0] && this.state.queue[0].platform === PLATFORM_DISCONNECT)
 

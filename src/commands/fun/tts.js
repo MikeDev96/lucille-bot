@@ -1,7 +1,8 @@
 import Command from "../../models/Command.js"
 import LucilleClient from "../../classes/LucilleClient.js"
 import TextToSpeech from "../../classes/TextToSpeech.js"
-import { getRequestee, shouldIgnoreMessage } from "../../helpers.js"
+import { shouldIgnoreMessage } from "../../helpers.js"
+import Requestee from "../../models/Requestee.js"
 
 class TtsCommand extends Command {
   constructor () {
@@ -24,7 +25,7 @@ class TtsCommand extends Command {
 
   async run (msg, args) {
     try {
-      if (shouldIgnoreMessage(msg)) {
+      if (shouldIgnoreMessage(LucilleClient.Instance, msg)) {
         msg.react("🖕")
         return
       }
@@ -39,7 +40,7 @@ class TtsCommand extends Command {
 
   static async speak (msg, text) {
     const music = LucilleClient.Instance.getGuildInstance(msg.guild).music
-    const track = TextToSpeech.getTtsTrack(getRequestee(msg), text)
+    const track = TextToSpeech.getTtsTrack(Requestee.create(msg), text)
 
     await music.add([track], track.requestee, msg.member.voice.channel, false, msg.guild.systemChannel)
   }

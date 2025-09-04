@@ -16,7 +16,7 @@ export default class extends Command {
 
   async run (msg, _args) {
     const music = LucilleClient.Instance.getGuildInstance(msg.guild).music
-    if (!isInBotsVoiceChannel(msg)) {
+    if (!isInBotsVoiceChannel(LucilleClient.Instance, msg)) {
       msg.react("🖕")
       return
     }

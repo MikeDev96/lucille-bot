@@ -17,7 +17,7 @@ export default class extends Command {
   }
 
   async run (msg, _args) {
-    if (shouldIgnoreMessage(msg)) {
+    if (shouldIgnoreMessage(LucilleClient.Instance, msg)) {
       msg.react("🖕")
       return
     }

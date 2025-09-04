@@ -19,7 +19,7 @@ export default class extends Command {
     const tracks = music.state.queue
 
     if (tracks.length) {
-      if (shouldIgnoreMessage(msg)) {
+      if (shouldIgnoreMessage(LucilleClient.Instance, msg)) {
         msg.react("🖕")
         return
       }

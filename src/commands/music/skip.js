@@ -24,7 +24,7 @@ export default class extends Command {
 
   async run (msg, args) {
     const music = LucilleClient.Instance.getGuildInstance(msg.guild).music
-    if (shouldIgnoreMessage(msg)) {
+    if (shouldIgnoreMessage(LucilleClient.Instance, msg)) {
       msg.react("🖕")
       return
     }

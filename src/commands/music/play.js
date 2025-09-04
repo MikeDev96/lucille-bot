@@ -1,7 +1,8 @@
 import Command from "../../models/Command.js"
 import LucilleClient from "../../classes/LucilleClient.js"
-import { getRequestee, getVoiceChannel, shouldIgnoreMessage } from "../../helpers.js"
+import { getVoiceChannel, shouldIgnoreMessage } from "../../helpers.js"
 import { resume } from "./resume.js"
+import Requestee from "../../models/Requestee.js"
 
 export const commandConfig = {
   name: "play",
@@ -33,7 +34,7 @@ export default class extends Command {
 export const run = async (msg, args, jump) => {
   const music = LucilleClient.Instance.getGuildInstance(msg.guild).music
 
-  if (shouldIgnoreMessage(msg)) {
+  if (shouldIgnoreMessage(LucilleClient.Instance, msg)) {
     msg.react("🖕")
     return
   }
@@ -46,7 +47,7 @@ export const run = async (msg, args, jump) => {
   const searchReaction = msg.react("🔍")
 
   if (args.input !== "") {
-    const success = await music.add(args.input, getRequestee(msg), getVoiceChannel(msg), jump, msg.channel)
+    const success = await music.add(args.input, Requestee.create(msg), getVoiceChannel(msg), jump, msg.channel)
     searchReaction.then(r => r.remove())
     await (await searchReaction).remove()
     if (success) {

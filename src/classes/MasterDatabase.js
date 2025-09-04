@@ -5,10 +5,11 @@ import BangaDb from "../db/BangaDb.js"
 import StocksDb from "../db/StocksDb.js"
 import CalendarDb from "../db/CalendarDb.js"
 import VoiceDb from "../db/VoiceDb.js"
+import { getConfig } from "../helpers.js"
 
 class MasterDatabase {
   constructor () {
-    const db = new SQLite("/config/main.db", { readonly: false })
+    const db = new SQLite(getConfig("main.db"), { readonly: false })
     this.db = db
     this.initTables()
     this.initModules()

@@ -1,9 +1,8 @@
 import prism from "prism-media"
 import { msToTimestamp } from "../helpers.js"
 import { Readable, PassThrough } from "stream"
-import { stream_from_info as streamFromInfo, video_info as videoInfo } from "play-dl"
-
-const playDlCache = new Map()
+import Innertube, { ClientType, UniversalCache } from "youtubei.js"
+import { StreamType } from "@discordjs/voice"
 
 export const getFfmpegStream = (url, { startTime, filters = {} } = {}) => {
   console.log("Using ffmpeg")
@@ -35,39 +34,46 @@ export const getFfmpegStream = (url, { startTime, filters = {} } = {}) => {
 }
 
 export const getStream = async (url, options) => {
-  if (!playDlCache.has(url)) {
-    console.time("play-dl")
-    const info = await videoInfo(url)
-    console.timeEnd("play-dl")
+  const match = url.match(/(?:youtube\.com\/(?:watch\?(?:.*&)?v=|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/)
+  const videoId = match[1]
 
-    playDlCache.set(url, info)
+  console.time("youtubei.js")
+
+  const yt = await Innertube.create({
+    user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36",
+    client_type: ClientType.ANDROID,
+    cache: new UniversalCache(true),
+  })
+  const video = await yt.getBasicInfo(videoId)
+
+  console.timeEnd("youtubei.js")
+
+  const audioFormats = getSortedAudioFormats([...video.streaming_data.adaptive_formats, ...video.streaming_data.formats])
+  const format = audioFormats[0]
+
+  if (!audioFormats.length) {
+    throw new Error("No audio formats available")
+  }
+
+  if ((options.filters && (options.filters.gain !== 0 || options.filters.tempo !== 1)) || options.startTime) {
+    return { stream: getFfmpegStream(format.url, options), type: "opus" }
   }
   else {
-    console.log("Fetched stream info from cache")
-  }
+    console.time("youtubei.js dl")
 
-  const info = playDlCache.get(url)
+    const stream = await video.download(format)
+    const nodeStream = Readable.fromWeb(stream, { highWaterMark: 1 << 25 })
 
-  if (options.filters && (options.filters.gain !== 0 || options.filters.tempo !== 1)) {
-    const audioFormats = getSortedAudioFormats(info.format)
+    console.timeEnd("youtubei.js dl")
 
-    if (!audioFormats.length) {
-      throw new Error("No audio formats available")
-    }
-
-    return { stream: getFfmpegStream(audioFormats[0].url, options), type: "opus" }
-  }
-  else {
-    const stream = await streamFromInfo(info, { seek: options.startTime / 1000 })
-    // return playDlDiscord12CompatabilityWrapper({ ...stream, type: stream.type === "arbitrary" ? "unknown" : stream.type })
-    return stream
+    return { stream: nodeStream, type: StreamType.WebmOpus }
   }
 }
 
 const getSortedAudioFormats = formats => {
-  return formats.filter(f => f.audioQuality).sort((a, b) => {
-    const [, aType] = /(audio|video)\/(\w+?);/.exec(a.mimeType)
-    const [, bType] = /(audio|video)\/(\w+?);/.exec(b.mimeType)
+  return formats.filter(f => f.audio_quality).sort((a, b) => {
+    const [, aType] = /(audio|video)\/(\w+?);/.exec(a.mime_type)
+    const [, bType] = /(audio|video)\/(\w+?);/.exec(b.mime_type)
 
     // Sort by audio only and then bitrate
     return (((bType === "audio" ? 1 : 0) - (aType === "audio" ? 1 : 0)) ||

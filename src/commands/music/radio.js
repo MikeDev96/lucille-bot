@@ -1,9 +1,10 @@
 import Command from "../../models/Command.js"
-import { getRequestee, getVoiceChannel, shouldIgnoreMessage } from "../../helpers.js"
+import { getVoiceChannel, shouldIgnoreMessage } from "../../helpers.js"
 import { PLATFORM_RADIO } from "../../classes/TrackExtractor.js"
 import Track from "../../models/Track.js"
 import { createRequire } from "module"
 import LucilleClient from "../../classes/LucilleClient.js"
+import Requestee from "../../models/Requestee.js"
 
 const require = createRequire(import.meta.url)
 const radios = require("../../../radios.json")
@@ -34,7 +35,7 @@ export default class extends Command {
       return
     }
 
-    if (shouldIgnoreMessage(msg)) {
+    if (shouldIgnoreMessage(LucilleClient.Instance, msg)) {
       msg.react("🖕")
       return
     }
@@ -46,7 +47,7 @@ export default class extends Command {
       .setRadio(radio)
 
     const music = LucilleClient.Instance.getGuildInstance(msg.guild).music
-    const success = music.add([track], getRequestee(msg), getVoiceChannel(msg), false, msg.channel)
+    const success = music.add([track], Requestee.create(msg), getVoiceChannel(msg), false, msg.channel)
     if (success) {
       msg.react("📻")
     }
