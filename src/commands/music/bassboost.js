@@ -40,8 +40,14 @@ export default class extends Command {
       
       debug.music(`New bass boost state: ${music.state.bassBoost}`)
       
-      await music.play("after")
-      msg.react("🎸")
+      // Only try to play if there's something in the queue
+      if (music.state.queue.length > 0) {
+        await music.play("after")
+        msg.react("🎸")
+      } else {
+        msg.react("🎸")
+        msg.reply(`Bass boost set to **${bassBoostValue > 0 ? `${bassBoostValue}dB` : 'Off'}** - will apply to next track`)
+      }
     } catch (error) {
       debug.error("Bass boost error:", error)
       msg.reply(`Error applying bass boost: ${error.message}`)
@@ -55,5 +61,5 @@ const bassBoostToAmountMap = {
   med: 10,
   high: 15,
   insane: 20,
-  wtfbbq: 50,
+  wtfbbq: 50
 }

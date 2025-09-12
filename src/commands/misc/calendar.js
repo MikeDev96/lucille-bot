@@ -2,7 +2,7 @@ import { EmbedBuilder } from "discord.js"
 import { DateTime } from "luxon"
 import rrule from "rrule"
 import humanizeDuration from "humanize-duration"
-import chrono from "chrono-node"
+import { parseDate } from "chrono-node"
 import LucilleClient from "../../classes/LucilleClient.js"
 import Command from "../../models/Command.js"
 const { RRule } = rrule
@@ -58,7 +58,7 @@ export default class extends Command {
           return
         }
 
-        const date = chrono.parseDate(args.arg3)
+        const date = parseDate(args.arg3)
         if (!date) {
           msg.reply(`Couldn't parse/time date from \`${args.arg3}\``)
           return
@@ -80,7 +80,7 @@ export default class extends Command {
           return
         }
 
-        const date = chrono.parseDate(args.arg3)
+        const date = parseDate(args.arg3)
         if (!date) {
           msg.reply(`Couldn't parse date/time from \`${args.arg3}\``)
           return

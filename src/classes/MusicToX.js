@@ -195,35 +195,93 @@ export default class {
 
   async getTidal () {
     try {
-      const res = await fetch(`https://api.tidal.com/v1/${this.music.type}s/${this.music.id}?limit=1&countryCode=GB`, {
-        headers: {
-          "X-Tidal-Token": process.env.TIDAL_TOKEN,
-        },
-      })
+      // Use OAuth2 method with v2 API
+      const tidalApi = await this.getTidalApi()
+      if (tidalApi) {
+        const url = `https://openapi.tidal.com/v2/${this.music.type}s/${this.music.id}?countryCode=US&include=albums,artists`
+        const res = await tidalApi.makeRequest(url)
+        
+        if (res.ok) {
+          const data = await res.json()
 
-      const data = await res.json()
-
-      if (res.ok && data) {
-        if (this.music.type === "track") {
-          return {
-            success: true,
-            artists: res.data.artists.map(a => a.name).join(", "),
-            title: res.data.title,
+          if (data) {
+            if (this.music.type === "track") {
+              // Handle v2 API response structure
+              if (data.data && data.data.attributes) {
+                const trackData = data.data
+                // Check if artists are in included data
+                let artists = []
+                if (data.included) {
+                  artists = data.included.filter(item => item.type === 'artists')
+                }
+                // Fallback to relationships if no included artists
+                if (artists.length === 0 && trackData.relationships?.artists?.data) {
+                  artists = trackData.relationships.artists.data
+                }
+                
+                return {
+                  success: true,
+                  artists: artists.map(a => a.attributes?.name || a.name || "Unknown Artist").join(", "),
+                  title: trackData.attributes.title,
+                }
+              }
+              // Handle v1 API response structure (fallback)
+              else if (data.artists) {
+                return {
+                  success: true,
+                  artists: data.artists.map(a => a.name).join(", "),
+                  title: data.title,
+                }
+              }
+            }
+            else if (this.music.type === "album") {
+              // Handle v2 API response structure
+              if (data.data && data.data.attributes) {
+                const albumData = data.data
+                let artists = []
+                if (data.included) {
+                  artists = data.included.filter(item => item.type === 'artists')
+                }
+                if (artists.length === 0 && albumData.relationships?.artists?.data) {
+                  artists = albumData.relationships.artists.data
+                }
+                
+                return {
+                  success: true,
+                  artists: artists.map(a => a.attributes?.name || a.name || "Unknown Artist").join(", "),
+                  title: albumData.attributes.title,
+                }
+              }
+              // Handle v1 API response structure (fallback)
+              else if (data.artists) {
+                return {
+                  success: true,
+                  artists: data.artists.map(a => a.name).join(", "),
+                  title: data.title,
+                }
+              }
+            }
+            else if (this.music.type === "artist") {
+              // Handle v2 API response structure
+              if (data.data && data.data.attributes) {
+                return {
+                  success: true,
+                  artists: data.data.attributes.name,
+                  title: "",
+                }
+              }
+              // Handle v1 API response structure (fallback)
+              else if (data.name) {
+                return {
+                  success: true,
+                  artists: data.name,
+                  title: "",
+                }
+              }
+            }
           }
-        }
-        else if (this.music.type === "album") {
-          return {
-            success: true,
-            artists: res.data.artists.map(a => a.name).join(", "),
-            title: res.data.title,
-          }
-        }
-        else if (this.music.type === "artist") {
-          return {
-            success: true,
-            artists: res.data.name,
-            title: "",
-          }
+        } else {
+          console.log("Tidal OAuth2 also failed")
         }
       }
     }
@@ -248,14 +306,14 @@ export default class {
     }
 
     try {
+      const tidalApi = await this.getTidalApi()
+      if (!tidalApi) {
+        return null
+      }
+
       // Tidal search seems to work a lot better when removing titles with the word 'feat'
       const withoutFeat = query.replace(/(?<=\b)feat(?=\b)/gi, "")
-      const res = await fetch(`https://api.tidal.com/v1/search/${this.music.type}s?query=${encodeURIComponent(withoutFeat)}&limit=1&countryCode=GB`, {
-        headers: {
-          "X-Tidal-Token": process.env.TIDAL_TOKEN,
-        },
-      })
-
+      const res = await tidalApi.makeRequest(`https://api.tidal.com/v1/search/${this.music.type}s?query=${encodeURIComponent(withoutFeat)}&limit=1&countryCode=GB`)
       const data = await res.json()
 
       if (res.ok && data.totalNumberOfItems) {
@@ -375,7 +433,6 @@ export default class {
     try {
       const res = await spotifyApi.clientCredentialsGrant()
       spotifyApi.setAccessToken(res.body.access_token)
-      console.log("Spotify service ready")
     }
     catch (err) {
       console.log(err)
@@ -383,5 +440,78 @@ export default class {
     }
 
     return spotifyApi
+  }
+
+  async getTidalApi () {
+    return await (this.tidalApi || (this.tidalApi = this.tidalApiFactory()))
+  }
+
+  async tidalApiFactory () {
+    try {
+      // Tidal uses OAuth2 client credentials flow with Basic Auth
+      const credentials = Buffer.from(`${process.env.TIDAL_CLIENTID}:${process.env.TIDAL_CLIENTSECRET}`).toString('base64')
+      
+      const authResponse = await fetch("https://auth.tidal.com/v1/oauth2/token", {
+        method: "POST",
+        headers: {
+          "Authorization": `Basic ${credentials}`,
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: "grant_type=client_credentials&scope=search.read",
+      })
+
+      if (!authResponse.ok) {
+        console.log("Tidal authentication failed")
+        return null
+      }
+
+      const authData = await authResponse.json()
+      
+      const tidalApi = {
+        accessToken: authData.access_token,
+        tokenType: authData.token_type,
+        expiresIn: authData.expires_in,
+        tokenExpiry: Date.now() + (authData.expires_in * 1000),
+        
+        // Helper method to check if token is expired
+        isTokenExpired() {
+          return Date.now() >= this.tokenExpiry
+        },
+        
+        // Helper method to refresh token if needed
+        async refreshTokenIfNeeded() {
+          if (this.isTokenExpired()) {
+            console.log("Tidal token expired, refreshing...")
+            const refreshedApi = await this.tidalApiFactory()
+            if (refreshedApi) {
+              this.accessToken = refreshedApi.accessToken
+              this.tokenExpiry = refreshedApi.tokenExpiry
+            }
+          }
+        },
+        
+        
+        // Helper method to make authenticated requests
+        async makeRequest(url, options = {}) {
+          await this.refreshTokenIfNeeded()
+          return fetch(url, {
+            ...options,
+            headers: {
+              "Authorization": `Bearer ${this.accessToken}`,
+              "accept": "application/vnd.api+json",
+              ...options.headers,
+            },
+          })
+        }
+      }
+
+      console.log("Tidal service ready")
+      return tidalApi
+    }
+    catch (err) {
+      console.log("Tidal API factory failed")
+      console.log(err)
+      return null
+    }
   }
 }

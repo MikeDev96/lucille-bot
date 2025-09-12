@@ -83,6 +83,8 @@ export default class MusicPlayer extends MusicState {
       channelId: voiceChannel.id,
       guildId: voiceChannel.guild.id,
       adapterCreator: voiceChannel.guild.voiceAdapterCreator,
+      selfDeaf: true,
+      selfMute: false,
     })
 
     if (!hasVoiceConnection) {
@@ -91,18 +93,22 @@ export default class MusicPlayer extends MusicState {
         playedConnectSound: false,
       })
 
-      connection.on(VoiceConnectionStatus.Disconnected, () => {
-        this.state.queue.splice(0, this.state.queue.length)
+    connection.on(VoiceConnectionStatus.Disconnected, () => {
+      this.state.queue.splice(0, this.state.queue.length)
 
-        this.setState({
-          queue: this.state.queue,
-          summoned: false,
-          voiceChannel: null,
-        })
-
-        this.player.stop()
-        this.cleanUp()
+      this.setState({
+        queue: this.state.queue,
+        summoned: false,
+        voiceChannel: null,
       })
+
+      this.player.stop()
+      this.cleanUp()
+    })
+
+    connection.on('error', (error) => {
+      console.error('Voice connection error:', error)
+    })
     }
 
     connection.subscribe(this.player)
@@ -366,6 +372,12 @@ export default class MusicPlayer extends MusicState {
   }
 
   syncTime (ms = 0, item) {
+    // Check if there's an active playing resource
+    if (!this.playing || !this.playing.resource) {
+      debug.music("syncTime called but no active resource - skipping")
+      return
+    }
+    
     const deltaTime = this.playing.resource.playbackDuration - this.streamTimeCache
     const queueItem = item || this.state.queue[0]
     if (queueItem) {
