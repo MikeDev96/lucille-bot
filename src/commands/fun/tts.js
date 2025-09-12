@@ -39,10 +39,18 @@ class TtsCommand extends Command {
   }
 
   static async speak (msg, text) {
-    const music = LucilleClient.Instance.getGuildInstance(msg.guild).music
-    const track = TextToSpeech.getTtsTrack(Requestee.create(msg), text)
+    try {
+      if (!msg.member.voice || !msg.member.voice.channel) {
+        throw new Error("You need to be in a voice channel to use TTS")
+      }
+      
+      const music = LucilleClient.Instance.getGuildInstance(msg.guild).music
+      const track = TextToSpeech.getTtsTrack(Requestee.create(msg), text)
 
-    await music.add([track], track.requestee, msg.member.voice.channel, false, msg.guild.systemChannel)
+      await music.add([track], track.requestee, msg.member.voice.channel, false, msg.guild.systemChannel)
+    } catch (error) {
+      throw new Error(`TTS failed: ${error.message}`)
+    }
   }
 }
 

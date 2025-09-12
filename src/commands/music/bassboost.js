@@ -1,5 +1,6 @@
 import Command from "../../models/Command.js"
 import LucilleClient from "../../classes/LucilleClient.js"
+import debug from "../../utils/debug.js"
 
 export default class extends Command {
   constructor () {
@@ -22,11 +23,29 @@ export default class extends Command {
   }
 
   async run (msg, args) {
-    const music = LucilleClient.Instance.getGuildInstance(msg.guild).music
-    music.syncTime()
-    music.setState({ bassBoost: bassBoostToAmountMap[args.amount.toLowerCase()] })
-    music.play("after")
-    msg.react("🎸")
+    try {
+      const music = LucilleClient.Instance.getGuildInstance(msg.guild).music
+      const bassBoostValue = bassBoostToAmountMap[args.amount.toLowerCase()]
+      
+      debug.command(`Bass boost command: ${args.amount} -> ${bassBoostValue}`)
+      debug.music(`Current bass boost state: ${music.state.bassBoost}`)
+      
+      if (bassBoostValue === undefined) {
+        debug.error(`Invalid bass boost value: ${args.amount}`)
+        return msg.reply(`Invalid bass boost level: ${args.amount}`)
+      }
+      
+      music.syncTime()
+      music.setState({ bassBoost: bassBoostValue })
+      
+      debug.music(`New bass boost state: ${music.state.bassBoost}`)
+      
+      await music.play("after")
+      msg.react("🎸")
+    } catch (error) {
+      debug.error("Bass boost error:", error)
+      msg.reply(`Error applying bass boost: ${error.message}`)
+    }
   }
 }
 

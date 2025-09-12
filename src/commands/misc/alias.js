@@ -34,6 +34,10 @@ export default class Alias extends Command {
           default: "",
           validate: val => {
             const Prefix = LucilleClient.Instance.commandPrefix
+            // Handle undefined or empty values
+            if (!val || val === "") {
+              return true // Allow empty values since default is ""
+            }
             // eslint-disable-next-line
             if ((val.toLowerCase()).replace("/\s+/g", "").includes(`${Prefix}al`) || (val.toLowerCase()).replace("/\s+/g", "").includes(`${Prefix}alias`)) {
               return "Alias cannot reference another alias"

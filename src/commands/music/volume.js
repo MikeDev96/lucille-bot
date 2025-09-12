@@ -23,10 +23,19 @@ export default class extends Command {
 
   async run (msg, args) {
     const music = LucilleClient.Instance.getGuildInstance(msg.guild).music
-    const currentVol = music.state.volume
-
-    music.setVolume(args.volume)
-
-    msg.react(args.volume > currentVol ? "🔊" : args.volume < currentVol ? "🔉" : "🔈")
+    
+    if (!music.state.voiceChannel) {
+      msg.reply("❌ Bot is not connected to a voice channel")
+      return
+    }
+    
+    try {
+      const currentVol = music.state.volume
+      music.setVolume(args.volume)
+      msg.react(args.volume > currentVol ? "🔊" : args.volume < currentVol ? "🔉" : "🔈")
+    } catch (error) {
+      console.error("Volume command error:", error)
+      msg.reply(`❌ Failed to set volume: ${error.message}`)
+    }
   }
 }

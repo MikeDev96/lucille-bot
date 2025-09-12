@@ -10,6 +10,14 @@
   },
   "scripts": {
     "start": "npx eslint --fix **/*.js & node src/index.js",
+    "dev": "nodemon src/index.js",
+    "dev:debug": "DEBUG=true nodemon src/index.js",
+    "start:debug": "DEBUG=true node src/index.js",
+    "pm2:start": "pm2 start ecosystem.config.cjs",
+    "pm2:start:debug": "DEBUG=true pm2 start ecosystem.config.cjs",
+    "pm2:stop": "pm2 stop lucille",
+    "pm2:restart": "pm2 restart lucille",
+    "pm2:logs": "pm2 logs lucille",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
@@ -60,6 +68,7 @@
     "eslint-config-standard": "^17.0.0",
     "eslint-plugin-import": "^2.26.0",
     "eslint-plugin-n": "^15.2.4",
-    "eslint-plugin-promise": "^6.0.0"
+    "eslint-plugin-promise": "^6.0.0",
+    "nodemon": "^3.0.1"
   }
 }

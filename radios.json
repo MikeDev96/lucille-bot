@@ -35,29 +35,29 @@
   },
   "kiss": {
     "name": "Kiss",
-    "url": "https://stream-kiss.planetradio.co.uk/kissnational.aac?aw_0_1st.skey={CURRENT_TIME}",
+    "url": "https://stream-kiss.hellorayo.co.uk/kissnational.aac?direct=true&aw_0_1st.skey={CURRENT_TIME}",
     "metadata": {
       "type": "sse",
-      "url": "https://stream-kiss.planetradio.co.uk/metadata?type=json",
-      "summon": "https://stream-kiss.planetradio.co.uk/kisstory.aac?aw_0_1st.skey={CURRENT_TIME}"
+      "url": "https://stream-kiss.hellorayo.co.uk/metadata?type=json",
+      "summon": "https://stream-kiss.hellorayo.co.uk/kisstory.aac?direct=true&aw_0_1st.skey={CURRENT_TIME}"
     }
   },
   "kisstory": {
     "name": "Kisstory",
-    "url": "https://stream-kiss.planetradio.co.uk/kisstory.aac?aw_0_1st.skey={CURRENT_TIME}",
+    "url": "https://stream-kiss.hellorayo.co.uk/kisstory.aac?direct=true&aw_0_1st.skey={CURRENT_TIME}",
     "metadata": {
       "type": "sse",
-      "url": "https://stream-kiss.planetradio.co.uk/metadata?type=json",
-      "summon": "https://stream-kiss.planetradio.co.uk/kisstory.aac?aw_0_1st.skey={CURRENT_TIME}"
+      "url": "https://stream-kiss.hellorayo.co.uk/metadata?type=json",
+      "summon": "https://stream-kiss.hellorayo.co.uk/kisstory.aac?direct=true&aw_0_1st.skey={CURRENT_TIME}"
     }
   },
   "kissfresh": {
     "name": "Kiss Fresh",
-    "url": "https://stream-kiss.planetradio.co.uk/kissfresh.aac?aw_0_1st.skey={CURRENT_TIME}",
+    "url": "https://stream-kiss.hellorayo.co.uk/kissfresh.aac?direct=true&aw_0_1st.skey={CURRENT_TIME}",
     "metadata": {
       "type": "sse",
-      "url": "https://stream-kiss.planetradio.co.uk/metadata?type=json",
-      "summon": "https://stream-kiss.planetradio.co.uk/kisstory.aac?aw_0_1st.skey={CURRENT_TIME}"
+      "url": "https://stream-kiss.hellorayo.co.uk/metadata?type=json",
+      "summon": "https://stream-kiss.hellorayo.co.uk/kissfresh.aac?direct=true&aw_0_1st.skey={CURRENT_TIME}"
     }
   },
   "classic": {

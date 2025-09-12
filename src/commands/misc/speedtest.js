@@ -29,6 +29,7 @@ export default class extends Command {
       msg.channel.send(`Speed: ${s.toFixed(2)} Mbps`)
     }).catch(e => {
       console.error(e.message)
+      msg.reply(`❌ Speed test failed: ${e.message}`)
     })
   }
 }

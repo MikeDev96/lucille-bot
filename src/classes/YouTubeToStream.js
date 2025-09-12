@@ -3,21 +3,26 @@ import { msToTimestamp } from "../helpers.js"
 import { Readable, PassThrough } from "stream"
 import Innertube, { ClientType, UniversalCache } from "youtubei.js"
 import { StreamType } from "@discordjs/voice"
+import debug from "../utils/debug.js"
 
 export const getFfmpegStream = (url, { startTime, filters = {} } = {}) => {
-  console.log("Using ffmpeg")
+  debug.stream("Using ffmpeg with filters:", filters)
   const isStream = url instanceof Readable
+  const ffmpegArgs = [
+    "-ss", msToTimestamp(startTime, { ms: true }),
+    "-i", isStream ? "-" : url,
+    "-analyzeduration", "0",
+    "-loglevel", "0",
+    "-f", "s16le",
+    "-ar", "48000",
+    "-ac", "2",
+    "-af", `bass=g=${filters.gain || 0},atempo=${filters.tempo || 1}`,
+  ]
+  
+  debug.stream("FFmpeg args:", ffmpegArgs)
+  
   const transcoder = new prism.FFmpeg({
-    args: [
-      "-ss", msToTimestamp(startTime, { ms: true }),
-      "-i", isStream ? "-" : url,
-      "-analyzeduration", "0",
-      "-loglevel", "0",
-      "-f", "s16le",
-      "-ar", "48000",
-      "-ac", "2",
-      "-af", `bass=g=${filters.gain || 0},atempo=${filters.tempo || 1}`,
-    ],
+    args: ffmpegArgs,
   })
   if (isStream) {
     url.pipe(transcoder)
@@ -25,17 +30,44 @@ export const getFfmpegStream = (url, { startTime, filters = {} } = {}) => {
   const passThrough = new PassThrough({ highWaterMark: 1 << 25 })
   const opus = new prism.opus.Encoder({ rate: 48000, channels: 2, frameSize: 960 })
   const stream = transcoder.pipe(passThrough).pipe(opus)
+  
+  // Add error handling
+  transcoder.on("error", (error) => {
+    debug.error("FFmpeg transcoder error:", error)
+  })
+  
+  passThrough.on("error", (error) => {
+    debug.error("PassThrough error:", error)
+  })
+  
+  opus.on("error", (error) => {
+    debug.error("Opus encoder error:", error)
+  })
+  
+  stream.on("error", (error) => {
+    debug.error("Stream error:", error)
+  })
+  
   stream.on("close", () => {
+    debug.stream("FFmpeg stream closed")
     transcoder.destroy()
     passThrough.destroy()
     opus.destroy()
   })
+  
+  stream.on("end", () => {
+    debug.stream("FFmpeg stream ended")
+  })
+  
   return stream
 }
 
 export const getStream = async (url, options) => {
   const match = url.match(/(?:youtube\.com\/(?:watch\?(?:.*&)?v=|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/)
   const videoId = match[1]
+
+  debug.stream(`Getting stream for video: ${videoId}`)
+  debug.stream(`Options:`, options)
 
   console.time("youtubei.js")
 
@@ -55,19 +87,17 @@ export const getStream = async (url, options) => {
     throw new Error("No audio formats available")
   }
 
-  if ((options.filters && (options.filters.gain !== 0 || options.filters.tempo !== 1)) || options.startTime) {
-    return { stream: getFfmpegStream(format.url, options), type: "opus" }
-  }
-  else {
-    console.time("youtubei.js dl")
+  // Always use ffmpeg processing to ensure proper stream format - 
+  // Since updating Discord.js we need to use ffmpeg to ensure the stream is in the correct format.
+  // as Discord.js seems to be stricter with the stream format.
+  console.time("youtubei.js dl")
 
-    const stream = await video.download(format)
-    const nodeStream = Readable.fromWeb(stream, { highWaterMark: 1 << 25 })
+  const stream = await video.download(format)
+  const nodeStream = Readable.fromWeb(stream, { highWaterMark: 1 << 25 })
 
-    console.timeEnd("youtubei.js dl")
+  console.timeEnd("youtubei.js dl")
 
-    return { stream: nodeStream, type: StreamType.WebmOpus }
-  }
+  return { stream: getFfmpegStream(nodeStream, options), type: "opus" }
 }
 
 const getSortedAudioFormats = formats => {

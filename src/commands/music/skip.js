@@ -28,9 +28,25 @@ export default class extends Command {
       msg.react("🖕")
       return
     }
-    music.state.queue.splice(1, args.amount - 1)
-    music.setState({ queue: music.state.queue })
-    music.player.stop()
-    msg.react("⏭️")
+    
+    if (!music.state.queue || music.state.queue.length === 0) {
+      msg.reply("❌ No songs in queue to skip")
+      return
+    }
+    
+    if (args.amount > music.state.queue.length) {
+      msg.reply(`❌ Cannot skip ${args.amount} songs, only ${music.state.queue.length} songs in queue`)
+      return
+    }
+    
+    try {
+      music.state.queue.splice(1, args.amount - 1)
+      music.setState({ queue: music.state.queue })
+      music.player.stop()
+      msg.react("⏭️")
+    } catch (error) {
+      console.error("Skip command error:", error)
+      msg.reply(`❌ Failed to skip songs: ${error.message}`)
+    }
   }
 }
