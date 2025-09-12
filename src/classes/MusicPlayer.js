@@ -790,7 +790,7 @@ const amountToBassBoostMap = {
   10: "Med",
   15: "High",
   20: "Insane",
-  25: "WTFBBQ"
+  50: "WTFBBQ",
 }
 
 export const mapRepeatTypeToEmoji = type => {
