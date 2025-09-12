@@ -19,9 +19,25 @@ export default class extends Command {
 }
 
 export const resume = msg => {
-  const music = LucilleClient.Instance.getGuildInstance(msg.guild).music
-  music.setState({ pauser: "" })
-  music.player.unpause()
-  music.updateEmbed()
-  msg.react("▶️")
+  try {
+    const music = LucilleClient.Instance.getGuildInstance(msg.guild).music
+    
+    if (!music.player || music.player.state.status === 'idle') {
+      msg.reply("❌ Nothing is currently paused to resume")
+      return
+    }
+    
+    if (!music.state.pauser) {
+      msg.reply("❌ Music is not paused")
+      return
+    }
+    
+    music.setState({ pauser: "" })
+    music.player.unpause()
+    music.updateEmbed()
+    msg.react("▶️")
+  } catch (error) {
+    console.error("Resume command error:", error)
+    msg.reply(`❌ Failed to resume: ${error.message}`)
+  }
 }

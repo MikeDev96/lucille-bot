@@ -141,6 +141,7 @@ export default class extends Command {
             }
             catch (err) {
               console.log(err)
+              msg.channel.send(`❌ Failed to fetch stock data for ${args.symbol}: ${err.message}`)
               this.end()
             }
           }

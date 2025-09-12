@@ -13,6 +13,8 @@ import Requestee from "../models/Requestee.js"
 import { NoSubscriberBehavior, createAudioPlayer, createAudioResource, joinVoiceChannel, AudioPlayerStatus, getVoiceConnection, VoiceConnectionStatus } from "@discordjs/voice"
 import LucilleClient from "./LucilleClient.js"
 import { escapeMarkdown } from "discord.js"
+import debug from "../utils/debug.js"
+
 
 const PLATFORMS_REQUIRE_YT_SEARCH = [PLATFORM_SPOTIFY, PLATFORM_TIDAL, PLATFORM_APPLE, PLATFORM_YOUTUBE, "search"]
 
@@ -259,6 +261,7 @@ export default class MusicPlayer extends MusicState {
     }
 
     const item = this.state.queue[0]
+    debug.music(`Starting play with update=${update}, bassBoost=${this.state.bassBoost}, tempo=${this.state.tempo}`)
 
     if (update === "before") {
       this.updateEmbed()
@@ -266,6 +269,7 @@ export default class MusicPlayer extends MusicState {
 
     const streamData = await this.getMediaStream(item)
     if (!streamData) {
+      debug.music("No stream data returned, stopping play")
       return
     }
 
@@ -327,8 +331,11 @@ export default class MusicPlayer extends MusicState {
         return await getStream(item.link, { startTime: item.startTime, filters: this.getAudioFilters() })
       }
       catch (err) {
-        console.error(err)
-        this.state.textChannel.send(`❌ Failed to get a YouTube stream for\n${this.getTrackTitle(item)}\n${item.link}\n${err.message}`)
+        console.error("Stream error:", err)
+        const errorMsg = err.message.includes("EBML") 
+          ? "Audio format not supported - trying alternative method..."
+          : err.message
+        this.state.textChannel?.send(`❌ Failed to get a YouTube stream for\n${this.getTrackTitle(item)}\n${item.link}\n\`${errorMsg}\``)
         await this.processQueue()
         return
       }
@@ -345,6 +352,8 @@ export default class MusicPlayer extends MusicState {
         catch (err) {
           console.log("Error occured when getting radio stream")
           console.log(err)
+          // Fall back to direct URL stream when SSE metadata fails
+          return { stream: getFfmpegStream(item.link, { startTime: 0, filters: this.getAudioFilters() }), type: "opus" }
         }
       }
     }
@@ -402,7 +411,9 @@ export default class MusicPlayer extends MusicState {
   }
 
   getAudioFilters () {
-    return { gain: this.state.bassBoost, tempo: this.state.tempo }
+    const filters = { gain: this.state.bassBoost, tempo: this.state.tempo }
+    debug.audio(`Audio filters:`, filters)
+    return filters
   }
 
   async processQueue () {
@@ -495,7 +506,7 @@ export default class MusicPlayer extends MusicState {
     // so we need to make sure it gets cleaned up.
     this.endRadioMetadata(item)
 
-    if (item.radio && item.radio.metadata) {
+    if (item.radio && item.radio.metadata && item.requestStream) {
       const instance = new RadioMetadata(item.radio.metadata, item.requestStream)
       item.setRadioInstance(instance)
 
@@ -707,6 +718,7 @@ export default class MusicPlayer extends MusicState {
     return this.state.textChannel
   }
 
+
   setupPlayer () {
     const player = createAudioPlayer({
       behaviors: {
@@ -736,7 +748,24 @@ export default class MusicPlayer extends MusicState {
 
     player.on(AudioPlayerStatus.Idle, async () => {
       const item = this.playing.item
+      debug.music(`Audio player became idle, cleaning up item: ${this.getTrackTitle(item)}`)
       await this.cleanItem(item, true)
+    })
+
+    player.on("error", (error) => {
+      debug.error("Audio player error:", error)
+      const item = this.playing?.item
+      if (item) {
+        const userFriendlyMessage = error.message.includes("ECONNRESET") 
+          ? "Connection lost - network issue"
+          : error.message.includes("ENOTFOUND")
+          ? "Cannot reach audio source"
+          : error.message.includes("timeout")
+          ? "Audio source timed out"
+          : "Audio playback error occurred"
+        this.state.textChannel?.send(`❌ **Playback Error:** ${this.getTrackTitle(item)}\n\`${userFriendlyMessage}\``)
+        this.cleanItem(item, true)
+      }
     })
 
     this.player = player

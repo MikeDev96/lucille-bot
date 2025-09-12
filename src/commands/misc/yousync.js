@@ -36,6 +36,11 @@ export default class extends Command {
       return
     }
 
+    if (!process.env.YOUSYNC_API_URL || !process.env.YOUSYNC_URL) {
+      msg.reply('YouSync is not configured. Please set YOUSYNC_API_URL and YOUSYNC_URL environment variables.')
+      return
+    }
+
     if (args.strength !== "none" && args.strength !== "low" && args.strength !== "med" && args.strength !== "all") {
       if (args.strength.includes("http")) {
         args.link = args.strength
@@ -76,12 +81,27 @@ export default class extends Command {
 
     const res = await fetch(`${process.env.YOUSYNC_API_URL}/api/room?username=${msg.client.user.username}&video=${video}`, {
       method: "POST",
-      body: categories,
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(categories),
     })
 
     if (res.ok) {
-      const data = await res.json()
-      msg.reply(`${process.env.YOUSYNC_URL}/room/${data.id}`)
+      try {
+        const data = await res.json()
+        msg.reply(`${process.env.YOUSYNC_URL}/room/${data.id}`)
+      } catch (error) {
+        console.error('Error parsing JSON response:', error)
+        const text = await res.text()
+        console.error('Response text:', text.substring(0, 200) + '...')
+        msg.reply('Error creating YouSync room. The server returned an unexpected response.')
+      }
+    } else {
+      const errorText = await res.text()
+      console.error(`YouSync API error: ${res.status} ${res.statusText}`)
+      console.error('Error response:', errorText.substring(0, 200) + '...')
+      msg.reply(`Error creating YouSync room: ${res.status} ${res.statusText}`)
     }
   }
 }

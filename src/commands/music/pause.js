@@ -20,9 +20,20 @@ export default class extends Command {
       msg.react("🖕")
       return
     }
-    music.setState({ pauser: msg.author.id })
-    music.player.pause()
-    music.updateEmbed()
-    msg.react("⏸️")
+    
+    if (!music.player || music.player.state.status === 'idle') {
+      msg.reply("❌ Nothing is currently playing to pause")
+      return
+    }
+    
+    try {
+      music.setState({ pauser: msg.author.id })
+      music.player.pause()
+      music.updateEmbed()
+      msg.react("⏸️")
+    } catch (error) {
+      console.error("Pause command error:", error)
+      msg.reply(`❌ Failed to pause: ${error.message}`)
+    }
   }
 }

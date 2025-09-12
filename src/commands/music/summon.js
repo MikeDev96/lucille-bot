@@ -15,14 +15,18 @@ export default class extends Command {
 
   async run (msg, _args) {
     if (!msg.member.voice || !msg.member.voice.channel) {
-      msg.react("🖕")
+      msg.reply("❌ You need to be in a voice channel to summon the bot")
       return
     }
 
-    const music = LucilleClient.Instance.getGuildInstance(msg.guild).music
-    music.summon(msg.member.voice.channel, true)
-    await music.play()
-
-    msg.react("🧞")
+    try {
+      const music = LucilleClient.Instance.getGuildInstance(msg.guild).music
+      music.summon(msg.member.voice.channel, true)
+      await music.play()
+      msg.react("🧞")
+    } catch (error) {
+      console.error("Summon command error:", error)
+      msg.reply(`❌ Failed to summon bot: ${error.message}`)
+    }
   }
 }

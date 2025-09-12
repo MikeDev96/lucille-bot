@@ -159,7 +159,8 @@ export default class LucilleClient {
         cmd.run(msg, argsRes)
       }
       catch (err) {
-        msg.reply(`Oh snap, something went wrong... see error below,\n\n${err.toString()}`)
+        console.error(`Command execution error for ${cmdName}:`, err)
+        msg.reply(`❌ Something went wrong executing the \`${cmdName}\` command. Please try again or contact the bot administrator if the issue persists.`)
       }
     }
     catch (err) {

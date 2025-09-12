@@ -101,6 +101,8 @@ export default class RadioMetadata extends EventEmitter {
     ws.on("error", err => {
       console.log("Error when grabbing radio metadata via ws")
       console.log(err)
+      // Radio metadata errors are non-critical, no need to send user messages
+      // The radio will continue playing even if metadata fails - feel free to add this in Miguel
     })
 
     ws.on("close", () => {
@@ -114,8 +116,21 @@ export default class RadioMetadata extends EventEmitter {
   }
 
   sse () {
+    if (!this.stream || !this.stream.headers) {
+      console.log("Radio stream or headers not available for SSE metadata")
+      return
+    }
     const setCookie = this.stream.headers.get("set-cookie")
-    const [sessionId] = /(?<=AISSessionId=).+?(?=;)/.exec(setCookie)
+    if (!setCookie) {
+      console.log("No set-cookie header found in radio stream response")
+      return
+    }
+    const sessionIdMatch = /(?<=AISSessionId=).+?(?=;)/.exec(setCookie)
+    if (!sessionIdMatch) {
+      console.log("No AISSessionId found in set-cookie header")
+      return
+    }
+    const [sessionId] = sessionIdMatch
 
     const es = new EventSource(this.state.url, {
       headers: {
