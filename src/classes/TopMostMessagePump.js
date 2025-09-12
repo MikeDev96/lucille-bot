@@ -74,7 +74,19 @@ export default class extends EventEmitter {
     this.messageContents = null
 
     if (messageEdit && this.message) {
-      await this.editMessage(messageContents)
+      // Verify the message still exists before trying to edit
+      try {
+        await this.message.fetch()
+        await this.editMessage(messageContents)
+      } catch (err) {
+        if (err.code === 10008 || err.status === 404) {
+          console.log("Cached message no longer exists, creating new message")
+          this.message = null
+          await this.sendMessage(messageContents)
+        } else {
+          throw err
+        }
+      }
     }
     else {
       await this.sendMessage(messageContents)
@@ -124,6 +136,13 @@ export default class extends EventEmitter {
     catch (err) {
       console.log("Failed to edit message in TMMP")
       console.error(err)
+      
+      // If the message was deleted (404 error), create a new one
+      if (err.code === 10008 || err.status === 404) {
+        console.log("Message was deleted, creating new message instead")
+        this.message = null
+        await this.sendMessage(messageContents)
+      }
     }
   }
 
@@ -135,6 +154,12 @@ export default class extends EventEmitter {
     catch (err) {
       console.log("Failed to delete message in TMMP")
       console.error(err)
+      
+      // If the message was already deleted (404 error), just clear the reference
+      if (err.code === 10008 || err.status === 404) {
+        console.log("Message was already deleted, clearing reference")
+        this.message = null
+      }
     }
   }
 }
