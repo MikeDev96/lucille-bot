@@ -169,7 +169,9 @@ export default class LucilleClient {
   }
 
   parseMessage (msg) {
-    return msg.content.match(new RegExp(`^${this.commandPrefix}(?<cmd>\\w+?)(?:\\s+?(?<args>.+?))?$`))
+    const prefix = this.commandPrefix || '!'
+    const escapedPrefix = prefix.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+    return msg.content.match(new RegExp(`^${escapedPrefix}(?<cmd>\\w+?)(?:\\s+?(?<args>.+?))?$`))
   }
 
   castValue (type, value) {

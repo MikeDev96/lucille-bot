@@ -6,10 +6,19 @@ export default class {
   async run (msg) {
     try {
       const te = new TrackExtractor(msg.content)
+      console.log("Parsed links:", te.links)
+      
       if (te.parseLinks()) {
         const filteredLinks = te.links.slice(0, 25).filter(l => [PLATFORM_SPOTIFY, PLATFORM_TIDAL, PLATFORM_APPLE].includes(l.platform) && ["track", "album", "artist"].includes(l.type))
+        
         if (filteredLinks.length) {
-          const processedLinks = await Promise.all(filteredLinks.map(l => new MusicToX(l).processLink()))
+          const processedLinks = (await Promise.all(filteredLinks.map(l => new MusicToX(l).processLink()))).filter(link => link !== undefined)
+
+          // Check if we have any valid processed links
+          if (processedLinks.length === 0) {
+            msg.reply("🎵 Sorry, I couldn't find any valid music links in your message.")
+            return
+          }
 
           const spotifyEmoji = getEmoji(msg.guild, "spotify")
           const tidalEmoji = getEmoji(msg.guild, "tidal")
@@ -51,6 +60,7 @@ export default class {
     catch (err) {
       console.log("Error in music tracker")
       console.log(err)
+      msg.reply("🎵 Oops! Something went wrong while processing your music links. Please try again later!")
     }
   }
 }

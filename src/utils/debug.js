@@ -5,8 +5,11 @@
 
 class DebugLogger {
   constructor() {
-    this.enabled = process.env.DEBUG === 'true' || process.argv.includes('--debug')
     this.prefix = '[DEBUG]'
+  }
+
+  get enabled() {
+    return process.env.DEBUG === 'true' || process.argv.includes('--debug')
   }
 
   log(message, ...args) {
