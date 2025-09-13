@@ -59,6 +59,7 @@
     "tenorjs": "^1.0.10",
     "utf-8-validate": "^5.0.9",
     "ws": "^8.8.1",
+    "yahoo-finance2": "^2.13.3",
     "youtubei": "^1.5.4",
     "youtubei.js": "^15.0.1",
     "zlib-sync": "^0.1.7"

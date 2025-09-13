@@ -1,8 +1,9 @@
 import { EmbedBuilder, escapeMarkdown } from "discord.js"
-import fetch from "node-fetch"
+import yahooFinance from "yahoo-finance2"
 import { splitMessage } from "../../helpers.js"
 import LucilleClient from "../../classes/LucilleClient.js"
 import Command from "../../models/Command.js"
+
 
 export default class extends Command {
   constructor () {
@@ -98,50 +99,94 @@ export default class extends Command {
           constructor () {
             this.embedMsg = null
             this.timeoutHandle = 0
+            this.retryCount = 0
+            this.maxRetries = 3
 
             this.updateStocks()
           }
 
           async updateStocks () {
             try {
-              const res = await fetch(`https://query1.finance.yahoo.com/v7/finance/quote?lang=en-US&region=US&corsDomain=finance.yahoo.com&fields=regularMarketPrice,regularMarketChangePercent&symbols=${args.symbol}`)
-              const data = await res.json()
+              // Use yahoo-finance2 library for reliable stock quotes
+              const quote = await yahooFinance.quote(args.symbol)
+              
+              // Validate quote data
+              if (!quote || typeof quote.regularMarketPrice === 'undefined' || typeof quote.regularMarketChangePercent === 'undefined') {
+                throw new Error(`Invalid stock symbol "${args.symbol}" or no data available`)
+              }
 
-              const item = data.quoteResponse.result[0]
+              const price = quote.regularMarketPrice
+              const changePercent = quote.regularMarketChangePercent
+              const symbol = quote.symbol || args.symbol.toUpperCase()
 
               const embed = new EmbedBuilder()
-                .setColor(item.regularMarketChangePercent >= 0 ? "#00ff00" : "#ff0000")
+                .setColor(changePercent >= 0 ? "#00ff00" : "#ff0000")
                 .setTitle("Stonks")
                 .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL() })
                 .addFields([
-                  { name: item.symbol, value: `${item.regularMarketPrice.toFixed(2)}\n${item.regularMarketChangePercent.toFixed(2)}%` },
+                  { name: symbol, value: `$${price.toFixed(2)}\n${changePercent.toFixed(2)}%` },
                 ])
 
               if (!this.embedMsg) {
                 this.embedMsg = await msg.channel.send({ embeds: [embed] })
               }
               else {
-                if (this.embedMsg.deleted) {
-                  this.end()
-                  return
+                try {
+                  // Check if message still exists and is editable
+                  if (this.embedMsg.deleted) {
+                    this.end()
+                    return
+                  }
+
+                  const index = msg.channel.messages.cache.size - 1 - Array.from(msg.channel.messages.cache.values()).findIndex(m => m === this.embedMsg)
+
+                  if (index > 5) {
+                    await this.embedMsg.delete()
+                    this.embedMsg = await msg.channel.send({ embeds: [embed] })
+                  }
+                  else {
+                    await this.embedMsg.edit({ embeds: [embed] })
+                  }
                 }
-
-                const index = msg.channel.messages.cache.size - 1 - msg.channel.messages.cache.array().findIndex(m => m === this.embedMsg)
-
-                if (index > 5) {
-                  await this.embedMsg.delete()
+                catch (editError) {
+                  // If message edit fails (message deleted, etc.), create a new one
+                  console.log(`Failed to edit stock message, creating new one: ${editError.message}`)
                   this.embedMsg = await msg.channel.send({ embeds: [embed] })
-                }
-                else {
-                  this.embedMsg.edit({ embeds: [embed] })
                 }
               }
 
+              // Reset retry count on successful fetch
+              this.retryCount = 0
               setTimeout(() => this.updateStocks(), 5000)
             }
             catch (err) {
-              console.log(err)
-              msg.channel.send(`❌ Failed to fetch stock data for ${args.symbol}: ${err.message}`)
+              console.log(`Stock tracking error for ${args.symbol}:`, err)
+              
+              // Retry logic for temporary failures
+              if (this.retryCount < this.maxRetries && (
+                err.message.includes('HTTP 429') || 
+                err.message.includes('HTTP 503') ||
+                err.message.includes('Invalid API response')
+              )) {
+                this.retryCount++
+                const retryDelay = Math.pow(2, this.retryCount) * 1000 // Exponential backoff
+                console.log(`Retrying stock fetch for ${args.symbol} in ${retryDelay}ms (attempt ${this.retryCount}/${this.maxRetries})`)
+                
+                setTimeout(() => this.updateStocks(), retryDelay)
+                return
+              }
+              
+              // Provide more specific error messages
+              let errorMessage = err.message
+              if (err.message.includes('HTTP 429')) {
+                errorMessage = 'API rate limit exceeded. Please try again later.'
+              } else if (err.message.includes('HTTP 403')) {
+                errorMessage = 'API access forbidden. The service may be temporarily unavailable.'
+              } else if (err.message.includes('Invalid API response')) {
+                errorMessage = 'Invalid response from stock data provider.'
+              }
+              
+              msg.channel.send(`❌ Failed to fetch stock data for ${args.symbol}: ${errorMessage}`)
               this.end()
             }
           }

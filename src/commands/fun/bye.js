@@ -45,6 +45,13 @@ export default class extends Command {
 
     const authorOfMessage = msg.guild.members.cache.get(msg.member.id)
     const authorOriginalChannelID = getVoiceChannel(msg)
+    
+    // Check if user is in a voice channel
+    if (!msg.member.voice || !msg.member.voice.channel) {
+      msg.channel.send("You need to be in a voice channel to use the bye command")
+      return
+    }
+    
     let peopleToBeRemoved = msg.member.voice.channel.members.map(member => member)
     const checkPeopleAreInChannel = msg.member.voice.channel.members.map(member => member.user.id)
     const confirmMsg = await msg.reply(`Is this bye wanted?`)
