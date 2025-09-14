@@ -6,7 +6,6 @@ export default class {
   async run (msg) {
     try {
       const te = new TrackExtractor(msg.content)
-      console.log("Parsed links:", te.links)
       
       if (te.parseLinks()) {
         const filteredLinks = te.links.slice(0, 25).filter(l => [PLATFORM_SPOTIFY, PLATFORM_TIDAL, PLATFORM_APPLE].includes(l.platform) && ["track", "album", "artist"].includes(l.type))
