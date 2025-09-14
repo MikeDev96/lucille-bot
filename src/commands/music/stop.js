@@ -23,8 +23,18 @@ export default class extends Command {
         return
       }
       
-      if (music.player.state.status !== AudioPlayerStatus.Idle) {
+      // Check if bot is playing audio, has items in queue, or is connected to voice
+      const isPlaying = music.player.state.status !== AudioPlayerStatus.Idle
+      const hasQueue = music.state.queue && music.state.queue.length > 0
+      const isConnected = !!getVoiceConnection(msg.guild.id)
+      
+      if (isPlaying || hasQueue || isConnected) {
         msg.react("🛑")
+
+        // Stop the player and clear the queue
+        music.player.stop()
+        music.state.queue = []
+        music.updateEmbed()
 
         const connection = getVoiceConnection(msg.guild.id)
         if (connection) {
