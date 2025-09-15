@@ -453,7 +453,7 @@ export default class MusicPlayer extends MusicState {
     }
 
     if (!this.state.queue[0]) {
-      if (!isDisconnectSound && item.platform !== PLATFORM_TTS) {
+      if (!isDisconnectSound && item?.platform !== PLATFORM_TTS) {
         const requestee = new Requestee(this.guild.members.me.displayName, this.client.user.displayAvatarURL(), this.client.user.id)
         const randomDisconnectSound = selectRandom(disconnectSounds)
 
