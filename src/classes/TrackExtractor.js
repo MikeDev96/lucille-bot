@@ -4,7 +4,7 @@ import Track from "../models/Track.js"
 import parseDuration from "parse-duration"
 import { Client, Video } from "youtubei"
 import { URL } from "url"
-import { getFreeClientID } from "play-dl"
+import { getFreeSoundCloudClientID } from "../helpers.js"
 
 export const PLATFORM_SPOTIFY = "spotify"
 export const PLATFORM_TIDAL = "tidal"
@@ -377,7 +377,7 @@ let scLastGenerated
 
 const getSoundCloudClientId = async () => {
   if (!scClientId || !scLastGenerated || Date.now() - scLastGenerated >= 60 * 60 * 1e3) {
-    scClientId = await getFreeClientID()
+    scClientId = await getFreeSoundCloudClientID()
     scLastGenerated = Date.now()
   }
 

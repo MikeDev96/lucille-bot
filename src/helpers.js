@@ -187,3 +187,23 @@ export const getConfig = path => {
   const configDir = process.env.CONFIG_DIR || resolve(__dirname, "../")
   return join(configDir, path)
 }
+
+// https://github.com/play-dl/play-dl/blob/6a8569feb8c562bb8218ecfd72850c3686d96256/play-dl/SoundCloud/index.ts#L113
+export const getFreeSoundCloudClientID = async () => {
+  const res = await fetch('https://soundcloud.com/', {headers: {}}).catch(err => err)
+  const data = await res.text()
+
+  if (data instanceof Error)
+      throw new Error("Failed to get response from soundcloud.com: " + data.message)
+
+  const splitted = data.split('<script crossorigin src="')
+  const urls = []
+  splitted.forEach(r => {
+      if (r.startsWith('https')) {
+          urls.push(r.split('"')[0])
+      }
+  })
+  const res2 = await fetch(urls[urls.length - 1])
+  const data2 = await res2.text()
+  return data2.split(',client_id:"')[1].split('"')[0]
+}
