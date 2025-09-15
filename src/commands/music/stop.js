@@ -34,6 +34,7 @@ export default class extends Command {
         // Stop the player and clear the queue
         music.player.stop()
         music.state.queue = []
+        music.setState({ queue: music.state.queue })
         music.updateEmbed()
 
         const connection = getVoiceConnection(msg.guild.id)
