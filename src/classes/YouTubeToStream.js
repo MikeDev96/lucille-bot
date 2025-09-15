@@ -60,7 +60,7 @@ export const getStream = async (url, options) => {
   debug.stream(`Options:`, options)
 
   const isCached = ytCache.has(url)
-  const hasExpired = isCached && Date.now() - ytCache.get(url).expire >= 0
+  const hasExpired = isCached && Math.floor(Date.now() / 1000) - ytCache.get(url).expire >= 0
 
   if (!isCached || hasExpired) {
     console.time("youtubei.js")
