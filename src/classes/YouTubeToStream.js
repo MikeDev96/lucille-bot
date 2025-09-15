@@ -4,6 +4,7 @@ import { Readable, PassThrough } from "stream"
 import Innertube, { ClientType, UniversalCache } from "youtubei.js"
 import debug from "../utils/debug.js"
 import { URL } from "url"
+import { spawn } from "child_process"
 
 const ytCache = new Map()
 
@@ -20,46 +21,33 @@ export const getFfmpegStream = (url, { startTime, filters = {} } = {}) => {
     "-ac", "2",
     "-af", `bass=g=${filters.gain || 0},atempo=${filters.tempo || 1}`,
   ]
-  
+
   debug.stream("FFmpeg args:", ffmpegArgs)
   
-  const transcoder = new prism.FFmpeg({
-    args: ffmpegArgs,
-  })
+  const transcoder = spawn("ffmpeg", ffmpegArgs.concat(["pipe:1"]), { stdio: ["pipe", "pipe", "inherit"] })
   if (isStream) {
-    url.pipe(transcoder)
+    url.pipe(transcoder.stdin)
   }
   const passThrough = new PassThrough({ highWaterMark: 1 << 25 })
   const opus = new prism.opus.Encoder({ rate: 48000, channels: 2, frameSize: 960 })
-  const stream = transcoder.pipe(passThrough).pipe(opus)
+  const stream = transcoder.stdout.pipe(passThrough).pipe(opus)
   
   // Add error handling
-  transcoder.on("error", (error) => {
-    debug.error("FFmpeg transcoder error:", error)
-  })
-  
-  passThrough.on("error", (error) => {
-    debug.error("PassThrough error:", error)
-  })
-  
-  opus.on("error", (error) => {
-    debug.error("Opus encoder error:", error)
-  })
-  
-  stream.on("error", (error) => {
-    debug.error("Stream error:", error)
-  })
+  transcoder.on("error", (error) => debug.error("FFmpeg transcoder spawn error:", error))
+  transcoder.stdin.on("error", (error) => debug.error("FFmpeg transcoder input error:", error))
+  transcoder.stdout.on("error", (error) => debug.error("FFmpeg transcoder output error:", error))
+  passThrough.on("error", (error) => debug.error("PassThrough error:", error))
+  opus.on("error", (error) => debug.error("Opus encoder error:", error))
+  stream.on("error", (error) => debug.error("Stream error:", error))
   
   stream.on("close", () => {
     debug.stream("FFmpeg stream closed")
-    transcoder.destroy()
+    transcoder.stdin.end()
     passThrough.destroy()
     opus.destroy()
   })
   
-  stream.on("end", () => {
-    debug.stream("FFmpeg stream ended")
-  })
+  stream.on("end", () => debug.stream("FFmpeg stream ended"))
   
   return stream
 }

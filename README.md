@@ -18,6 +18,8 @@ Lucille uses SQLite which requires WBT.
 Browse to your nodejs installation directory (usually here: C:\Program Files\nodejs)
 Run install_tools.bat
 This will install chocolatey, python & wbt.
+- ** FFMPEG **
+Make sure ffmpeg is available in path
 ### Clone the repository
 ```bash
 git clone https://github.com/MikeDev96/lucille-bot.git

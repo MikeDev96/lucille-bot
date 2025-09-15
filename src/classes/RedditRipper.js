@@ -1,6 +1,5 @@
 import fs, { promises as fsp } from "fs"
 import fetch from "node-fetch"
-import ffmpegStatic from "ffmpeg-static"
 import { spawn } from "child_process"
 import sanitise from "sanitize-filename"
 import path from "path"
@@ -163,7 +162,7 @@ export default class RedditRipper {
         "-y",
       ]
 
-      const ffmpeg = spawn(ffmpegStatic, args, { windowsHide: true })
+      const ffmpeg = spawn("ffmpeg", args, { windowsHide: true })
 
       ffmpeg.on("exit", code => {
         if (code === 0) {
