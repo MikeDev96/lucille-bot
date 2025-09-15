@@ -63,7 +63,7 @@ export default class Alias extends Command {
     const { aliasname, aliasvalue } = args
     const Prefix = LucilleClient.Instance.commandPrefix
 
-    if (aliasname === "list") {
+    if (["list", "ls"].includes(aliasname)) {
       const List = LucilleClient.Instance.db.alias.listAliases(aliasvalue)
 
       if (List.length) {
