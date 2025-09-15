@@ -22,7 +22,7 @@ export default class extends Command {
 
     msg.react("🔄")
 
-    exec("pm2 reload lucille", err => {
+    exec("docker container restart lucille", err => {
       if (err) {
         msg.react("❌")
         console.error(err.message)
