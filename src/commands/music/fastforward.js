@@ -1,5 +1,6 @@
 import Command from "../../models/Command.js"
 import LucilleClient from "../../classes/LucilleClient.js"
+import parse from "parse-duration"
 
 export default class extends Command {
   constructor () {
@@ -11,19 +12,16 @@ export default class extends Command {
       description: "Fast forwards the player by the specified amount.",
       args: [
         {
-          key: "amount",
-          prompt: "Timestamp to fast forward by in (mm:ss) or seconds",
+          key: "duration",
+          prompt: "Timestamp to fast forward by in any format",
           type: "string",
-          validate: text => {
-            if (/^\d{1,2}:\d{1,2}$/.test(text)) {
-              return true
+          validate: val => {
+            const ms = parse(val)
+            if (!ms) {
+              return "Duration is invalid, try again"
             }
 
-            if (/^\d+$/.test(text)) {
-              return true
-            }
-
-            return "Invalid input"
+            return true
           },
         },
       ],
@@ -33,16 +31,8 @@ export default class extends Command {
 
   async run (msg, args) {
     const music = LucilleClient.Instance.getGuildInstance(msg.guild).music
-    let amount = 0
-    const match = args.amount.match(/^(\d{1,2}):(\d{1,2})$/)
-    if (match) {
-      amount = parseInt(match[1]) * 60 + parseInt(match[2])
-    }
-    else {
-      amount = parseInt(args.amount)
-    }
-
-    music.syncTime(amount * 1000)
+    const duration = parse(args.duration)
+    music.syncTime(duration)
     music.play("after")
     msg.react("⏩")
   }
