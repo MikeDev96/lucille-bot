@@ -217,3 +217,5 @@ export const checkForFFMpeg = () => {
     }
   })
 }
+
+export const escapeCSV = str => str.replace(/[",\n\r]/g, "$&")
