@@ -2,8 +2,10 @@ import prism from "prism-media"
 import { msToTimestamp } from "../helpers.js"
 import { Readable, PassThrough } from "stream"
 import Innertube, { ClientType, UniversalCache } from "youtubei.js"
-import { StreamType } from "@discordjs/voice"
 import debug from "../utils/debug.js"
+import { URL } from "url"
+
+const ytCache = new Map()
 
 export const getFfmpegStream = (url, { startTime, filters = {} } = {}) => {
   debug.stream("Using ffmpeg with filters:", filters)
@@ -69,35 +71,39 @@ export const getStream = async (url, options) => {
   debug.stream(`Getting stream for video: ${videoId}`)
   debug.stream(`Options:`, options)
 
-  console.time("youtubei.js")
+  const isCached = ytCache.has(url)
+  const hasExpired = isCached && Date.now() - ytCache.get(url).expire >= 0
 
-  const yt = await Innertube.create({
-    user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36",
-    client_type: ClientType.ANDROID,
-    cache: new UniversalCache(true),
-  })
-  const video = await yt.getBasicInfo(videoId)
+  if (!isCached || hasExpired) {
+    console.time("youtubei.js")
 
-  console.timeEnd("youtubei.js")
+    const yt = await Innertube.create({
+      user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36",
+      client_type: ClientType.ANDROID,
+      cache: new UniversalCache(true),
+    })
 
-  const audioFormats = getSortedAudioFormats([...video.streaming_data.adaptive_formats, ...video.streaming_data.formats])
-  const format = audioFormats[0]
+    const video = await yt.getBasicInfo(videoId)
 
-  if (!audioFormats.length) {
-    throw new Error("No audio formats available")
+    console.timeEnd("youtubei.js")
+
+    const audioFormats = getSortedAudioFormats([...video.streaming_data.adaptive_formats, ...video.streaming_data.formats])
+
+    if (!audioFormats.length) {
+      throw new Error("No audio formats available")
+    }
+
+    const format = audioFormats[0]
+    const decipheredUrl = format.decipher(yt.session.player)
+    const urlParams = new URL(decipheredUrl).searchParams
+    const expire = urlParams.get("expire")
+
+    ytCache.set(url, { url: decipheredUrl, expire })
   }
 
-  // Always use ffmpeg processing to ensure proper stream format - 
-  // Since updating Discord.js we need to use ffmpeg to ensure the stream is in the correct format.
-  // as Discord.js seems to be stricter with the stream format.
-  console.time("youtubei.js dl")
+  const cachedVideo = ytCache.get(url)
 
-  const stream = await video.download(format)
-  const nodeStream = Readable.fromWeb(stream, { highWaterMark: 1 << 25 })
-
-  console.timeEnd("youtubei.js dl")
-
-  return { stream: getFfmpegStream(nodeStream, options), type: "opus" }
+  return { stream: getFfmpegStream(cachedVideo.url, options), type: "opus" }
 }
 
 const getSortedAudioFormats = formats => {
