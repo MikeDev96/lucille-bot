@@ -6,6 +6,7 @@ import gtts from "google-tts-api"
 import { ChannelType } from "discord.js"
 import { fileURLToPath } from "url"
 import { dirname, join, resolve } from "path"
+import { exec } from "child_process"
 
 export const noop = () => { }
 
@@ -207,3 +208,14 @@ export const getFreeSoundCloudClientID = async () => {
   const data2 = await res2.text()
   return data2.split(',client_id:"')[1].split('"')[0]
 }
+
+export const checkForFFMpeg = () => {
+  exec('ffmpeg -version', error => {
+    if (error) {
+      console.error("FFmpeg is not installed or not in PATH.")
+      process.exit(1)
+    }
+  })
+}
+
+export const escapeCSV = str => str.replace(/[",\n\r]/g, "$&")

@@ -1,5 +1,5 @@
 # Use an official Node.js image as the base
-FROM node:18
+FROM node:22
 
 # Install Python and required build tools
 RUN apt-get update && apt-get install -y \
@@ -8,6 +8,8 @@ RUN apt-get update && apt-get install -y \
     build-essential \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
+
+RUN apt-get update && apt-get install -y ffmpeg
 
 # Set the working directory inside the container
 WORKDIR /usr/src/app

@@ -22,11 +22,6 @@ export default class extends Command {
 
     msg.react("🔄")
 
-    exec("pm2 reload lucille", err => {
-      if (err) {
-        msg.react("❌")
-        console.error(err.message)
-      }
-    })
+    process.exit(0)
   }
 }

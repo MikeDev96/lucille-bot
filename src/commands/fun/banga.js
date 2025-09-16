@@ -1,8 +1,6 @@
-import { getVoiceChannel, shuffle, paginatedEmbed, splitMessage, getConfig } from "../../helpers.js"
+import { getVoiceChannel, shuffle, paginatedEmbed, splitMessage, getConfig, escapeCSV } from "../../helpers.js"
 import Track from "../../models/Track.js"
 import { AttachmentBuilder, escapeMarkdown } from "discord.js"
-import { DynamoDBClient } from "@aws-sdk/client-dynamodb"
-import { DynamoDBDocumentClient, PutCommand } from "@aws-sdk/lib-dynamodb"
 import { existsSync } from "fs"
 import LucilleClient from "../../classes/LucilleClient.js"
 import Command from "../../models/Command.js"
@@ -236,66 +234,33 @@ export default class extends Command {
   }
 
   exportBangas (msg) {
-    const client = new DynamoDBClient({
-      credentials: {
-        accessKeyId: process.env.AWS_ACCESSKEYID,
-        secretAccessKey: process.env.AWS_SECRETACCESSKEY,
-      },
-      region: process.env.AWS_REGION,
-    })
-
-    const ddbDocClient = DynamoDBDocumentClient.from(client)
-
     const UserId = msg.author.id
 
     if (!UserId) {
       return
     }
 
-    const songsArr = LucilleClient.Instance.db.banga.listBangas(UserId).reduce((acc, song) => {
-      if (song.spotifyUri) {
-        if (song.spotifyUri.length) {
-          acc.push(song.spotifyUri)
-        }
-      }
+    const songsArr = LucilleClient.Instance.db.banga.listBangas(UserId)
+
+    const csv = songsArr.reduce((acc, cur) => {
+      acc += `${escapeCSV(cur.song)},${escapeCSV(cur.spotifyUri)}\n`
+
       return acc
-    }, [])
+    }, "")
 
     if (songsArr.length === 0) {
       msg.reply("You have 0 bangas with spotify links")
     }
     else {
       msg.reply("Sent you a DM with information")
+
+      const buffer = Buffer.from(csv, "utf8")
+      const attachment = new AttachmentBuilder(buffer, { name: "bangas.csv" })
+
       msg.author.send({
-        embeds: [
-          {
-            color: 0x0099ff,
-            title: "Lucille Spotify Exporter",
-            fields: [
-              {
-                name: "Spotify Exporter Link",
-                value: `Visit [this link](${process.env.EXPORT_URL}/${UserId}) and authorise with Spotify`,
-              },
-            ],
-            footer: {
-              text: process.env.DISCORD_FOOTER,
-              icon_url: process.env.DISCORD_AUTHORAVATARURL,
-            },
-          },
-        ],
+        content: "Lucille Spotify Exporter - Here are all of your bangas exported!",
+        files: [attachment],
       })
-
-      const params = {
-        TableName: process.env.EXPORT_TABLENAME,
-        Item: {
-          discordID: UserId,
-          SongsURIs: songsArr,
-        },
-      }
-
-      ddbDocClient.send(new PutCommand(params))
-        .then(() => console.log("Succesfully wrote to DynamoDB"))
-        .catch(err => console.log("Error", err))
     }
   }
 }

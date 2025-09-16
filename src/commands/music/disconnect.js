@@ -5,11 +5,11 @@ import LucilleClient from "../../classes/LucilleClient.js"
 export default class extends Command {
   constructor () {
     super({
-      name: "stop",
-      aliases: [],
+      name: "disconnect",
+      aliases: ["fuckoff", "shlata", "alt f4", "altf4", "leave"],
       group: "music",
-      memberName: "stop",
-      description: "Stops the bot in it's tracks",
+      memberName: "disconnect",
+      description: "Shlata's the bot",
       guildOnly: true,
     })
   }
@@ -33,7 +33,7 @@ export default class extends Command {
 
         // Stop the player and clear the queue
         music.state.queue.splice(1)
-        music.setState({ queue: music.state.queue })
+        music.setState({ queue: music.state.queue, summoned: false })
         music.player.stop()
         music.updateEmbed()
       } else {

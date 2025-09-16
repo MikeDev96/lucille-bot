@@ -12,6 +12,7 @@ import TextToSpeech from "./TextToSpeech.js"
 import { globby } from "globby"
 import { Client, Events, GatewayIntentBits } from "discord.js"
 import LucilleGuild from "./LucilleGuild.js"
+import { checkForFFMpeg } from "../helpers.js"
 
 export default class LucilleClient {
   static Instance = new LucilleClient()
@@ -41,6 +42,8 @@ export default class LucilleClient {
       this.createDailyTracker()
       this.setupGuilds()
     })
+
+    checkForFFMpeg()
   }
 
   createMessageInterceptor () {
