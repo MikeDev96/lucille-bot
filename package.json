@@ -27,7 +27,7 @@
   "dependencies": {
     "@discordjs/opus": "^0.10.0",
     "@discordjs/voice": "^0.19.0",
-    "@google-cloud/speech": "^4.10.2",
+    "@google-cloud/speech": "^7.2.0",
     "@picovoice/porcupine-node": "^2.1.7",
     "@snazzah/davey": "^0.1.6",
     "adm-zip": "^0.5.9",
