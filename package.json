@@ -18,7 +18,9 @@
     "pm2:stop": "pm2 stop lucille",
     "pm2:restart": "pm2 restart lucille",
     "pm2:logs": "pm2 logs lucille",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "health-check": "node health-monitor.js",
+    "setup-monitor": "./setup-health-monitor.sh"
   },
   "author": "",
   "license": "ISC",
