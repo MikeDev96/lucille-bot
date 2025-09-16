@@ -8,18 +8,27 @@ export default class extends Command {
       group: "misc",
       memberName: "lmgtfy",
       description: "A response to a snooty response to someone asking for help",
-      args: [],
+      args: [
+        {
+          key: "query",
+          prompt: "What should I google for them?",
+          type: "string",
+        },
+      ],
       guildOnly: true,
     })
   }
 
   async run (msg, args) {
-    if (encodeURI("https://letmegooglethat.com/?q=" + args).length > 1999) {
-      args = "That was too big"
-      msg.reply(`The person was just asking for help, ${msg.author.username} you wet egg. ${encodeURI("https://letmegooglethat.com/?q=" + args)}`)
+    const query = args.query
+    const encodedQuery = encodeURIComponent(query)
+    const url = `https://letmegooglethat.com/?q=${encodedQuery}`
+    
+    if (url.length > 1999) {
+      msg.reply(`The person was just asking for help, ${msg.author.username} you wet egg and your link was too long`)
     }
     else {
-      msg.reply(`The person was just asking for help, ${msg.author.username} you wet egg. ${encodeURI("https://letmegooglethat.com/?q=" + args)}`)
+      msg.reply(`The person was just asking for help, ${msg.author.username} you wet egg. ${url}`)
     }
   }
 }
