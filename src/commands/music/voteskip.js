@@ -24,10 +24,15 @@ export default class extends Command {
         return
       }
 
+      if (!music.state.voiceChannel) {
+        msg.reply("❌ Bot is not connected to a voice channel")
+        return
+      }
+
       const [currentlyPlaying] = tracks
       const currentlyPlayingTitle = music.getTrackTitle(currentlyPlaying)
 
-      const voiceChannelMembers = msg.guild.voice.channel.members.filter(member => member.user.id !== msg.client.user.id)
+      const voiceChannelMembers = music.state.voiceChannel.members.filter(member => member.user.id !== msg.client.user.id)
       const memberCount = voiceChannelMembers.size
       const votesNeeded = memberCount % 2 === 0 ? memberCount / 2 + 1 : Math.ceil(memberCount / 2)
 
@@ -36,14 +41,47 @@ export default class extends Command {
         await voteMsg.react("🗳️")
 
         try {
-          const filter = (reaction, user) => reaction.emoji.name === "🗳️" && voiceChannelMembers.has(user.id)
-          const reactions = await voteMsg.awaitReactions({ filter, time: 30000 })
-
-          const votes = reactions.has("🗳️") ? reactions.get("🗳️").count - 1 : 0
+          let votes = 0
+          let resolved = false
+          
+          // Create a promise that resolves when majority is reached or timeout occurs
+          const votePromise = new Promise((resolve) => {
+            const timeout = setTimeout(() => {
+              if (!resolved) {
+                resolved = true
+                resolve('timeout')
+              }
+            }, 30000)
+            
+            const collector = voteMsg.createReactionCollector({
+              filter: (reaction, user) => reaction.emoji.name === "🗳️" && voiceChannelMembers.has(user.id),
+              time: 30000
+            })
+            
+            collector.on('collect', () => {
+              votes = voteMsg.reactions.cache.get("🗳️")?.count - 1 || 0
+              if (votes >= votesNeeded && !resolved) {
+                resolved = true
+                clearTimeout(timeout)
+                collector.stop()
+                resolve('majority')
+              }
+            })
+            
+            collector.on('end', () => {
+              if (!resolved) {
+                resolved = true
+                clearTimeout(timeout)
+                resolve('timeout')
+              }
+            })
+          })
+          
+          await votePromise
 
           await voteMsg.delete()
 
-          // 30 seconds has passed, so make sure the track is still playing
+          // Check if we have enough votes and the track is still playing
           if (votes >= votesNeeded && tracks[0] && music.getTrackTitle(tracks[0]) === currentlyPlayingTitle) {
             msg.react("⏭️")
 
