@@ -126,7 +126,7 @@
   },
   "bbcr1": {
     "name": "BBC Radio 1",
-    "url": "http://stream.live.vc.bbcmedia.co.uk/bbc_radio_one",
+    "url": "http://a.files.bbci.co.uk/ms6/live/3441A116-B12E-4D2F-ACA8-C1984642FA4B/audio/simulcast/hls/nonuk/pc_hd_abr_v2/ak/bbc_radio_one.m3u8",
     "metadata": {
       "provider": "bbc",
       "type": "poll",
@@ -136,7 +136,7 @@
   },
   "bbcr1x": {
     "name": "BBC Radio 1xtra",
-    "url": "http://stream.live.vc.bbcmedia.co.uk/bbc_1xtra",
+    "url": "http://a.files.bbci.co.uk/ms6/live/3441A116-B12E-4D2F-ACA8-C1984642FA4B/audio/simulcast/hls/nonuk/pc_hd_abr_v2/ak/bbc_radio_1xtra.m3u8",
     "metadata": {
       "provider": "bbc",
       "type": "poll",
@@ -146,19 +146,10 @@
   },
   "bbcr1dance": {
     "name": "BBC Radio 1 Dance",
-    "url": "http://a.files.bbci.co.uk/media/live/manifesto/audio/simulcast/dash/uk/dash_full/ak/bbc_radio_one_dance.mpd",
+    "url": "http://a.files.bbci.co.uk/ms6/live/3441A116-B12E-4D2F-ACA8-C1984642FA4B/audio/simulcast/hls/nonuk/pc_hd_abr_v2/ak/bbc_radio_one_dance.m3u8",
     "metadata": {
       "type": "poll",
       "url": "https://rms.api.bbc.co.uk/v2/services/bbc_radio_one_dance/segments/latest?limit=1",
-      "summon": 30
-    }
-  },
-  "bbcr1relax": {
-    "name": "BBC Radio 1 Relax",
-    "url": "http://a.files.bbci.co.uk/media/live/manifesto/audio/simulcast/dash/uk/dash_full/ak/bbc_radio_one_relax.mpd",
-    "metadata": {
-      "type": "poll",
-      "url": "https://rms.api.bbc.co.uk/v2/services/bbc_radio_one_relax/segments/latest?limit=1",
       "summon": 30
     }
   },
@@ -181,7 +172,7 @@
   },
   "unity": {
     "name": "Unity",
-    "url": "http://stream.audiospace.co/unityradio"
+    "url": "https://unity-radio.radiocult.fm/stream"
   },
   "lofi": {
     "name": "Lofi",
