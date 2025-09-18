@@ -8,6 +8,8 @@ export default class {
       const te = new TrackExtractor(msg.content)
       
       if (te.parseLinks()) {
+        msg.react("▶️")
+
         const filteredLinks = te.links.slice(0, 25).filter(l => [PLATFORM_SPOTIFY, PLATFORM_TIDAL, PLATFORM_APPLE].includes(l.platform) && ["track", "album", "artist"].includes(l.type))
         
         if (filteredLinks.length) {
