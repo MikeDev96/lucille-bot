@@ -36,7 +36,7 @@ export default class TextToSpeech {
 
         const requestee = new Requestee(voiceState.guild.members.me.displayName, voiceState.guild, voiceState.guild.client.user.id)
         const track = TextToSpeech.getTtsTrack(requestee, this.getMessage(event, user, channel))
-        music.add([track], requestee, voiceState.channel, false, voiceState.guild.systemChannel)
+        music.add([track], requestee, voiceState.guild.members.me.voice.channel, false, voiceState.guild.systemChannel)
       })
   }
 
