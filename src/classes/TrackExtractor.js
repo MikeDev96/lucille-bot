@@ -354,7 +354,7 @@ export default class TrackExtractor {
       const res = await fetch(id)
       const contentType = res.headers.get("content-type")
 
-      if (contentType && (contentType.startsWith("audio/") || contentType.startsWith("video/"))) {
+      if (contentType && (contentType.startsWith("audio/") || contentType.startsWith("video/") || contentType === "application/x-mpegurl")) {
         const track = new Track("Custom Link", id)
           .setPlatform(PLATFORM_OTHER)
           .setLink(id)
