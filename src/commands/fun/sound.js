@@ -93,7 +93,7 @@ export default class extends Command {
         })
       }
     }
-    else if (["list", "l"].includes(arg1)) {
+    else if (["list", "ls"].includes(arg1)) {
       const key = typeMap[args.arg2.toLowerCase()]
       if (key) {
         const embed = await this.getFilesEmbed(msg, getConfig(`assets/sounds/${key}`), key)
