@@ -518,7 +518,7 @@ export default class MusicPlayer extends MusicState {
     // so we need to make sure it gets cleaned up.
     this.endRadioMetadata(item)
 
-    if (item.radio && item.radio.metadata && item.requestStream) {
+    if (item.radio && item.radio.metadata && (!item.radio.metadata.type !== "sse" || item.requestStream)) {
       const instance = new RadioMetadata(item.radio.metadata, item.requestStream)
       item.setRadioInstance(instance)
 
