@@ -16,6 +16,38 @@ export default class extends Command {
   async run (msg) {
     resume(msg)
   }
+
+  getHelpMessage (prefix) {
+    return {
+      embeds: [
+        {
+          title: "▶️ Resume Command Help",
+          description: "Resume paused music!",
+          color: 0x00ff00,
+          fields: [
+            {
+              name: "🎵 Usage",
+              value: `\`${prefix}resume\`\nResume paused music\n\`${prefix}unpause\`\nAlias`,
+              inline: false
+            },
+            {
+              name: "⚠️ Requirements",
+              value: "• Music must be paused\n• Only the person who paused can resume\n• Bot must be connected to voice",
+              inline: false
+            },
+            {
+              name: "💡 Tips",
+              value: "• Use 'pause' to pause music\n• Resume continues from where it left off\n• Queue remains intact while paused",
+              inline: false
+            }
+          ],
+          footer: {
+            text: "Let's continue! ▶️",
+          },
+        },
+      ],
+    }
+  }
 }
 
 export const resume = msg => {

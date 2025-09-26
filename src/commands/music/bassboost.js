@@ -53,6 +53,38 @@ export default class extends Command {
       msg.reply(`Error applying bass boost: ${error.message}`)
     }
   }
+
+  getHelpMessage (prefix) {
+    return {
+      embeds: [
+        {
+          title: "🎸 Bass Boost Command Help",
+          description: "Enhance the bass in your music with different intensity levels!",
+          color: 0x1db954,
+          fields: [
+            {
+              name: "🎵 Bass Levels",
+              value: `\`${prefix}bassboost off\` - No bass boost (0dB)\n\`${prefix}bassboost low\` - Light boost (5dB)\n\`${prefix}bassboost med\` - Medium boost (10dB)\n\`${prefix}bassboost high\` - Strong boost (15dB)\n\`${prefix}bassboost insane\` - Extreme boost (20dB)\n\`${prefix}bassboost wtfbbq\` - Maximum boost (50dB)`,
+              inline: false
+            },
+            {
+              name: "🎯 Aliases",
+              value: `\`${prefix}bb\`, \`${prefix}bass\``,
+              inline: true
+            },
+            {
+              name: "💡 Usage Tips",
+              value: "• Bass boost applies to the current track if playing\n• If no music is playing, it will apply to the next track\n• Higher levels may cause distortion\n• Use `off` to disable bass boost",
+              inline: false
+            }
+          ],
+          footer: {
+            text: "Requires music to be playing • Bass boost affects audio quality",
+          },
+        },
+      ],
+    }
+  }
 }
 
 const bassBoostToAmountMap = {
@@ -63,3 +95,5 @@ const bassBoostToAmountMap = {
   insane: 20,
   wtfbbq: 50
 }
+
+export { bassBoostToAmountMap }

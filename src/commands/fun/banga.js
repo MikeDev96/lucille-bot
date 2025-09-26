@@ -263,4 +263,56 @@ export default class extends Command {
       })
     }
   }
+
+  getHelpMessage (prefix) {
+    return {
+      embeds: [
+        {
+          title: "🎵 Banga Command Help",
+          description: "Track your favorite songs and manage your music collection!",
+          color: 0x1db954,
+          fields: [
+            {
+              name: "🎶 Add Banger",
+              value: `\`${prefix}banga\`\nAdd current playing song to your bangers\n\`${prefix}banger\`\nAlias for banga\n\`${prefix}b\`\nShort alias`,
+              inline: true
+            },
+            {
+              name: "📋 List Bangers",
+              value: `\`${prefix}banga list\`\nView your banger collection\n\`${prefix}banga list <user>\`\nView someone else's bangers\n\`${prefix}banga ls\`\nAlias for list`,
+              inline: true
+            },
+            {
+              name: "▶️ Play Bangers",
+              value: `\`${prefix}banga play\`\nPlay your bangers randomly\n\`${prefix}banga play <user>\`\nPlay someone else's bangers\n\`${prefix}banga p\`\nAlias for play`,
+              inline: true
+            },
+            {
+              name: "🗑️ Remove Banger",
+              value: `\`${prefix}banga remove\`\nRemove current song from bangers\n\`${prefix}banga remove <song>\`\nRemove specific song\n\`${prefix}banga rm\`\nAlias for remove`,
+              inline: true
+            },
+            {
+              name: "📤 Export Bangers",
+              value: `\`${prefix}banga export\`\nExport your bangers as CSV\nSent to your DMs with Spotify links`,
+              inline: true
+            },
+            {
+              name: "❓ Check Bangers",
+              value: `\`${prefix}banga ?\`\nSee who thinks current song is a banger`,
+              inline: true
+            },
+            {
+              name: "💡 Tips",
+              value: "• Bangers are saved per user\n• Export includes Spotify links\n• Use reactions to confirm removals\n• Banger stamps can be customized",
+              inline: false
+            }
+          ],
+          footer: {
+            text: "Track your musical taste! 🎧",
+          },
+        },
+      ],
+    }
+  }
 }

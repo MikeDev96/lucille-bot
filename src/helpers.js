@@ -95,7 +95,7 @@ export const paginatedEmbed = async (msg, embedTemplate, embedList, emojiList = 
     switch (reaction.emoji.name) {
       case emojiList[0] : { embedIndex = 0; break }
       case emojiList[1] : { embedIndex = (embedIndex > 0) ? --embedIndex : embedList.length - 1; break }
-      case emojiList[2] : { embedIndex = (embedIndex + 1 < embedList.length) ? ++embedIndex : 0; break }
+      case emojiList[2] : { embedIndex = (embedIndex + 1 < embedList.length) ? ++embedIndex : embedList.length - 1; break }
       case emojiList[3] : { embedIndex = embedList.length - 1; break }
       default: break
     }

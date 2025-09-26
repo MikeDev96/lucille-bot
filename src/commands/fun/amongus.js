@@ -106,4 +106,36 @@ export default class extends Command {
 
     return `powershell -command ${template}`
   }
+
+  getHelpMessage (prefix) {
+    return {
+      embeds: [
+        {
+          title: "🚀 Among Us Command Help",
+          description: "Customize your Among Us character with hats, pets, and skins!",
+          color: 0xff6b35,
+          fields: [
+            {
+              name: "🖼️ Show Images",
+              value: `\`${prefix}amongus image <name>\`\nShow Among Us image\n\`${prefix}amongus i <name>\`\nAlias for image\n\`${prefix}amongus show <name>\`\nAlias for image\n\`${prefix}a <name>\`\nShort alias`,
+              inline: true
+            },
+            {
+              name: "⚙️ Generate Config",
+              value: `\`${prefix}amongus config hat <id> pet <id> skin <id>\`\nGenerate PowerShell config\n\`${prefix}amongus c hat 5 pet 2\`\nExample with hat and pet\n• Hat IDs: 0-93\n• Pet IDs: 0-10\n• Skin IDs: 0-15`,
+              inline: true
+            },
+            {
+              name: "💡 Tips",
+              value: "• Config files modify your Among Us game\n• Images show available customization options\n• Use any combination of hat, pet, and skin\n• Generated files are PowerShell scripts",
+              inline: false
+            }
+          ],
+          footer: {
+            text: "Customize your crewmate! 👨‍🚀",
+          },
+        },
+      ],
+    }
+  }
 }

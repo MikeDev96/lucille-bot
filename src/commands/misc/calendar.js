@@ -199,4 +199,51 @@ Examples:
   toRRuleDate (date) {
     return DateTime.fromJSDate(date).toUTC().startOf("second").toISO({ suppressMilliseconds: true, format: "basic" })
   }
+
+  getHelpMessage (prefix) {
+    return {
+      embeds: [
+        {
+          title: "📅 Calendar Command Help",
+          description: "Manage events and recurring reminders for your server!",
+          color: 0xff1493,
+          fields: [
+            {
+              name: "➕ Add Events",
+              value: `\`${prefix}calendar add once <date> <event>\`\nAdd a one-time event\n\`${prefix}calendar add recur <date> <rule> <event>\`\nAdd a recurring event\n\`${prefix}cal add once "tomorrow at 1pm" "Meeting"\`\nExample`,
+              inline: false
+            },
+            {
+              name: "📋 List Events",
+              value: `\`${prefix}calendar list\`\nView upcoming events\n\`${prefix}cal ls\`\nAlias for list`,
+              inline: true
+            },
+            {
+              name: "🗑️ Remove Events",
+              value: `\`${prefix}calendar remove <event>\`\nRemove an event\n\`${prefix}cal rm <event>\`\nAlias for remove`,
+              inline: true
+            },
+            {
+              name: "📅 Date Formats",
+              value: "• Natural language: 'tomorrow at 1pm', 'next friday'\n• Specific dates: '21 Nov 1996', '2024-01-15'\n• Relative: 'in 2 hours', 'next week'",
+              inline: false
+            },
+            {
+              name: "🔄 Recurrence Rules",
+              value: "• 'every day', 'every week', 'every month'\n• 'every year', 'every 2 weeks'\n• 'every month on the 2nd last Friday'\n• 'every weekday'",
+              inline: false
+            },
+            {
+              name: "💡 Tips",
+              value: "• Events are server-specific\n• Up to 10 upcoming events shown\n• Confirmation required for removal\n• Uses natural language parsing",
+              inline: false
+            }
+          ],
+          footer: {
+            text: "Stay organized! 📝",
+          },
+        },
+      ],
+    }
+  }
 }

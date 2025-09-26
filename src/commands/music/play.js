@@ -29,6 +29,43 @@ export default class extends Command {
   async run (msg, args) {
     await run(msg, args, false)
   }
+
+  getHelpMessage = (prefix) => {
+    return {
+      embeds: [
+        {
+          title: "▶️ Play Command Help",
+          description: "Play music from YouTube, Spotify, or search for songs!",
+          color: 0x1db954,
+          fields: [
+            {
+              name: "🎵 Usage",
+              value: `\`${prefix}play <song/link>\`\nPlay a song or add to queue\n\`${prefix}p <song/link>\`\nShort alias\nExample: \`${prefix}play never gonna give you up\``,
+              inline: false
+            },
+            {
+              name: "🔗 Supported Sources",
+              value: "• YouTube videos and playlists\n• Spotify tracks and albums\n• SoundCloud tracks\n• Direct audio file links",
+              inline: false
+            },
+            {
+              name: "🎯 Features",
+              value: "• Search by song name or artist\n• Add multiple songs at once\n• Automatic queue management\n• Resume paused music if no input",
+              inline: false
+            },
+            {
+              name: "💡 Tips",
+              value: "• Use quotes for specific searches\n• Playlists are added as multiple songs\n• Bot joins your voice channel automatically\n• Use 'summon' if bot isn't connected",
+              inline: false
+            }
+          ],
+          footer: {
+            text: "Let's play some music! 🎶",
+          },
+        },
+      ],
+    }
+  }
 }
 
 export const run = async (msg, args, jump) => {

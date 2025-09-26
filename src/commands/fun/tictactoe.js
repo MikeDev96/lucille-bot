@@ -151,4 +151,41 @@ export default class extends Command {
       ],
     }
   }
+
+  getHelpMessage (prefix) {
+    return {
+      embeds: [
+        {
+          title: "❌⭕ Tic Tac Toe Command Help",
+          description: "Play Tic Tac Toe with friends and track your wins!",
+          color: 0x32cd32,
+          fields: [
+            {
+              name: "🎮 How to Play",
+              value: `\`${prefix}tictactoe <player>\`\nChallenge someone to Tic Tac Toe\n\`${prefix}tic <player>\`\nAlias for tictactoe\n\`${prefix}tac <player>\`\nAlias for tictactoe\n\`${prefix}toe <player>\`\nAlias for tictactoe\n\`${prefix}ttt <player>\`\nAlias for tictactoe\nExample: \`${prefix}ttt @friend\``,
+              inline: false
+            },
+            {
+              name: "🏆 Leaderboard",
+              value: `\`${prefix}tictactoe lb\`\nView Tic Tac Toe leaderboard\n\`${prefix}ttt lb\`\nSame as above`,
+              inline: true
+            },
+            {
+              name: "🎯 Game Rules",
+              value: "• Classic 3x3 grid game\n• First to get 3 in a row wins\n• X goes first, O goes second\n• Use reactions to place pieces",
+              inline: false
+            },
+            {
+              name: "💡 Tips",
+              value: "• Mention players with @username\n• Games are tracked per server\n• Win/loss ratios are calculated\n• Challenge anyone in the server!",
+              inline: false
+            }
+          ],
+          footer: {
+            text: "Get 3 in a row to win! 🎯",
+          },
+        },
+      ],
+    }
+  }
 }

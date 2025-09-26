@@ -45,4 +45,36 @@ export default class extends Command {
       msg.reply(`❌ Failed to disconnect: ${error.message}`)
     }
   }
+
+  getHelpMessage (prefix) {
+    return {
+      embeds: [
+        {
+          title: "🛑 Disconnect Command Help",
+          description: "Stop the bot and disconnect from voice channel!",
+          color: 0xff0000,
+          fields: [
+            {
+              name: "🚪 Usage",
+              value: `\`${prefix}disconnect\`\nStop and disconnect the bot\n\`${prefix}fuckoff\`\nAlias\n\`${prefix}leave\`\nAlias\n\`${prefix}altf4\`\nAlias`,
+              inline: false
+            },
+            {
+              name: "🎵 What It Does",
+              value: "• Stops the current song\n• Clears the entire queue\n• Disconnects from voice channel\n• Resets bot state",
+              inline: false
+            },
+            {
+              name: "💡 Tips",
+              value: "• Bot must be connected to use this\n• Cannot be undone\n• Use 'summon' to reconnect\n• Multiple aliases available",
+              inline: false
+            }
+          ],
+          footer: {
+            text: "Goodbye! 👋",
+          },
+        },
+      ],
+    }
+  }
 }

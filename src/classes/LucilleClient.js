@@ -132,9 +132,9 @@ export default class LucilleClient {
         const cmd = new Command()
         commands.push(cmd)
         commands.push(...cmd.config.aliases.map(a => {
-          const cmd = new Command()
-          cmd.config.name = a
-          return cmd
+          const aliasCmd = new Command()
+          aliasCmd.config = { ...cmd.config, name: a }
+          return aliasCmd
         }))
       }
 

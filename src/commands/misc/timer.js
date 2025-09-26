@@ -54,4 +54,36 @@ export default class extends Command {
       finishMsg.react("⌛")
     }, duration)
   }
+
+  getHelpMessage (prefix) {
+    return {
+      embeds: [
+        {
+          title: "⏰ Timer Command Help",
+          description: "Set a countdown timer with live updates!",
+          color: 0x32cd32,
+          fields: [
+            {
+              name: "⏲️ Usage",
+              value: `\`${prefix}timer <duration>\`\nSet a countdown timer\n\`${prefix}settimer <duration>\`\nAlias\nExample: \`${prefix}timer 1h 30m\``,
+              inline: false
+            },
+            {
+              name: "⏱️ Duration Formats",
+              value: "• Hours: '1h', '2h 30m'\n• Minutes: '45m', '1h 15m'\n• Seconds: '30s', '1m 30s'\n• Days: '1d', '2d 5h' (max 1 day)",
+              inline: false
+            },
+            {
+              name: "💡 Features",
+              value: "• Live countdown updates every 5 seconds\n• Timer message deletes when finished\n• Notification when timer completes\n• Maximum duration: 24 hours",
+              inline: false
+            }
+          ],
+          footer: {
+            text: "Time's ticking! ⏰",
+          },
+        },
+      ],
+    }
+  }
 }

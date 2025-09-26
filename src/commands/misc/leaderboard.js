@@ -31,14 +31,45 @@ export default class extends Command {
   }
 
   getHelpMessage (prefix) {
-    return `
-__**${prefix}lb command:**__    
-\`${prefix}lb\` - Display top 3 leaders for each category
-\`${prefix}lb\` \`CATEGORY\` - Displays all results for a category of people
-\`${prefix}lb\` \`CATEGORY\` \`NAME\` - Display the time spent in a category for a specific user
-\`${prefix}lb\` \`show\` - Set your status to show in the leaderboard
-\`${prefix}lb\` \`hide\` - Set your status to hide from the leaderboard
-\`${prefix}lb\` \`off\` - Set your status to off to reset times, hide from the leaderboard and stop recording times`
+    return {
+      embeds: [
+        {
+          title: "🏆 Leaderboard Command Help",
+          description: "View voice activity statistics and leaderboards!",
+          color: 0xffd700,
+          fields: [
+            {
+              name: "📊 View Leaderboards",
+              value: `\`${prefix}lb\`\nShow top 3 leaders for each category\n\`${prefix}leaderboard\`\nFull command name`,
+              inline: true
+            },
+            {
+              name: "📈 Category Stats",
+              value: `\`${prefix}lb <category>\`\nShow all results for a category\nExample: \`${prefix}lb gaming\``,
+              inline: true
+            },
+            {
+              name: "👤 User Stats",
+              value: `\`${prefix}lb <category> <user>\`\nShow specific user's time in category\nExample: \`${prefix}lb gaming @user\``,
+              inline: true
+            },
+            {
+              name: "⚙️ Privacy Settings",
+              value: `\`${prefix}lb show\`\nShow your stats in leaderboards\n\`${prefix}lb hide\`\nHide your stats from leaderboards\n\`${prefix}lb off\`\nReset times and stop recording`,
+              inline: false
+            },
+            {
+              name: "💡 Tips",
+              value: "• Categories are based on voice channel names\n• Times are tracked automatically\n• Use 'off' to reset your statistics\n• Privacy settings are per-user",
+              inline: false
+            }
+          ],
+          footer: {
+            text: "Track your voice activity! 🎤",
+          },
+        },
+      ],
+    }
   }
 
   async run (msg, args) {
@@ -155,7 +186,7 @@ __**${prefix}lb command:**__
             msg.reply(this.getHelpMessage(LucilleClient.Instance.commandPrefix))
           }
           else {
-            const leaderboard = await voiceTracker.getLeaderboard(msg.guild.id, { username: msg.author.displayName, avatarURL: msg.author.displayAvatarURL() }, msg.guild.members)
+            const leaderboard = await voiceTracker.getLeaderboard(msg.guild.id, { username: msg.author.displayName || msg.author.username, avatarURL: msg.author.displayAvatarURL() }, msg.guild.members)
             if (leaderboard) {
               msg.reply({ embeds: [leaderboard] })
             }

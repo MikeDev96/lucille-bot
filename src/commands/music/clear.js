@@ -37,4 +37,36 @@ export default class extends Command {
       }
     }
   }
+
+  getHelpMessage (prefix) {
+    return {
+      embeds: [
+        {
+          title: "🗑️ Clear Command Help",
+          description: "Clear all songs from the music queue!",
+          color: 0xff6b6b,
+          fields: [
+            {
+              name: "🎵 Usage",
+              value: `\`${prefix}clear\`\nClear the entire queue\n\`${prefix}cls\`\nShort alias`,
+              inline: false
+            },
+            {
+              name: "⚠️ Requirements",
+              value: "• Must be in the same voice channel as the bot\n• Confirmation required (15 seconds)\n• Current playing song is not removed",
+              inline: false
+            },
+            {
+              name: "💡 Tips",
+              value: "• Only clears queued songs, not the current one\n• Use 'y' or 'n' to confirm\n• Cannot be undone once confirmed",
+              inline: false
+            }
+          ],
+          footer: {
+            text: "Clear the queue! 🎵",
+          },
+        },
+      ],
+    }
+  }
 }

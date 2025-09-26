@@ -203,16 +203,7 @@ export default class extends Command {
         })()
       }
       else {
-        const prefix = LucilleClient.Instance.commandPrefix
-
-        const helpEmbed = `
-      __**${prefix}Stock command:**__
-      \`${prefix}Stock\` \`list\` - Lists your stock portfolio
-      \`${prefix}Stock\` \`track\` \`symbol\` - Track a stock
-      \`${prefix}Stock\` \`add\` \`symbol\` - Add a stock to your portfolio
-      \`${prefix}Stock\` \`remove\` \`symbol\` - Remove a stock from your portfolio`
-
-        msg.reply(helpEmbed)
+        msg.reply(this.getHelpMessage(LucilleClient.Instance.commandPrefix))
       }
     }
   }
@@ -265,5 +256,52 @@ export default class extends Command {
       name: `${nickname}'s Stock Portfolio`,
       value: str,
     }))
+  }
+
+  getHelpMessage (prefix) {
+    return {
+      embeds: [
+        {
+          title: "📈 Stock Command Help",
+          description: "Track stocks, manage your portfolio, and get real-time market data!",
+          color: 0x00ff00,
+          fields: [
+            {
+              name: "📊 View Portfolio",
+              value: `\`${prefix}stocks list\`\nView your stock portfolio\n\`${prefix}stocks list <user>\`\nView another user's portfolio`,
+              inline: true
+            },
+            {
+              name: "➕ Add Stock",
+              value: `\`${prefix}stocks add <symbol>\`\nAdd a stock to your portfolio\nExample: \`${prefix}stocks add AAPL\``,
+              inline: true
+            },
+            {
+              name: "➖ Remove Stock",
+              value: `\`${prefix}stocks remove <symbol>\`\nRemove a stock from your portfolio\nAliases: \`rm\`, \`delete\``,
+              inline: true
+            },
+            {
+              name: "📡 Live Tracking",
+              value: `\`${prefix}stocks track <symbol>\`\nStart live tracking a stock (updates every 5 seconds)\nExample: \`${prefix}stocks track TSLA\``,
+              inline: true
+            },
+            {
+              name: "💡 Tips",
+              value: "• Use standard stock symbols (AAPL, TSLA, MSFT, etc.)\n• Live tracking shows real-time price changes\n• Portfolio is saved per user\n• Use `end` to stop live tracking",
+              inline: false
+            },
+            {
+              name: "🎯 Aliases",
+              value: `\`${prefix}stock\`, \`${prefix}stonk\`, \`${prefix}stonks\`, \`${prefix}nokia\`, \`${prefix}nok\``,
+              inline: false
+            }
+          ],
+          footer: {
+            text: "Powered by Yahoo Finance • Data updates in near real-time",
+          },
+        },
+      ],
+    }
   }
 }

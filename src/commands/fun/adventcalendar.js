@@ -63,6 +63,38 @@ export default class extends Command {
       Locale: "en_US",
     }))
   }
+
+  getHelpMessage (prefix) {
+    return {
+      embeds: [
+        {
+          title: "🎄 Advent Calendar Command Help",
+          description: "Get your daily Christmas treat during December!",
+          color: 0xff0000,
+          fields: [
+            {
+              name: "🎁 Daily Treat",
+              value: `\`${prefix}advent calendar\`\nGet your daily Christmas GIF\n\`${prefix}ac\`\nShort alias`,
+              inline: false
+            },
+            {
+              name: "📅 Availability",
+              value: "• Only works in December\n• One treat per user per day\n• Available December 1-25\n• Different GIF each day",
+              inline: false
+            },
+            {
+              name: "💡 Tips",
+              value: "• Each day has a unique Christmas theme\n• GIFs are random from the day's theme\n• Try again tomorrow if you've already claimed today's treat\n• Powered by Tenor GIFs",
+              inline: false
+            }
+          ],
+          footer: {
+            text: "Merry Christmas! 🎅",
+          },
+        },
+      ],
+    }
+  }
 }
 
 if (!process.env.TENOR_KEY) {

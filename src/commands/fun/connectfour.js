@@ -239,4 +239,41 @@ export default class extends Command {
       ],
     }
   }
+
+  getHelpMessage (prefix) {
+    return {
+      embeds: [
+        {
+          title: "🔴🟡 Connect Four Command Help",
+          description: "Play Connect Four with friends and track your wins!",
+          color: 0xff6b6b,
+          fields: [
+            {
+              name: "🎮 How to Play",
+              value: `\`${prefix}connect4 <player>\`\nChallenge someone to Connect Four\n\`${prefix}c4 <player>\`\nAlias for connect4\nExample: \`${prefix}connect4 @friend\``,
+              inline: false
+            },
+            {
+              name: "🏆 Leaderboard",
+              value: `\`${prefix}connect4 lb\`\nView Connect Four leaderboard\n\`${prefix}c4 lb\`\nSame as above`,
+              inline: true
+            },
+            {
+              name: "🎯 Game Rules",
+              value: "• 30 seconds per turn\n• First to get 4 in a row wins\n• Use reactions to place pieces\n• Bot plays automatically if you don't respond",
+              inline: false
+            },
+            {
+              name: "💡 Tips",
+              value: "• Mention players with @username\n• Games are tracked per server\n• Win/loss ratios are calculated\n• Challenge anyone in the server!",
+              inline: false
+            }
+          ],
+          footer: {
+            text: "Get 4 in a row to win! 🎯",
+          },
+        },
+      ],
+    }
+  }
 }

@@ -38,4 +38,41 @@ export default class extends Command {
       msg.reply(`❌ Failed to set volume: ${error.message}`)
     }
   }
+
+  getHelpMessage (prefix) {
+    return {
+      embeds: [
+        {
+          title: "🔊 Volume Command Help",
+          description: "Adjust the music volume!",
+          color: 0x9b59b6,
+          fields: [
+            {
+              name: "🎵 Usage",
+              value: `\`${prefix}volume <1-300>\`\nSet volume level\n\`${prefix}vol <1-300>\`\nShort alias\nExample: \`${prefix}volume 50\``,
+              inline: false
+            },
+            {
+              name: "📊 Volume Levels",
+              value: "• 1-50: Quiet\n• 51-100: Normal\n• 101-200: Loud\n• 201-300: Very loud (may cause distortion)",
+              inline: false
+            },
+            {
+              name: "⚠️ Requirements",
+              value: "• Bot must be connected to voice channel\n• Volume must be between 1 and 300\n• Changes apply immediately",
+              inline: false
+            },
+            {
+              name: "💡 Tips",
+              value: "• Higher volumes may cause audio distortion\n• Volume is persistent across songs\n• Use moderate levels for best quality",
+              inline: false
+            }
+          ],
+          footer: {
+            text: "Turn it up! 🔊",
+          },
+        },
+      ],
+    }
+  }
 }

@@ -20,4 +20,31 @@ export default class extends Command {
     const bandSize = bandSizeArray[Math.floor(Math.random() * bandSizeArray.length)]
     msg.reply(`${bandSize}${cupSize}${bandSize === "32" && cupSize === "C" ? " Poggers (•)(•)" : ""}`)
   }
+
+  getHelpMessage (prefix) {
+    return {
+      embeds: [
+        {
+          title: "👙 Boobies Command Help",
+          description: "Get a random bra size measurement!",
+          color: 0xff69b4,
+          fields: [
+            {
+              name: "🎲 Usage",
+              value: `\`${prefix}boobies\`\nGet a random bra size\n\`${prefix}brasize\`\nSame as boobies`,
+              inline: false
+            },
+            {
+              name: "💡 Special",
+              value: "32C gets a special 'Poggers' message!",
+              inline: false
+            }
+          ],
+          footer: {
+            text: "Just for fun! 🎭",
+          },
+        },
+      ],
+    }
+  }
 }

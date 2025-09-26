@@ -107,7 +107,33 @@ export default class extends Command {
 }
 
 function getHelpMessage (prefix) {
-  return `
-__**${prefix}YouSync command:**__    
-\`${prefix}ys\` \`sponsor strength (optional)\` \`link\` - Where strength can be \`none\`, \`low\`, \`med\`, \`all\`.`
+  return {
+    embeds: [
+      {
+        title: "🎬 YouSync Command Help",
+        description: "Create synchronized YouTube viewing sessions with sponsor block!",
+        color: 0xff0000,
+        fields: [
+          {
+            name: "🎥 Basic Usage",
+            value: `\`${prefix}yousync <link>\`\nCreate sync session with default settings\n\`${prefix}ys <link>\`\nShort alias\nExample: \`${prefix}ys https://youtube.com/watch?v=...\``,
+            inline: false
+          },
+          {
+            name: "⚙️ Sponsor Block Levels",
+            value: `\`${prefix}yousync <strength> <link>\`\nControl what gets skipped\n• \`none\` - Skip nothing\n• \`low\` - Skip sponsors only\n• \`med\` - Skip sponsors, intros, outros\n• \`all\` - Skip everything`,
+            inline: false
+          },
+          {
+            name: "💡 Tips",
+            value: "• Requires YOUSYNC_API_URL and YOUSYNC_URL\n• Sessions are synchronized for all participants\n• Sponsor block helps skip unwanted content\n• Perfect for group watching!",
+            inline: false
+          }
+        ],
+        footer: {
+          text: "Watch together! 🍿",
+        },
+      },
+    ],
+  }
 }

@@ -61,4 +61,36 @@ export default class extends Command {
       msg.reply(err.message)
     }
   }
+
+  getHelpMessage (prefix) {
+    return {
+      embeds: [
+        {
+          title: "😄 Joke Command Help",
+          description: "Get random jokes with optional categories and TTS support!",
+          color: 0xffa500,
+          fields: [
+            {
+              name: "🎭 Categories",
+              value: `\`${prefix}joke\` - Random joke\n\`${prefix}joke any\` - Any category\n\`${prefix}joke misc\` - Miscellaneous\n\`${prefix}joke programming\` - Programming jokes\n\`${prefix}joke dark\` - Dark humor\n\`${prefix}joke pun\` - Puns\n\`${prefix}joke spooky\` - Spooky jokes\n\`${prefix}joke christmas\` - Christmas jokes`,
+              inline: false
+            },
+            {
+              name: "🎙️ TTS Support",
+              value: "If you're in a voice channel, jokes will be spoken aloud!",
+              inline: true
+            },
+            {
+              name: "💡 Tips",
+              value: "• Two-part jokes have a 3-second delay for the punchline\n• TTS works automatically in voice channels\n• All jokes are from JokeAPI",
+              inline: false
+            }
+          ],
+          footer: {
+            text: "Powered by JokeAPI • Laugh responsibly! 😂",
+          },
+        },
+      ],
+    }
+  }
 }
