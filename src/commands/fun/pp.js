@@ -33,13 +33,13 @@ ${LucilleClient.Instance.commandPrefix}pp perm \`lb\` gets the pp leaderboard, s
 
   run (msg, args) {
     // if user types !pp help | !pp <> help etc...
-    if (Object.values(args).filter(x => x.toLowerCase() === "help").length > 0) {
+    if (Object.values(args).filter(x => x && x.toLowerCase() === "help").length > 0) {
       msg.reply(this.getHelpMessage(LucilleClient.Instance.commandPrefix))
       return
     }
 
-    const a1 = args.arg1.toLowerCase()
-    const a2 = args.arg2.toLowerCase()
+    const a1 = (args.arg1 || "").toLowerCase()
+    const a2 = (args.arg2 || "").toLowerCase()
 
     // Rather than if's ill just determine the type here
     const isPerm = ["perm", "p"].includes(a1) && a2 === ""
@@ -137,13 +137,50 @@ ${LucilleClient.Instance.commandPrefix}pp perm \`lb\` gets the pp leaderboard, s
   }
 
   getHelpMessage (prefix) {
-    return `
-__**${prefix}PP command:**__    
-\`${prefix}pp\` - Random (RDM) pp size.
-\`${prefix}pp\` \`perm\` - RDM permanent pp size
-\`${prefix}pp\` \`daily\` - Daily pp size
-\`${prefix}pp\` \`perm\` \`lb\` - Leaderboard for permanent pp.
-\`${prefix}pp\` \`daily\` \`lb\` - Leaderboard for the current daily pp.`
+    return {
+      embeds: [
+        {
+          title: "🍆 PP Command Help",
+          description: "Measure your virtual pp size and compete with others!",
+          color: 0xff69b4,
+          fields: [
+            {
+              name: "🎲 Random PP",
+              value: `\`${prefix}pp\`\nGet a random pp size`,
+              inline: true
+            },
+            {
+              name: "🔒 Permanent PP",
+              value: `\`${prefix}pp perm\`\nSet a permanent pp size (unchangable!)`,
+              inline: true
+            },
+            {
+              name: "📅 Daily PP",
+              value: `\`${prefix}pp daily\`\nGet your daily pp size`,
+              inline: true
+            },
+            {
+              name: "🏆 Permanent Leaderboard",
+              value: `\`${prefix}pp perm lb\`\nSee who has the biggest permanent pp`,
+              inline: true
+            },
+            {
+              name: "📊 Daily Leaderboard",
+              value: `\`${prefix}pp daily lb\`\nSee today's pp champions`,
+              inline: true
+            },
+            {
+              name: "💡 Tips",
+              value: "• Use `perm` to lock in your size forever\n• Daily sizes reset every day\n• Compete for the top spots!",
+              inline: false
+            }
+          ],
+          footer: {
+            text: "Good luck with your measurements! 🍆",
+          },
+        },
+      ],
+    }
   }
 }
 
