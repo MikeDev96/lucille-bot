@@ -64,10 +64,18 @@ export default class LucilleClient {
         const botHasReacted = messageReaction.users.cache.has(messageReaction.client.user.id)
         if (!botHasReacted) return
 
+        // Don't trigger music playback on help embeds or other bot embeds
+        const msg = messageReaction.message
+        if (msg.embeds && msg.embeds.length > 0) {
+          const embed = msg.embeds[0]
+          if (embed.title && (embed.title.includes("Lucille Bot Commands") || embed.title.includes("Help"))) {
+            return
+          }
+        }
+
         messageReaction.users.remove(user)
 
         const music = this.getGuildInstance(messageReaction.message.guild).music
-        const msg = messageReaction.message
 
         const success = await music.add(msg.content, Requestee.create(msg), getVoiceChannel(msg), false, msg.channel)
         if (!success) {
