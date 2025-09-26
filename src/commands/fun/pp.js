@@ -32,11 +32,6 @@ ${LucilleClient.Instance.commandPrefix}pp perm \`lb\` gets the pp leaderboard, s
   }
 
   run (msg, args) {
-    // if user types !pp help | !pp <> help etc...
-    if (Object.values(args).filter(x => x && x.toLowerCase() === "help").length > 0) {
-      msg.reply(this.getHelpMessage(LucilleClient.Instance.commandPrefix))
-      return
-    }
 
     const a1 = (args.arg1 || "").toLowerCase()
     const a2 = (args.arg2 || "").toLowerCase()

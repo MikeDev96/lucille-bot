@@ -218,6 +218,48 @@ export default class extends Command {
       })
     })
   }
+
+  getHelpMessage (prefix) {
+    return {
+      embeds: [
+        {
+          title: "🔊 Sound Command Help",
+          description: "Upload, manage, and play custom connect/disconnect sounds!",
+          color: 0x9b59b6,
+          fields: [
+            {
+              name: "⬆️ Upload Sound",
+              value: `\`${prefix}sound upload connect <name>\`\nUpload connect sound\n\`${prefix}sound u disconnect <name>\`\nUpload disconnect sound\n• Must be MP3 format\n• Max 1MB, 7 seconds`,
+              inline: true
+            },
+            {
+              name: "📋 List Sounds",
+              value: `\`${prefix}sound list connect\`\nList connect sounds\n\`${prefix}sound l disconnect\`\nList disconnect sounds`,
+              inline: true
+            },
+            {
+              name: "▶️ Play Sound",
+              value: `\`${prefix}sound play connect <name>\`\nPlay specific connect sound\n\`${prefix}sound p disconnect\`\nPlay random disconnect sound`,
+              inline: true
+            },
+            {
+              name: "⬇️ Download Sound",
+              value: `\`${prefix}sound download connect <name>\`\nDownload specific sound\n\`${prefix}sound dl disconnect\`\nDownload all disconnect sounds as ZIP`,
+              inline: true
+            },
+            {
+              name: "💡 Tips",
+              value: "• Use 'c' for connect, 'd' for disconnect\n• Sounds are played through music system\n• ZIP downloads include all sounds\n• File names are case-insensitive",
+              inline: false
+            }
+          ],
+          footer: {
+            text: "Customize your server sounds! 🎵",
+          },
+        },
+      ],
+    }
+  }
 }
 
 const typeMap = {

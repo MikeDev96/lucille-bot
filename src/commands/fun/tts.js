@@ -52,6 +52,38 @@ class TtsCommand extends Command {
       throw new Error(`TTS failed: ${error.message}`)
     }
   }
+
+  getHelpMessage (prefix) {
+    return {
+      embeds: [
+        {
+          title: "🎙️ TTS Command Help",
+          description: "Convert text to speech and play it in your voice channel!",
+          color: 0x1e90ff,
+          fields: [
+            {
+              name: "🎤 Usage",
+              value: `\`${prefix}tts <text>\`\nConvert text to speech\nExample: \`${prefix}tts Hello world!\``,
+              inline: false
+            },
+            {
+              name: "🔊 Requirements",
+              value: "• You must be in a voice channel\n• Bot must have voice permissions\n• Text will be added to music queue",
+              inline: false
+            },
+            {
+              name: "💡 Tips",
+              value: "• TTS is automatically used by the joke command\n• Works with any text input\n• Uses the bot's music system",
+              inline: false
+            }
+          ],
+          footer: {
+            text: "Speak your mind! 🗣️",
+          },
+        },
+      ],
+    }
+  }
 }
 
 export default TtsCommand
