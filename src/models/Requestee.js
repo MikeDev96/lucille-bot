@@ -6,6 +6,6 @@ export default class Requestee {
   }
 
   static create (msg) {
-    return new Requestee(msg.member.displayName, msg.author.displayAvatarURL(), msg.author.id)
+    return new Requestee(msg.member?.displayName || msg.author?.username || "Unknown", msg.author?.displayAvatarURL?.() || null, msg.author?.id || "unknown")
   }
 };
