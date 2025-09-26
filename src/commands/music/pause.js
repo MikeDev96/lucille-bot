@@ -36,4 +36,36 @@ export default class extends Command {
       msg.reply(`❌ Failed to pause: ${error.message}`)
     }
   }
+
+  getHelpMessage (prefix) {
+    return {
+      embeds: [
+        {
+          title: "⏸️ Pause Command Help",
+          description: "Pause the currently playing music!",
+          color: 0xffa500,
+          fields: [
+            {
+              name: "🎵 Usage",
+              value: `\`${prefix}pause\`\nPause the current song`,
+              inline: false
+            },
+            {
+              name: "⚠️ Requirements",
+              value: "• Must be in the same voice channel as the bot\n• Music must be currently playing\n• Use 'resume' to continue",
+              inline: false
+            },
+            {
+              name: "💡 Tips",
+              value: "• Paused music can be resumed with 'resume'\n• Only the person who paused can resume\n• Queue continues to work while paused",
+              inline: false
+            }
+          ],
+          footer: {
+            text: "Take a break! ⏸️",
+          },
+        },
+      ],
+    }
+  }
 }

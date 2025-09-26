@@ -49,4 +49,36 @@ export default class extends Command {
       msg.reply(`❌ Failed to skip songs: ${error.message}`)
     }
   }
+
+  getHelpMessage (prefix) {
+    return {
+      embeds: [
+        {
+          title: "⏭️ Skip Command Help",
+          description: "Skip songs in the music queue!",
+          color: 0x1e90ff,
+          fields: [
+            {
+              name: "🎵 Usage",
+              value: `\`${prefix}skip\`\nSkip current song\n\`${prefix}skip <number>\`\nSkip multiple songs\n\`${prefix}s <number>\`\nShort alias\nExample: \`${prefix}skip 3\``,
+              inline: false
+            },
+            {
+              name: "⚠️ Requirements",
+              value: "• Must be in the same voice channel as the bot\n• Songs must be in the queue\n• Cannot skip more songs than available",
+              inline: false
+            },
+            {
+              name: "💡 Tips",
+              value: "• Default skips 1 song\n• Use numbers to skip multiple\n• Skipped songs are removed from queue\n• Bot automatically plays next song",
+              inline: false
+            }
+          ],
+          footer: {
+            text: "Skip to the good stuff! ⏭️",
+          },
+        },
+      ],
+    }
+  }
 }
