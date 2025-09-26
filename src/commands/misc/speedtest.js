@@ -32,4 +32,31 @@ export default class extends Command {
       msg.reply(`❌ Speed test failed: ${e.message}`)
     })
   }
+
+  getHelpMessage (prefix) {
+    return {
+      embeds: [
+        {
+          title: "🚀 Speedtest Command Help",
+          description: "Test the bot server's internet connection speed!",
+          color: 0x00ff00,
+          fields: [
+            {
+              name: "📊 Usage",
+              value: `\`${prefix}speedtest\`\nTest server connection speed\n• Measures download speed in Mbps\n• Uses Fast.com API\n• 10-second timeout`,
+              inline: false
+            },
+            {
+              name: "💡 Tips",
+              value: "• Results show download speed only\n• Speed depends on server location\n• Useful for troubleshooting\n• Requires SPEEDTEST_TOKEN",
+              inline: false
+            }
+          ],
+          footer: {
+            text: "Need for speed! 🏎️",
+          },
+        },
+      ],
+    }
+  }
 }
