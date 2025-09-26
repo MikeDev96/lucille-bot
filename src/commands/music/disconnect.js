@@ -14,7 +14,7 @@ export default class extends Command {
     })
   }
 
-  async run (msg, args) {
+  async run (msg) {
     try {
       const music = LucilleClient.Instance.getGuildInstance(msg.guild).music
       
@@ -22,26 +22,27 @@ export default class extends Command {
         msg.reply("❌ Bot is not connected to a voice channel")
         return
       }
-      
-      // Check if bot is playing audio, has items in queue, or is connected to voice
-      const isPlaying = music.player.state.status !== AudioPlayerStatus.Idle
-      const hasQueue = music.state.queue && music.state.queue.length > 0
-      const isConnected = !!getVoiceConnection(msg.guild.id)
-      
-      if (isPlaying || hasQueue || isConnected) {
-        msg.react("🛑")
 
-        // Stop the player and clear the queue
-        music.state.queue.splice(1)
-        music.setState({ queue: music.state.queue, summoned: false })
+      msg.react("🔌")
+
+      music.state.queue.splice(1)
+      music.setState({ queue: music.state.queue })
+
+      const isPlaying = music.player.state.status !== AudioPlayerStatus.Idle
+
+      if (isPlaying) {
+        music.setState({ summoned: false })
         music.player.stop()
-        music.updateEmbed()
-      } else {
-        msg.reply("❌ Bot is not currently playing anything")
       }
-    } catch (error) {
-      console.error("Stop command error:", error)
-      msg.reply(`❌ Failed to stop: ${error.message}`)
+      else {
+        getVoiceConnection(msg.guild.id)?.disconnect()
+      }
+
+      music.updateEmbed()
+    }
+    catch (error) {
+      console.error("Disconnect command error:", error)
+      msg.reply(`❌ Failed to disconnect: ${error.message}`)
     }
   }
 }

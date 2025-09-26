@@ -39,14 +39,14 @@ export const run = async (msg, args, jump) => {
     return
   }
 
-  if (music.state.pauser !== "" && args.input === "") {
+  if (music.state.pauser !== "" && !args.input) {
     resume(msg)
     return
   }
-
+  
   const searchReaction = msg.react("🔍")
 
-  if (args.input !== "") {
+  if (!!args.input) {
     const success = await music.add(args.input, Requestee.create(msg), getVoiceChannel(msg), jump, msg.channel)
     searchReaction.then(r => r.remove())
     await (await searchReaction).remove()
@@ -58,6 +58,6 @@ export const run = async (msg, args, jump) => {
     }
   }
   else {
-    msg.reply("Please provide a link or search term for the song you wish to play")
+    msg.reply("🔗 Please provide a link or search term for the song you wish to play")
   }
 }

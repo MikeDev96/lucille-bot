@@ -1,4 +1,4 @@
-import { AudioPlayerStatus, getVoiceConnection } from "@discordjs/voice"
+import { AudioPlayerStatus } from "@discordjs/voice"
 import Command from "../../models/Command.js"
 import LucilleClient from "../../classes/LucilleClient.js"
 
@@ -26,7 +26,7 @@ export default class extends Command {
       // Check if bot is playing audio, has items in queue, or is connected to voice
       const isPlaying = music.player.state.status !== AudioPlayerStatus.Idle
       const hasQueue = music.state.queue && music.state.queue.length > 0
-      const isConnected = !!getVoiceConnection(msg.guild.id)
+      const isConnected = music.isVoiceConnected()
       
       if (isPlaying || hasQueue || isConnected) {
         msg.react("🛑")

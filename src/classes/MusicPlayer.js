@@ -77,7 +77,7 @@ export default class MusicPlayer extends MusicState {
   summon (voiceChannel) {
     this.setState({ summoned: true })
 
-    const hasVoiceConnection = !!getVoiceConnection(voiceChannel.guild.id)
+    const hasVoiceConnection = this.isVoiceConnected()
 
     const connection = joinVoiceChannel({
       channelId: voiceChannel.id,
@@ -86,30 +86,30 @@ export default class MusicPlayer extends MusicState {
       selfDeaf: true,
       selfMute: false,
     })
-
+    
     if (!hasVoiceConnection) {
       this.setState({
         voiceChannel,
         playedConnectSound: false,
       })
 
-    connection.on(VoiceConnectionStatus.Disconnected, () => {
-      this.state.queue.splice(0, this.state.queue.length)
+      connection.on(VoiceConnectionStatus.Disconnected, () => {
+        this.state.queue.splice(0, this.state.queue.length)
 
-      this.setState({
-        queue: this.state.queue,
-        summoned: false,
-        voiceChannel: null,
+        this.setState({
+          queue: this.state.queue,
+          summoned: false,
+          voiceChannel: null,
+        })
+
+        this.player.stop()
+        this.cleanUp()
       })
 
-      this.player.stop()
-      this.cleanUp()
-    })
-
-    connection.on('error', (error) => {
-      console.error('Voice connection error:', error)
-    })
-    }
+      connection.on('error', (error) => {
+        console.error('Voice connection error:', error)
+      })
+   }
 
     connection.subscribe(this.player)
   }
@@ -518,7 +518,7 @@ export default class MusicPlayer extends MusicState {
     // so we need to make sure it gets cleaned up.
     this.endRadioMetadata(item)
 
-    if (item.radio && item.radio.metadata && item.requestStream) {
+    if (item.radio && item.radio.metadata && (!item.radio.metadata.type !== "sse" || item.requestStream)) {
       const instance = new RadioMetadata(item.radio.metadata, item.requestStream)
       item.setRadioInstance(instance)
 
@@ -781,6 +781,10 @@ export default class MusicPlayer extends MusicState {
     })
 
     this.player = player
+  }
+
+  isVoiceConnected() {
+    return getVoiceConnection(this.guild.id)?.state?.status === VoiceConnectionStatus.Ready
   }
 }
 

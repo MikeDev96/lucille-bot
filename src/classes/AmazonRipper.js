@@ -14,21 +14,21 @@ const AmazonRipper = class {
         const embedData = messageReaction.message.embeds[0]
         if (embedData) {
           const embed = new EmbedBuilder(embedData)
-          const match = /(?<=\/dp\/)\w.+?\b/.exec(embed.url)
+          const match = /(?<=\/dp\/)\w.+?\b/.exec(embed.data.url)
           if (match) {
             messageReaction.users.remove(user)
 
             if (!msg.amazonRipper) {
-              msg.amazonRipper = this.processMessage(msg, embed.url)
+              msg.amazonRipper = this.processMessage(msg, embed.data.url)
             }
 
             const ar = await msg.amazonRipper
 
-            const showCamel = !embed.image || !embed.image.url.includes("camelcamelcamel")
+            const showCamel = !embed.data.image || !embed.data.image.url.includes("camelcamelcamel")
 
             embed.setImage(showCamel ? `https://charts.camelcamelcamel.com/uk/${match[0]}/amazon-new.png?force=1&zero=0&w=855&h=513&desired=false&legend=1&ilt=1&tp=all&fo=0&lang=en` : ar.images[ar.imageIndex])
             if (ar.images.length > 1) {
-              embed.setFooter(showCamel ? "CamelCamelCamel" : `Image ${ar.imageIndex + 1} of ${ar.images.length}`)
+              embed.setFooter({ text: showCamel ? "CamelCamelCamel" : `Image ${ar.imageIndex + 1} of ${ar.images.length}` })
             }
 
             messageReaction.message.edit({ embeds: [embed] })
@@ -47,15 +47,15 @@ const AmazonRipper = class {
   async cycleImage (msg, dir, reaction, user) {
     if (msg.embeds[0]) {
       const embed = new EmbedBuilder(msg.embeds[0])
-      if (this.isAmazonLink(embed.url)) {
+      if (this.isAmazonLink(embed.data.url)) {
         reaction.users.remove(user)
 
-        if (!embed.image || embed.image.url.includes("camelcamelcamel")) {
+        if (!embed.data.image || embed.data.image.url.includes("camelcamelcamel")) {
           return
         }
 
         if (!msg.amazonRipper) {
-          msg.amazonRipper = this.processMessage(msg, embed.url)
+          msg.amazonRipper = this.processMessage(msg, embed.data.url)
         }
 
         const ar = await msg.amazonRipper
@@ -67,7 +67,7 @@ const AmazonRipper = class {
         ar.imageIndex = ar.imageIndex + dir < 0 ? ar.images.length - 1 : ar.imageIndex + dir > ar.images.length - 1 ? 0 : ar.imageIndex + dir
 
         embed.setImage(ar.images[ar.imageIndex])
-        embed.setFooter(`Image ${ar.imageIndex + 1} of ${ar.images.length}`)
+        embed.setFooter({ text: `Image ${ar.imageIndex + 1} of ${ar.images.length}` })
         msg.edit({ embeds: [embed] })
       }
     }
@@ -191,14 +191,20 @@ const AmazonRipper = class {
       const price = (dom.querySelector("#priceblock_ourprice, #priceblock_dealprice, #priceblock_saleprice, #apex_desktop .a-price.apexPriceToPay > span:not(.a-offscreen), #apex_desktop .a-price.priceToPay > span:not(.a-offscreen)") || {}).textContent || ""
 
       const overview = dom.querySelectorAll("[data-feature-name='productOverview'] tr").map(el => {
-        const [key, value] = el.querySelectorAll("td").map(el => el.textContent.trim())
+        let [key, value] = el.querySelectorAll("td").map(el => el.textContent.trim())
+
+        const seeMorePopupMatch = /\(function\(f\) {[\s\S]+?}\)\);\s+([\s\S]+?)\s+?See more/.exec(value)
+        if (seeMorePopupMatch) {
+          value = seeMorePopupMatch[1]
+        }
+
         return { key, value }
       })
 
       const features = dom.querySelectorAll("#feature-bullets > ul.a-unordered-list > li:not(.aok-hidden) > span.a-list-item").map(el => el.textContent.trim())
       const rating = (dom.querySelector("span[data-hook='rating-out-of-text']") || {}).textContent || ""
 
-      const images = this.getImages(html, data)
+      const images = this.getImages(data)
 
       const twisterData = /(?<=P\.register\('twister-js-init-dpx-data', function\(\) {\s+?var dataToReturn = ){[\s\S]+?}(?=;\s+?return dataToReturn)/.exec(html)
       // eslint-disable-next-line no-eval
@@ -224,21 +230,8 @@ const AmazonRipper = class {
     return null
   }
 
-  static getImages (html, data) {
-    const match = /var data = ({.*?'colorImages':.+?});/gs.exec(html)
-    if (match) {
-      const [, json] = match
-
-      const validJson = json.replace(/,\s+?'airyConfig' :A\.\$\.parseJSON\(.+?'\)/, "").replace("Date.now()", "\"\"").replace(/'/g, "\"")
-      const data2 = JSON.parse(validJson)
-
-      // When a product has colour options, it seems to store the images in data2 instead of data
-      const imageData = data.landingAsinColor === "initial" ? data2 : data
-
-      return imageData.colorImages[data.landingAsinColor].map(img => img.large)
-    }
-
-    return []
+  static getImages (data) {
+    return data.colorImages[data.landingAsinColor].map(img => img.large)
   }
 }
 

@@ -12,7 +12,8 @@ import TextToSpeech from "./TextToSpeech.js"
 import { globby } from "globby"
 import { Client, Events, GatewayIntentBits } from "discord.js"
 import LucilleGuild from "./LucilleGuild.js"
-import { checkForFFMpeg } from "../helpers.js"
+import { checkForFFMpeg, getVoiceChannel } from "../helpers.js"
+import Requestee from "../models/Requestee.js"
 
 export default class LucilleClient {
   static Instance = new LucilleClient()
@@ -54,6 +55,25 @@ export default class LucilleClient {
       new MusicTracker().run(msg)
       new RedditRipper().runMessage(msg)
       amazonRipper.runMessage(msg)
+    })
+
+    this.client.on(Events.MessageReactionAdd, async (messageReaction, user) => {
+      if (user.bot) return
+
+      if (messageReaction.emoji.name === "▶️") {
+        const botHasReacted = messageReaction.users.cache.has(messageReaction.client.user.id)
+        if (!botHasReacted) return
+
+        messageReaction.users.remove(user)
+
+        const music = this.getGuildInstance(messageReaction.message.guild).music
+        const msg = messageReaction.message
+
+        const success = await music.add(msg.content, Requestee.create(msg), getVoiceChannel(msg), false, msg.channel)
+        if (!success) {
+          msg.reply(`❌ Sorry, something went wrong when trying to play \`${msg.content}\`, please try again...`)
+        }
+      }
     })
   }
 

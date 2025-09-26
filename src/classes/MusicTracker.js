@@ -1,4 +1,4 @@
-import TrackExtractor, { PLATFORM_SPOTIFY, PLATFORM_TIDAL, PLATFORM_APPLE } from "./TrackExtractor.js"
+import TrackExtractor, { PLATFORM_SPOTIFY, PLATFORM_TIDAL, PLATFORM_APPLE, PLATFORM_YOUTUBE } from "./TrackExtractor.js"
 import MusicToX from "./MusicToX.js"
 import { getEmoji } from "../helpers.js"
 
@@ -8,6 +8,11 @@ export default class {
       const te = new TrackExtractor(msg.content)
       
       if (te.parseLinks()) {
+        const playCompatible = te.links.find(l => [PLATFORM_YOUTUBE, PLATFORM_SPOTIFY, PLATFORM_APPLE, PLATFORM_TIDAL].includes(l.platform))
+        if (playCompatible) {
+          msg.react("▶️")
+        }
+
         const filteredLinks = te.links.slice(0, 25).filter(l => [PLATFORM_SPOTIFY, PLATFORM_TIDAL, PLATFORM_APPLE].includes(l.platform) && ["track", "album", "artist"].includes(l.type))
         
         if (filteredLinks.length) {
