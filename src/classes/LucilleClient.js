@@ -64,10 +64,16 @@ export default class LucilleClient {
         const botHasReacted = messageReaction.users.cache.has(messageReaction.client.user.id)
         if (!botHasReacted) return
 
+        // Don't trigger music playback on embeds (paginated or other bot embeds)
+        const msg = messageReaction.message
+        if (msg.embeds && msg.embeds.length > 0) {
+          // Block music playback on any embed - this includes paginated embeds and help embeds
+          return
+        }
+
         messageReaction.users.remove(user)
 
         const music = this.getGuildInstance(messageReaction.message.guild).music
-        const msg = messageReaction.message
 
         const success = await music.add(msg.content, Requestee.create(msg), getVoiceChannel(msg), false, msg.channel)
         if (!success) {
