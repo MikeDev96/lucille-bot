@@ -64,13 +64,11 @@ export default class LucilleClient {
         const botHasReacted = messageReaction.users.cache.has(messageReaction.client.user.id)
         if (!botHasReacted) return
 
-        // Don't trigger music playback on help embeds or other bot embeds
+        // Don't trigger music playback on embeds (paginated or other bot embeds)
         const msg = messageReaction.message
         if (msg.embeds && msg.embeds.length > 0) {
-          const embed = msg.embeds[0]
-          if (embed.title && (embed.title.includes("Lucille Bot Commands") || embed.title.includes("Help"))) {
-            return
-          }
+          // Block music playback on any embed - this includes paginated embeds and help embeds
+          return
         }
 
         messageReaction.users.remove(user)
