@@ -98,6 +98,38 @@ export default class extends Command {
       msg.channel.send(`Goodbye ${join(peopleToBeRemoved)}`)
     }
   }
+
+  getHelpMessage(prefix) {
+    return {
+      embeds: [
+        {
+          title: "👋 Bye Command Help",
+          description: "Say goodbye to everyone in your voice channel!",
+          color: 0xffa500,
+          fields: [
+            {
+              name: "🚪 How It Works",
+              value: `\`${prefix}bye\`\nKick everyone from your voice channel\n• Must be in a voice channel\n• Must be posted in #general\n• 30-second cooldown`,
+              inline: false
+            },
+            {
+              name: "⚠️ Requirements",
+              value: "• Channel must be visible to everyone\n• You must be in a voice channel\n• Command must be used in #general\n• 8-second confirmation period",
+              inline: false
+            },
+            {
+              name: "🛑 Safety Features",
+              value: "• Anyone in the channel can stop it with 🛑\n• Clears the music queue\n• Prevents channel switching during bye\n• Cooldown prevents spam",
+              inline: false
+            }
+          ],
+          footer: {
+            text: "Use responsibly! 👋",
+          },
+        },
+      ],
+    }
+  }
 }
 
 const join = (arr) => {
@@ -116,37 +148,4 @@ const join = (arr) => {
   outArr.push(lastItem)
 
   return `${outArr.join(" & ")} 👋👋👋`
-}
-
-getHelpMessage(prefix) {
-  return {
-    embeds: [
-      {
-        title: "👋 Bye Command Help",
-        description: "Say goodbye to everyone in your voice channel!",
-        color: 0xffa500,
-        fields: [
-          {
-            name: "🚪 How It Works",
-            value: `\`${prefix}bye\`\nKick everyone from your voice channel\n• Must be in a voice channel\n• Must be posted in #general\n• 30-second cooldown`,
-            inline: false
-          },
-          {
-            name: "⚠️ Requirements",
-            value: "• Channel must be visible to everyone\n• You must be in a voice channel\n• Command must be used in #general\n• 8-second confirmation period",
-            inline: false
-          },
-          {
-            name: "🛑 Safety Features",
-            value: "• Anyone in the channel can stop it with 🛑\n• Clears the music queue\n• Prevents channel switching during bye\n• Cooldown prevents spam",
-            inline: false
-          }
-        ],
-        footer: {
-          text: "Use responsibly! 👋",
-        },
-      },
-    ],
-  }
-}
 }
