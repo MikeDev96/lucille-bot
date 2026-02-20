@@ -9,9 +9,19 @@ class PPDb {
       CREATE TABLE IF NOT EXISTS PenisSize (
         Id          INTEGER PRIMARY KEY AUTOINCREMENT,
         UserId      TEXT,
-        ServerId    TEXT, 
+        ServerId    TEXT,
         Size        INTEGER,
         DailyPP     INTEGER DEFAULT -1
+      );
+    `)
+
+    this.db.db.exec(`
+      CREATE TABLE IF NOT EXISTS PPHistory (
+        Id        INTEGER PRIMARY KEY AUTOINCREMENT,
+        UserId    TEXT,
+        ServerId  TEXT,
+        Size      INTEGER,
+        Date      TEXT
       );
     `)
 
@@ -57,6 +67,39 @@ class PPDb {
   resetDailyPPSize (serverId) {
     const rslts = this.db.run("UPDATE PenisSize SET [DailyPP] = -1 WHERE [ServerId] = @serverId", { serverId })
     return rslts.changes > 0
+  }
+
+  logDailyIfNew (user, server, size) {
+    const today = new Date().toISOString().slice(0, 10)
+    const existing = this.db.runScalarQuery(
+      "SELECT Id FROM PPHistory WHERE UserId = @user AND ServerId = @server AND Date = @today",
+      { user, server, today },
+    )
+    if (!existing) {
+      this.db.run(
+        "INSERT INTO PPHistory (UserId, ServerId, Size, Date) VALUES (@user, @server, @size, @today)",
+        { user, server, size, today },
+      )
+    }
+  }
+
+  getAveragePPSize (user, server) {
+    return this.db.runScalarQuery(
+      "SELECT ROUND(AVG(Size)) as AvgSize, COUNT(*) as TotalDays FROM PPHistory WHERE UserId = @user AND ServerId = @server",
+      { user, server },
+    )
+  }
+
+  getAllAveragePPSize (serverId) {
+    const rslts = this.db.runQuery(
+      `SELECT ph.UserId, ROUND(AVG(ph.Size)) as AvgSize, COUNT(*) as TotalDays, ui.DisplayName
+       FROM PPHistory ph
+       INNER JOIN UserInfo ui ON ph.UserId = ui.UserId AND ui.ServerId = ph.ServerId
+       WHERE ph.ServerId = @serverId
+       GROUP BY ph.UserId`,
+      { serverId },
+    )
+    return !rslts ? [] : rslts
   }
 }
 
