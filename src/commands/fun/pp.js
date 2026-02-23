@@ -299,4 +299,40 @@ export const ppResetDaily = (client, guild) => {
   guild.systemChannel.send({ embeds: [dailyEmbed] })
 
   LucilleClient.Instance.db.pp.resetDailyPPSize(guild.id)
+
+  const isMonday = new Date().getDay() === 1
+  if (isMonday) {
+    const fromDate = new Date(Date.now() - 7 * 86400000).toISOString().slice(0, 10)
+    const avgAll = LucilleClient.Instance.db.pp.getAllAveragePPSize(guild.id, fromDate)
+    const avgFields = avgAll
+      .filter(pp => pp.AvgSize !== null)
+      .sort((a, b) => b.AvgSize - a.AvgSize)
+      .map((pp, idx) => {
+        const name = pp.DisplayName !== null ? pp.DisplayName : guild.members.cache.find(m => m.id === pp.UserId)?.displayName
+        const size = pp.AvgSize
+        return `${medals[idx] || ""} \`${name}\` (${pp.TotalDays}d avg)\r\n8${"=".repeat(size)}D${size === 15 ? " ~ ~ ~" : ""}\r\n`
+      })
+      .join("\n")
+
+    if (avgFields) {
+      guild.systemChannel.send({
+        embeds: [{
+          title: "PP Weekly Average Leaderboard",
+          description: "Your weekly average pp roundup — who's been consistently packing?",
+          color: 4187927,
+          author: {
+            name: "PP Weekly Message",
+            icon_url: client.user.displayAvatarURL(),
+          },
+          fields: [{
+            name: guild.name,
+            value: avgFields,
+          }],
+          footer: {
+            text: process.env.DISCORD_FOOTER,
+          },
+        }],
+      })
+    }
+  }
 }

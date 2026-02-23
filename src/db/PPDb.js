@@ -90,14 +90,20 @@ class PPDb {
     )
   }
 
-  getAllAveragePPSize (serverId) {
+  getAllAveragePPSize (serverId, fromDate = null) {
+    const params = { serverId }
+    let dateFilter = ""
+    if (fromDate) {
+      dateFilter = "AND ph.Date >= @fromDate"
+      params.fromDate = fromDate
+    }
     const rslts = this.db.runQuery(
       `SELECT ph.UserId, ROUND(AVG(ph.Size)) as AvgSize, COUNT(*) as TotalDays, ui.DisplayName
        FROM PPHistory ph
        INNER JOIN UserInfo ui ON ph.UserId = ui.UserId AND ui.ServerId = ph.ServerId
-       WHERE ph.ServerId = @serverId
+       WHERE ph.ServerId = @serverId ${dateFilter}
        GROUP BY ph.UserId`,
-      { serverId },
+      params,
     )
     return !rslts ? [] : rslts
   }
