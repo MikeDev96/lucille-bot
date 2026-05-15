@@ -90,19 +90,21 @@ class PPDb {
     )
   }
 
-  getAllAveragePPSize (serverId, fromDate = null) {
+  getAllAveragePPSize (serverId, { fromDate = null, recentOnly = false } = {}) {
     const params = { serverId }
     let dateFilter = ""
     if (fromDate) {
       dateFilter = "AND ph.Date >= @fromDate"
       params.fromDate = fromDate
     }
+    const having = recentOnly ? "HAVING MAX(ph.Date) >= date('now', '-3 days')" : ""
     const rslts = this.db.runQuery(
       `SELECT ph.UserId, ROUND(AVG(ph.Size)) as AvgSize, COUNT(*) as TotalDays, ui.DisplayName
        FROM PPHistory ph
        INNER JOIN UserInfo ui ON ph.UserId = ui.UserId AND ui.ServerId = ph.ServerId
        WHERE ph.ServerId = @serverId ${dateFilter}
-       GROUP BY ph.UserId`,
+       GROUP BY ph.UserId
+       ${having}`,
       params,
     )
     return !rslts ? [] : rslts
