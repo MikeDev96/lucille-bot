@@ -105,7 +105,7 @@ ${LucilleClient.Instance.commandPrefix}pp perm \`lb\` gets the pp leaderboard, s
   }
 
   getAvgLeaderboard (msg) {
-    const all = LucilleClient.Instance.db.pp.getAllAveragePPSize(msg.guild.id)
+    const all = LucilleClient.Instance.db.pp.getAllAveragePPSize(msg.guild.id, { recentOnly: true })
     const fields = all
       .filter(pp => pp.AvgSize !== null)
       .sort((a, b) => b.AvgSize - a.AvgSize)
@@ -303,7 +303,7 @@ export const ppResetDaily = (client, guild) => {
   const isMonday = new Date().getDay() === 1
   if (isMonday) {
     const fromDate = new Date(Date.now() - 7 * 86400000).toISOString().slice(0, 10)
-    const avgAll = LucilleClient.Instance.db.pp.getAllAveragePPSize(guild.id, fromDate)
+    const avgAll = LucilleClient.Instance.db.pp.getAllAveragePPSize(guild.id, { fromDate })
     const avgFields = avgAll
       .filter(pp => pp.AvgSize !== null)
       .sort((a, b) => b.AvgSize - a.AvgSize)
