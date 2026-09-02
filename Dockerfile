@@ -1,26 +1,48 @@
-# Use an official Node.js image as the base
-FROM node:22
+# Native modules (better-sqlite3, sodium-native, zlib-sync, @discordjs/opus)
+# are compiled here, so the toolchain and its headers stay in this stage and
+# never reach the image that ships.
+FROM node:22-bookworm-slim AS deps
 
-# Install Python and required build tools
-RUN apt-get update && apt-get install -y \
+RUN apt-get update && apt-get install -y --no-install-recommends \
     python3 \
-    python3-pip \
     build-essential \
-    && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-RUN apt-get update && apt-get install -y ffmpeg
-
-# Set the working directory inside the container
 WORKDIR /usr/src/app
 
-# Copy package.json and package-lock.json
-COPY package*.json ./
+COPY package.json package-lock.json ./
 
-# Install dependencies
-RUN npm install
+# `npm ci` builds exactly what the lockfile pins, and --omit=dev leaves eslint
+# and nodemon behind.
+RUN npm ci --omit=dev
 
-# Copy the rest of the application files
+
+FROM node:22-bookworm-slim AS runtime
+
+WORKDIR /usr/src/app
+
+# Already built against this exact Node version in the stage above.
+COPY --from=deps /usr/src/app/node_modules ./node_modules
+
+# The bot spawns bare "ffmpeg" and "ffprobe", so they have to be on PATH.
+# npm has already pulled fully static builds of both (ffmpeg-static, via
+# prism-media, and @ffprobe-installer, via get-audio-duration), so link those
+# rather than apt-get installing a second copy - the apt one is a 300KB binary
+# that drags in ~460MB of shared libraries.
+#
+# ffmpeg-static is an optional peer dependency, so assert both binaries are
+# really there: a missing one should fail the build here rather than at the
+# first attempt to play something.
+RUN set -eux; \
+    ffmpeg_bin=/usr/src/app/node_modules/ffmpeg-static/ffmpeg; \
+    ffprobe_bin="$(find /usr/src/app/node_modules/@ffprobe-installer -name ffprobe -type f | head -1)"; \
+    test -x "$ffmpeg_bin"; \
+    test -x "$ffprobe_bin"; \
+    ln -s "$ffmpeg_bin" /usr/local/bin/ffmpeg; \
+    ln -s "$ffprobe_bin" /usr/local/bin/ffprobe; \
+    ffmpeg -version; \
+    ffprobe -version
+
 COPY . .
 
 # Stamped by CI so the running bot can say what shipped. Empty in a
@@ -30,5 +52,4 @@ ARG APP_COMMIT_MESSAGE=""
 ENV APP_COMMIT=$APP_COMMIT
 ENV APP_COMMIT_MESSAGE=$APP_COMMIT_MESSAGE
 
-# Run the application
 CMD ["node", "src/index.js"]
