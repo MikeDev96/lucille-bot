@@ -1,0 +1,20 @@
+services:
+  lucille:
+    # Pulled from GHCR now that CI builds the image, rather than built on the
+    # box from a source checkout. `build: .` is kept so a local
+    # `docker compose up -d --build` still works from this repo.
+    # LUCILLE_TAG lets you roll back: LUCILLE_TAG=<sha> docker compose up -d
+    image: ghcr.io/mikedev96/lucille-bot:${LUCILLE_TAG:-latest}
+    build: .
+    container_name: lucille
+    restart: unless-stopped
+    # Every secret and setting the bot reads. CONFIG_DIR=/config belongs in
+    # here too - it points getConfig (src/helpers.js) at the mount below.
+    env_file:
+      - .env
+    volumes:
+      # The bot's state and host-side media: main.db, assets/sounds,
+      # assets/images/bangerstamps and assets/videos/reddit. None of it is in
+      # git, so none of it is in the image - without this mount the sound
+      # commands find nothing and the database is lost on every restart.
+      - .:/config
