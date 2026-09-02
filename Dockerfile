@@ -24,7 +24,7 @@ RUN npm install
 COPY . .
 
 # Stamped by CI so the running bot can say what shipped. Empty in a
-# hand-built image, which is fine — nothing depends on them.
+# hand-built image, which is fine - nothing depends on them.
 ARG APP_COMMIT=""
 ARG APP_COMMIT_MESSAGE=""
 ENV APP_COMMIT=$APP_COMMIT
