@@ -23,5 +23,12 @@ RUN npm install
 # Copy the rest of the application files
 COPY . .
 
+# Stamped by CI so the running bot can say what shipped. Empty in a
+# hand-built image, which is fine — nothing depends on them.
+ARG APP_COMMIT=""
+ARG APP_COMMIT_MESSAGE=""
+ENV APP_COMMIT=$APP_COMMIT
+ENV APP_COMMIT_MESSAGE=$APP_COMMIT_MESSAGE
+
 # Run the application
 CMD ["node", "src/index.js"]
