@@ -25,14 +25,14 @@ WORKDIR /usr/src/app
 COPY --from=deps /usr/src/app/node_modules ./node_modules
 
 # The bot spawns bare "ffmpeg" and "ffprobe", so they have to be on PATH.
-# npm has already pulled fully static builds of both (ffmpeg-static, via
-# prism-media, and @ffprobe-installer, via get-audio-duration), so link those
-# rather than apt-get installing a second copy - the apt one is a 300KB binary
-# that drags in ~460MB of shared libraries.
+# npm has already pulled fully static builds of both (ffmpeg-static directly,
+# and @ffprobe-installer via get-audio-duration), so link those rather than
+# apt-get installing a second copy - the apt one is a 300KB binary that drags
+# in ~460MB of shared libraries.
 #
-# ffmpeg-static is an optional peer dependency, so assert both binaries are
-# really there: a missing one should fail the build here rather than at the
-# first attempt to play something.
+# ffprobe arrives transitively and its path carries the platform in it, so
+# assert both binaries are really there: a missing one should fail the build
+# here rather than at the first attempt to play something.
 RUN set -eux; \
     ffmpeg_bin=/usr/src/app/node_modules/ffmpeg-static/ffmpeg; \
     ffprobe_bin="$(find /usr/src/app/node_modules/@ffprobe-installer -name ffprobe -type f | head -1)"; \
